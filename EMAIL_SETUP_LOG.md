@@ -3,6 +3,38 @@
 ## Overview
 This document records the full process used to configure the Kamatera Postfix SMTP relay, configure SASL authentication, run the local Node.js email service, debug delivery failures, and successfully send a test email.
 
+## Developer Profile
+- Location: Uganda
+- Role: Developer for this email delivery service
+- Age: 24 years
+- Background: Engineer working on concrete, aggregate, and other projects
+- Interests: Loves coding and building practical systems
+- Profile picture: add a file named `profile.jpg` or `profile.png` in the repository root and reference it from the documentation or README
+- Social handles:
+  - GitHub: `https://github.com/<your-username>`
+  - LinkedIn: `https://www.linkedin.com/in/<your-handle>`
+  - X/Twitter: `https://twitter.com/<your-handle>`
+
+## GitHub Token Access
+For GitHub repository access and automation:
+- Create a personal access token on GitHub:
+  1. Go to `https://github.com/settings/tokens`
+  2. Click `Generate new token`
+  3. Select the appropriate scopes, such as `repo` for repository access
+  4. Copy the token immediately (GitHub will not show it again)
+- Store the token securely, not in source control. Use one of these options:
+  - Local machine: store in an environment variable like `GITHUB_TOKEN`
+  - GitHub Actions: add it as a repository secret under `Settings > Secrets and variables > Actions`
+- Use the token for push or API access from your local machine with:
+  ```powershell
+  git remote add origin https://github.com/<your-username>/<repo-name>.git
+  git push https://<token>@github.com/<your-username>/<repo-name>.git main
+  ```
+  > Note: Prefer a Git credential manager or GitHub CLI instead of embedding tokens in commands when possible.
+- If you want a direct “GitHub link” to access repository content, use the raw file URL format:
+  `https://raw.githubusercontent.com/<your-username>/<repo-name>/main/profile.jpg`
+  This is useful for embedding a profile picture in markdown after the image is committed.
+
 ## 1. Kamatera / Postfix Setup
 
 ### Installed Postfix
