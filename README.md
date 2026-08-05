@@ -1,5 +1,10 @@
 # 📬 FreeMailSend
 
+[![GitHub stars](https://img.shields.io/github/stars/maskedes/email-resending-service?style=for-the-badge)](https://github.com/maskedes/email-resending-service/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/maskedes/email-resending-service?style=for-the-badge)](https://github.com/maskedes/email-resending-service/network)
+[![GitHub issues](https://img.shields.io/github/issues/maskedes/email-resending-service?style=for-the-badge)](https://github.com/maskedes/email-resending-service/issues)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+
 A **free, self-hosted email sending service** — your own Resend-like email API provider.
 
 Send transactional emails via a simple REST API with API key authentication, delivery tracking, and a built-in web dashboard.
@@ -202,7 +207,16 @@ Visit `http://localhost:3000` to access the dashboard where you can:
 - **X / Twitter:** [https://twitter.com/<your-handle>](https://twitter.com/<your-handle>)
 
 > 💡 Place your profile picture as `profile.jpg` in the repository root to display it above.
+## ⭐ Support
 
+If you find this project useful, please consider supporting it:
+
+- ⭐ **Star this repository** — [github.com/maskedes/email-resending-service](https://github.com/maskedes/email-resending-service)
+- 🍴 **Fork it** and submit improvements via pull requests
+- 🐛 **Report bugs** or request features in [Issues](https://github.com/maskedes/email-resending-service/issues)
+- 📣 **Share it** with developers who need a free email sending service
+
+Your stars help more developers discover this project. Thank you! 🙏
 ## �📝 License
 
 MIT
