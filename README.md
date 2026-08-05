@@ -185,6 +185,24 @@ Visit `http://localhost:3000` to access the dashboard where you can:
 - Use HTTPS in production (put behind a reverse proxy like nginx)
 - Store API keys securely and never commit them to version control
 
-## 📝 License
+## �‍💻 Developer
+
+![Developer profile](profile.jpg)
+
+**MASK EDES**
+- 🇺🇬 Uganda
+- 💻 Software developer of this email delivery service
+- 👤 24 years old
+- ⚙️ Engineer — working on concrete, aggregate, and other projects
+- ❤️ Loves coding and building practical systems
+
+### Social Handles
+- **GitHub:** [https://github.com/maskedes](https://github.com/maskedes)
+- **LinkedIn:** [https://www.linkedin.com/in/<your-handle>](https://www.linkedin.com/in/<your-handle>)
+- **X / Twitter:** [https://twitter.com/<your-handle>](https://twitter.com/<your-handle>)
+
+> 💡 Place your profile picture as `profile.jpg` in the repository root to display it above.
+
+## �📝 License
 
 MIT
