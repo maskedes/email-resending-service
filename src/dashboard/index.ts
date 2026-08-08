@@ -66,6 +66,34 @@ router.get('/', requireDashboardAuth, async (_req: Request, res: Response): Prom
   res.send(renderOverview({ apiKeys, emails, stats }));
 });
 
+// ---- Email logs (events) for the Next.js dashboard ----
+router.get('/api/logs', requireDashboardAuthApi, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit as string) || 50, 200);
+    const offset = parseInt(req.query.offset as string) || 0;
+
+    const logs = await query(
+      `SELECT ee.id, ee.event as level, 
+              COALESCE(ee.details, ee.event) as message,
+              ee.timestamp as created_at,
+              ee.email_id,
+              e.subject,
+              e.to_email,
+              e.status as email_status
+       FROM email_events ee
+       LEFT JOIN emails e ON e.id = ee.email_id
+       ORDER BY ee.timestamp DESC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset]
+    );
+
+    res.json({ data: logs });
+  } catch (err) {
+    console.error('Logs fetch error:', err);
+    res.status(500).json({ error: { type: 'internal_error', message: 'Failed to load logs.' } });
+  }
+});
+
 // ---- JSON API for the Next.js dashboard ----
 router.get('/api/dashboard/overview', requireDashboardAuthApi, async (_req: Request, res: Response): Promise<void> => {
   try {
