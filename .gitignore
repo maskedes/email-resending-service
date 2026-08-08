@@ -15,3 +15,5 @@ out/
 workers/email-api-worker/.env
 workers/email-api-worker/.wrangler/
 workers/email-api-worker/node_modules/
+.vercel
+.env*
