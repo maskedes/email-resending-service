@@ -4,7 +4,7 @@ const FOOTER_LINKS = [
   {
     title: 'Product',
     items: [
-      { label: 'Dashboard', href: 'https://envoy-dashboard.vercel.app' },
+      { label: 'Dashboard', href: 'https://email-resending-service.vercel.app' },
       { label: 'CLI', href: '/cli' },
       { label: 'API Reference', href: '/api/send' },
     ],
