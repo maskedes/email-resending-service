@@ -26,3 +26,10 @@ echo ""
 echo "=== Sending Email #5 ==="
 curl -s -X POST "$API/api/emails/send" -H "Content-Type: application/json" -H "x-api-key: $KEY" -H "x-edge-proxy-secret: $SECRET" -d '{"to":"newsletter@example.com","subject":"Test Email #5 - Newsletter","html":"<h1>Newsletter</h1><p>August updates from E-NVOY.</p>","tags":{"campaign":"newsletter"}}'
 echo ""
+
+echo "=== Sending Email #6 - Bounce Test ==="
+curl -s -X POST "$API/api/emails/send" -H "Content-Type: application/json" -H "x-api-key: $KEY" -H "x-edge-proxy-secret: $SECRET" -d '{"to":"bounce@example.com","subject":"Test Email #6 - Bounce Test","html":"<h1>Bounce Test</h1><p>This email should bounce.</p>","tags":{"test":"bounce"}}'
+echo ""
+
+echo "=== Check Final Logs ==="
+curl -s "$API/api/logs?limit=15" -H "X-Dashboard-Service-Secret: 3beab383db489bbeabd2c93393bdf5d9da7fc42e7a316a9c4fd362a94aa7cd1c"

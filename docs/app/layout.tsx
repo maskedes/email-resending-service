@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Sidebar } from '../components/Sidebar';
+import { Footer } from '../components/Footer';
 
 export const metadata: Metadata = {
   title: 'E-NVOY Docs',
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="mx-auto max-w-3xl px-6 py-16 lg:px-8">
               {children}
             </div>
+            <Footer />
           </main>
         </div>
       </body>
