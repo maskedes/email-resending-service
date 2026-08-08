@@ -35,6 +35,17 @@
 		reverse_proxy {$API_ADDRESS}
 	}
 
+	# Dashboard API routes → backend
+	handle /api/logs {
+		reverse_proxy {$API_ADDRESS}
+	}
+	handle /api/logs/* {
+		reverse_proxy {$API_ADDRESS}
+	}
+	handle /api/dashboard/* {
+		reverse_proxy {$API_ADDRESS}
+	}
+
 	# Dashboard auth endpoints → backend
 	handle /api/auth/* {
 		reverse_proxy {$API_ADDRESS}

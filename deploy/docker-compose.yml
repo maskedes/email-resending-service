@@ -71,6 +71,9 @@ services:
       RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
       API_KEY_HEADER: ${API_KEY_HEADER:-x-api-key}
       EDGE_PROXY_SECRET: ${EDGE_PROXY_SECRET:-}
+      # Dashboard integration
+      DASHBOARD_SERVICE_SECRET: ${DASHBOARD_SERVICE_SECRET:-}
+      SKIP_AUTH: ${SKIP_AUTH:-true}
 
     healthcheck:
       test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
