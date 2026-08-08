@@ -10,6 +10,27 @@ export interface AuthRequest extends Request {
   };
 }
 
+/**
+ * Verifies the Cloudflare edge proxy secret, if one is configured.
+ * Ensures /api/emails/* traffic only comes through the Worker.
+ */
+export function edgeProxyMiddleware(req: Request, res: Response, next: NextFunction): void {
+  const secret = config.edgeProxySecret;
+  if (!secret) return next(); // Edge auth disabled
+
+  const provided = req.headers['x-edge-proxy-secret'] as string | undefined;
+  if (!provided || provided !== secret) {
+    res.status(403).json({
+      error: {
+        type: 'forbidden',
+        message: 'Direct access is not allowed. Use the edge endpoint.',
+      },
+    });
+    return;
+  }
+  next();
+}
+
 export async function authMiddleware(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   const apiKey = req.headers[config.apiKeyHeader] as string;
 

@@ -1,0 +1,36 @@
+name = "en-voy-email-api"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ── Cloudflare account ─────────────────────────────────────────
+# Your account ID (from the Cloudflare dashboard / Workers).
+account_id = "3927cfb1b7b9165d4cf08006a04f175f"
+
+# ── Deploy config ──────────────────────────────────────────────
+# Routes you want the worker to serve. Uncomment once your zone
+# is added and you've chosen a hostname.
+# [routes]
+# { pattern = "api.yourdomain.com/*", zone_name = "yourdomain.com" }
+
+# ── Bindings (variables are injected as env at runtime) ────────
+[vars]
+# The origin Express/Node API that this worker proxies to.
+# Must NOT end with a slash.
+ORIGIN_URL = "http://localhost:3000"
+
+# Comma-separated list of allowed CORS origins ("*" for all).
+ALLOWED_ORIGINS = "*"
+
+# Per-IP request limit per window (seconds).
+RATE_LIMIT_MAX = "100"
+RATE_LIMIT_WINDOW_SECONDS = "60"
+
+# ── Secrets ────────────────────────────────────────────────────
+# Set these with:  npx wrangler secret put EDGE_PROXY_SECRET
+# EDGE_PROXY_SECRET: shared secret that the origin verifies so it
+#   only accepts proxied traffic from this worker (optional but recommended).
+
+# ── Observability ──────────────────────────────────────────────
+[observability]
+enabled = true

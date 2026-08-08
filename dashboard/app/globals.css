@@ -1,0 +1,154 @@
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: normal;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+  font-feature-settings: 'liga';
+  -webkit-font-feature-settings: 'liga';
+  font-variant-ligatures: contextual;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-canvas text-slate-100 antialiased;
+}
+
+/* ─── Thin capsule scrollbars ─── */
+* {
+  scrollbar-width: thin;                          /* Firefox */
+  scrollbar-color: rgba(60, 146, 69, 0.35) transparent; /* Firefox */
+}
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(60, 146, 69, 0.35);
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(60, 146, 69, 0.55);
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Material Symbols icon font */
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+/* Ambient jungle green top-glow for depth */
+.app-ambient {
+  background:
+    radial-gradient(ellipse 70% 40% at 50% -10%, rgba(60, 146, 69, 0.16), transparent 70%),
+    radial-gradient(ellipse 40% 30% at 90% 0%, rgba(252, 180, 4, 0.08), transparent 60%);
+}
+
+/* Landing page glow effects */
+.hero-glow {
+  background: radial-gradient(ellipse 60% 50% at 50% -20%, rgba(60, 146, 69, 0.25), transparent 70%);
+}
+
+.hero-grid {
+  background-size: 60px 60px;
+  background-image:
+    linear-gradient(to right, rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+}
+
+/* Email preview card float animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Code block styling */
+.code-block {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+/* Gradient border — kept minimal */
+.gradient-border {
+  position: relative;
+}
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(60, 146, 69, 0.3), rgba(252, 180, 4, 0.15));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* Feature card — sharp, flat, no glass */
+.feature-card {
+  @apply relative border border-canvas-border bg-canvas-raised p-6 transition-all duration-300;
+}
+.feature-card:hover {
+  @apply border-brand/40 bg-canvas-raised;
+}
+
+/* ─── Auth page inputs & buttons — flat, sharp ─── */
+.auth-input {
+  width: 100%;
+  min-height: 3rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.95rem 1rem;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+.auth-input::placeholder {
+  color: rgba(148, 163, 184, 0.55);
+}
+.auth-input:focus {
+  border-color: rgba(60, 146, 69, 0.45);
+  box-shadow: 0 0 0 3px rgba(60, 146, 69, 0.15);
+}
+
+.auth-btn-primary {
+  width: 100%;
+  min-height: 3.25rem;
+  border: 1px solid rgba(60, 146, 69, 0.4);
+  background: #3C9245;
+  padding: 0.95rem 1.25rem;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+.auth-btn-primary:hover {
+  background: #4da85c;
+}
+.auth-btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Fallback for browsers without @property */
+

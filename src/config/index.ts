@@ -52,4 +52,20 @@ export const config = {
   },
 
   apiKeyHeader: process.env.API_KEY_HEADER || 'x-api-key',
+
+  /** Optional shared secret that Cloudflare edge Worker sends to verify proxied traffic. */
+  edgeProxySecret: process.env.EDGE_PROXY_SECRET || '',
+
+  dashboard: {
+    username: process.env.DASHBOARD_USERNAME || 'admin',
+    password: process.env.DASHBOARD_PASSWORD || 'changeme',
+    // Secret used to sign the dashboard session cookie
+    sessionSecret: process.env.DASHBOARD_SESSION_SECRET || 'fms-dev-session-secret-change-me',
+    // How long a dashboard login stays valid (default 24h)
+    sessionTtlMs: parseInt(process.env.DASHBOARD_SESSION_TTL_MS || '86400000', 10),
+    cookieName: 'fms_dashboard',
+    // Shared secret between the Next.js dashboard and Express so the proxy can
+    // authenticate without the browser cookie (used with Supabase auth).
+    serviceSecret: process.env.DASHBOARD_SERVICE_SECRET || 'fms-dev-service-secret-change-me',
+  },
 };

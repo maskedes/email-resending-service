@@ -105,6 +105,10 @@ async function runMigrations(pool: Pool): Promise<void> {
       dkim_record_value TEXT,
       dmarc_record TEXT,
       verified_at TIMESTAMPTZ,
+      spf_verified BOOLEAN DEFAULT FALSE,
+      dkim_verified BOOLEAN DEFAULT FALSE,
+      dmarc_verified BOOLEAN DEFAULT FALSE,
+      last_checked_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ DEFAULT now()
     );
 
@@ -126,6 +130,14 @@ async function runMigrations(pool: Pool): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_webhooks_api_key ON webhooks(api_key_id);
     CREATE INDEX IF NOT EXISTS idx_domains_api_key ON domains(api_key_id);
     CREATE INDEX IF NOT EXISTS idx_templates_api_key ON templates(api_key_id);
+  `);
+
+  // ── Domains verification columns (added for real DNS checking) ──
+  await pool.query(`
+    ALTER TABLE domains ADD COLUMN IF NOT EXISTS spf_verified BOOLEAN DEFAULT FALSE;
+    ALTER TABLE domains ADD COLUMN IF NOT EXISTS dkim_verified BOOLEAN DEFAULT FALSE;
+    ALTER TABLE domains ADD COLUMN IF NOT EXISTS dmarc_verified BOOLEAN DEFAULT FALSE;
+    ALTER TABLE domains ADD COLUMN IF NOT EXISTS last_checked_at TIMESTAMPTZ;
   `);
 }
 

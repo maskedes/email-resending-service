@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { createApiKey, getAllApiKeys, deactivateApiKey } from '../services/apiKeyService';
+import { createApiKey, getAllApiKeys, deactivateApiKey, deleteApiKey } from '../services/apiKeyService';
 
 const router = Router();
 
@@ -70,6 +70,25 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
 
   res.json({
     message: 'API key deactivated successfully.',
+  });
+});
+
+// Permanently delete an API key (auto-revokes + removes it from the database).
+router.delete('/:id/delete', async (req: Request, res: Response): Promise<void> => {
+  const success = await deleteApiKey(req.params.id);
+
+  if (!success) {
+    res.status(404).json({
+      error: {
+        type: 'not_found',
+        message: 'API key not found.',
+      },
+    });
+    return;
+  }
+
+  res.json({
+    message: 'API key deleted successfully.',
   });
 });
 

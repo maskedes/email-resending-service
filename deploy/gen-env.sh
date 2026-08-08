@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -e
+cd /opt/envoy/deploy
+
+SESS_SECRET="$(openssl rand -hex 32)"
+SERV_SECRET="$(openssl rand -hex 32)"
+PG_PASS="$(openssl rand -hex 16)"
+
+cat > .env <<EOF
+# E-NVOY production env — generated on VM
+PGUSER=envoy
+PGPASSWORD=${PG_PASS}
+PGDATABASE=envoy
+
+# SMTP — Postfix on this same VM
+SMTP_HOST=185.227.111.25
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=mailuser
+SMTP_PASS=MailPass2026!
+DEFAULT_FROM_EMAIL=mailuser@[185.227.111.25]
+DEFAULT_FROM_NAME=E-NVOY
+
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+DASHBOARD_SESSION_SECRET=${SESS_SECRET}
+DASHBOARD_SERVICE_SECRET=${SERV_SECRET}
+DASHBOARD_USERNAME=admin
+DASHBOARD_PASSWORD=${SESS_SECRET:0:16}
+EDGE_PROXY_SECRET=change-me-edge-proxy-secret
+
+SKIP_AUTH=true
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+CLOUDFLARE_ACCESS_ENABLED=false
+CLOUDFLARE_ACCOUNT_ID=3927cfb1b7b9165d4cf08006a04f175f
+
+SITE_ADDRESS=:80
+EOF
+
+echo "==> ENV_WRITTEN"
+# Print only non-secret keys for confirmation
+grep -vE 'PASSWORD|SECRET' .env

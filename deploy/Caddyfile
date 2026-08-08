@@ -1,0 +1,62 @@
+# ─────────────────────────────────────────────────────────────
+# E-NVOY reverse proxy — Caddy 2 (backend-only)
+#   • Bare IP   → SITE_ADDRESS=:80        (plain HTTP)
+#   • Domain    → SITE_ADDRESS=mail.example.com  (automatic HTTPS via Let's Encrypt)
+# ─────────────────────────────────────────────────────────────
+
+{$SITE_ADDRESS} {
+	# Email-sending API → Express backend
+	# Match both /api/emails (with query params) and /api/emails/* (with path segments).
+	handle /api/emails {
+		reverse_proxy {$API_ADDRESS}
+	}
+	handle /api/emails/* {
+		reverse_proxy {$API_ADDRESS}
+	}
+
+	# Domain management API → backend
+	handle /api/domains {
+		reverse_proxy {$API_ADDRESS}
+	}
+	handle /api/domains/* {
+		reverse_proxy {$API_ADDRESS}
+	}
+
+	# Domain events SSE → backend
+	handle /api/domains/events {
+		reverse_proxy {$API_ADDRESS}
+	}
+
+	# API key management → backend
+	handle /api/apikeys {
+		reverse_proxy {$API_ADDRESS}
+	}
+	handle /api/apikeys/* {
+		reverse_proxy {$API_ADDRESS}
+	}
+
+	# Dashboard auth endpoints → backend
+	handle /api/auth/* {
+		reverse_proxy {$API_ADDRESS}
+	}
+
+	# Liveness probe → backend
+	handle /health {
+		reverse_proxy {$API_ADDRESS}
+	}
+
+	# Reject everything else — this is a backend-only server
+	handle {
+		respond "API server only. Dashboard is hosted separately." 403
+	}
+
+	header {
+		-X-Forwarded-Host
+		X-Forwarded-Proto https
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

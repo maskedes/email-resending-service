@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
-import { query, queryOne } from '../database/db';
+import { query, queryOne, getPool } from '../database/db';
 
 export interface ApiKey {
   id: string;
@@ -68,6 +68,37 @@ export async function deactivateApiKey(id: string): Promise<boolean> {
 
 export async function getApiKeyById(id: string): Promise<ApiKey | null> {
   return (await queryOne<ApiKey>(`SELECT * FROM api_keys WHERE id = $1`, [id])) || null;
+}
+
+/**
+ * Permanently deletes an API key and all of its dependent data.
+ * The schema has no ON DELETE CASCADE, so we clean up child rows
+ * (email_events -> emails -> webhooks/domains/templates) in a transaction
+ * before removing the key itself. Once deleted the key can never authorize.
+ */
+export async function deleteApiKey(id: string): Promise<boolean> {
+  const pool = getPool();
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    // email_events reference emails(id), so delete them first (scoped to this key's emails).
+    await client.query(
+      `DELETE FROM email_events WHERE email_id IN (SELECT id FROM emails WHERE api_key_id = $1)`,
+      [id]
+    );
+    await client.query(`DELETE FROM emails WHERE api_key_id = $1`, [id]);
+    await client.query(`DELETE FROM webhooks WHERE api_key_id = $1`, [id]);
+    await client.query(`DELETE FROM domains WHERE api_key_id = $1`, [id]);
+    await client.query(`DELETE FROM templates WHERE api_key_id = $1`, [id]);
+    const result = await client.query(`DELETE FROM api_keys WHERE id = $1`, [id]);
+    await client.query('COMMIT');
+    return (result.rowCount ?? 0) > 0;
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 export async function incrementEmailCount(apiKeyId: string): Promise<void> {

@@ -1,0 +1,26 @@
+# Dependencies / build artifacts
+node_modules
+**/node_modules
+dist
+**/.next
+**/out
+data
+pgdata
+**/pgdata
+*.tsbuildinfo
+
+# Local env files (never ship secrets)
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# VCS / OS / editor noise
+.git
+.gitignore
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*

@@ -1,0 +1,105 @@
+# ─────────────────────────────────────────────────────────────
+# E-NVOY email service — backend stack for Kamatera
+#   postgres 16  ·  redis 7  ·  backend (Express)  ·  caddy (reverse proxy + HTTPS)
+#
+# Usage:  cp .env.production .env && docker compose up -d --build
+# ─────────────────────────────────────────────────────────────
+
+name: envoy
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${PGUSER:-envoy}
+      POSTGRES_PASSWORD: ${PGPASSWORD:?set PGPASSWORD in .env}
+      POSTGRES_DB: ${PGDATABASE:-envoy}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${PGUSER:-envoy} -d ${PGDATABASE:-envoy}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+      # External PostgreSQL (container) — switches off embedded PG
+      USE_EMBEDDED: 'false'
+      PGHOST: postgres
+      PGPORT: 5432
+      PGUSER: ${PGUSER:-envoy}
+      PGPASSWORD: ${PGPASSWORD}
+      PGDATABASE: ${PGDATABASE:-envoy}
+      # External Redis (container) — switches off embedded Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # SMTP (edit in .env)
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-noreply@example.com}
+      DEFAULT_FROM_NAME: ${DEFAULT_FROM_NAME:-E-NVOY}
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
+      API_KEY_HEADER: ${API_KEY_HEADER:-x-api-key}
+      EDGE_PROXY_SECRET: ${EDGE_PROXY_SECRET:-}
+
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    environment:
+      # For a bare IP keep :80 (plain HTTP). Set to your domain (e.g. mail.example.com)
+      # to get automatic HTTPS via Let's Encrypt.
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+      API_ADDRESS: backend:3000
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  pgdata:
+  redisdata:
+  caddy_data:
+  caddy_config:

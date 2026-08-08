@@ -6,8 +6,9 @@ import { config } from './config';
 import { initDatabase, closeDatabase } from './database/db';
 import emailRoutes from './routes/emailRoutes';
 import apiKeyRoutes from './routes/apiKeyRoutes';
-import dashboardRoutes from './routes/dashboard';
-import { errorHandler } from './middleware/auth';
+import domainRoutes from './routes/domainRoutes';
+import dashboardRoutes from './dashboard';
+import { errorHandler, edgeProxyMiddleware } from './middleware/auth';
 import { initEmailWorker } from './workers/emailWorker';
 
 const app = express();
@@ -35,8 +36,9 @@ app.use('/api/', limiter);
 
 // Routes
 app.use('/', dashboardRoutes);
-app.use('/api/emails', emailRoutes);
+app.use('/api/emails', edgeProxyMiddleware, emailRoutes);
 app.use('/api/apikeys', apiKeyRoutes);
+app.use('/api/domains', domainRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {

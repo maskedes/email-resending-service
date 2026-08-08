@@ -1,0 +1,32 @@
+{
+  "name": "@maskedes/envoy-cli",
+  "version": "1.0.0",
+  "description": "E-NVOY CLI — Send emails, manage domains, and monitor delivery from your terminal",
+  "main": "dist/index.js",
+  "bin": {
+    "envoy": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc && node dist/index.js",
+    "start": "node dist/index.js",
+    "prepublishOnly": "tsc"
+  },
+  "keywords": ["email", "cli", "smtp", "api", "transactional-email", "envoy"],
+  "author": "E-NVOY",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^12.1.0",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "conf": "^10.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": ["dist", "README.md"]
+}

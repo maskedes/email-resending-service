@@ -1,31 +1,16 @@
-import { Router, Request, Response } from 'express';
-import { getAllApiKeys } from '../services/apiKeyService';
-import { query } from '../database/db';
+interface OverviewData {
+  apiKeys: Array<Record<string, any>>;
+  emails: Array<Record<string, any>>;
+  stats: { total: number; sent: number; failed: number; queued: number };
+}
 
-const router = Router();
-
-router.get('/', async (_req: Request, res: Response): Promise<void> => {
-  const apiKeys = await getAllApiKeys();
-
-  const emails = await query('SELECT * FROM emails ORDER BY created_at DESC LIMIT 100');
-
-  const statsRow = await query(`
-    SELECT
-      COUNT(*)::int as total,
-      COUNT(*) FILTER (WHERE status = 'sent')::int as sent,
-      COUNT(*) FILTER (WHERE status = 'failed')::int as failed,
-      COUNT(*) FILTER (WHERE status = 'queued')::int as queued
-    FROM emails
-  `);
-
-  const stats = statsRow[0] || { total: 0, sent: 0, failed: 0, queued: 0 };
-
-  const html = `<!DOCTYPE html>
+export function renderOverview({ apiKeys, emails, stats }: OverviewData): string {
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FreeMailSend - Dashboard</title>
+  <title>E-NVOY - Dashboard</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f0f23; color: #e0e0e0; }
@@ -74,12 +59,25 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
     .method-post { background: #10b981; color: #000; }
     .method-get { background: #3b82f6; color: #fff; }
     .method-delete { background: #ef4444; color: #fff; }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; }
+    .logout { background: transparent; border: 1px solid #3a3a5a; color: #bbb; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+    .logout:hover { background: rgba(239,68,68,0.15); border-color: #ef4444; color: #fca5a5; }
+    .copy-btn { margin-left: 8px; padding: 8px 14px; background: #1f2937; border: 1px solid #2a2a4a; color: #a5b4fc; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
+    .copy-btn:hover { border-color: #7c3aed; }
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #10b981; color: #000; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 100; }
+    .toast.show { opacity: 1; }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>📬 Free<span>Mail</span>Send</h1>
+    <div class="header-inner">
+      <h1>📬 Free<span>Mail</span>Send</h1>
+      <form method="POST" action="/logout">
+        <button type="submit" class="logout">Log out</button>
+      </form>
+    </div>
   </div>
+  <div class="toast" id="toast">Copied!</div>
   <div class="container">
     <div class="stats">
       <div class="stat-card total"><h3>Total Emails</h3><div class="value">${stats?.total || 0}</div></div>
@@ -89,15 +87,16 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
     </div>
 
     <div class="section">
-      <h2>🔑 Create API Key</h2>
+      <h2>🔑 Generate Token</h2>
       <form id="createKeyForm" class="inline-form">
         <div class="form-group"><label>Name</label><input type="text" id="keyName" placeholder="My App" required></div>
         <div class="form-group"><label>Email</label><input type="email" id="keyEmail" placeholder="you@example.com" required></div>
-        <button type="submit" class="btn btn-primary">Create Key</button>
+        <button type="submit" class="btn btn-primary">Generate Token</button>
       </form>
       <div id="newKeyDisplay" style="display:none; margin-top:16px;">
-        <p style="color:#10b981; font-size:13px; margin-bottom:6px;">✅ API Key created! Copy it now - it won't be shown again:</p>
-        <div class="key-display" id="newKeyValue"></div>
+        <p style="color:#10b981; font-size:13px; margin-bottom:6px;">✅ Token generated! Copy it now - it won't be shown again:</p>
+        <div class="key-display" id="newKeyValue" style="display:inline-block;"></div>
+        <button class="copy-btn" id="copyKeyBtn">📋 Copy</button>
       </div>
     </div>
 
@@ -149,7 +148,7 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
   -d '{
     "from": "Your Name &lt;noreply@yourdomain.com&gt;",
     "to": "recipient@example.com",
-    "subject": "Hello from FreeMailSend",
+    "subject": "Hello from E-NVOY",
     "html": "&lt;h1&gt;Welcome!&lt;/h1&gt;&lt;p&gt;This is your first email.&lt;/p&gt;",
     "text": "Welcome! This is your first email."
   }'</pre></div>
@@ -171,6 +170,28 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
   </div>
 
   <script>
+    const toast = document.getElementById('toast');
+    function showToast(msg) {
+      toast.textContent = msg || 'Copied!';
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('Copied!');
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('Copied!');
+      }
+    }
+
     document.getElementById('createKeyForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('keyName').value;
@@ -186,10 +207,15 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
         document.getElementById('newKeyDisplay').style.display = 'block';
         document.getElementById('keyName').value = '';
         document.getElementById('keyEmail').value = '';
-        setTimeout(() => location.reload(), 2000);
+        setTimeout(() => location.reload(), 2500);
       } else {
         alert(data.error?.message || 'Failed to create key');
       }
+    });
+
+    document.getElementById('copyKeyBtn').addEventListener('click', () => {
+      const key = document.getElementById('newKeyValue').textContent;
+      if (key) copyText(key);
     });
 
     async function deactivateKey(id) {
@@ -200,9 +226,4 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
   </script>
 </body>
 </html>`;
-
-  res.setHeader('Content-Type', 'text/html');
-  res.send(html);
-});
-
-export default router;
+}

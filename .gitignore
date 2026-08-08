@@ -2,6 +2,16 @@ node_modules/
 dist/
 data/
 .env
+.env.local
 *.db
 *.sqlite
 .DS_Store
+
+# Next.js
+.next/
+out/
+
+# Cloudflare Worker
+workers/email-api-worker/.env
+workers/email-api-worker/.wrangler/
+workers/email-api-worker/node_modules/
