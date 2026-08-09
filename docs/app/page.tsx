@@ -59,17 +59,21 @@ export default function Home() {
         <li><strong>Self-Hosted</strong> — Docker Compose deployment, your data never leaves your server</li>
       </ul>
 
-      <h3>Architecture</h3>
-      <pre><code>{`┌──────────┐     ┌──────────┐     ┌──────────┐
-│  Client  │────▶│  Caddy   │────▶│ Backend  │
-│ (CLI/API)│     │ (Proxy)  │     │ (Express)│
-└──────────┘     └──────────┘     └─────┬────┘
-                                        │
-                              ┌─────────┼─────────┐
-                              │         │         │
-                         ┌────▼───┐ ┌───▼───┐ ┌───▼───┐
-                         │ Postgres│ │ Redis │ │ Postfix│
-                         └────────┘ └───────┘ └───────┘`}</code></pre>
+      <h3>How It Works</h3>
+      <p>
+        E-NVOY handles the heavy lifting of email delivery so you can focus on building your application.
+        Simply send your email request through our REST API, SMTP relay, or CLI tool — and we take care
+        of authentication, queue management, delivery tracking, and bounce handling.
+      </p>
+
+      <h3>Why E-NVOY?</h3>
+      <ul>
+        <li><strong>No Vendor Lock-In</strong> — Self-host your email infrastructure on your own terms</li>
+        <li><strong>Cost Effective</strong> — Send unlimited emails without per-message fees</li>
+        <li><strong>Full Control</strong> — Own your data, your logs, and your sending reputation</li>
+        <li><strong>Developer First</strong> — Clean APIs, comprehensive docs, and SDKs in popular languages</li>
+        <li><strong>Production Ready</strong> — Built-in rate limiting, retry logic, and delivery analytics</li>
+      </ul>
     </div>
   );
 }
