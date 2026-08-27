@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
-import { expressFetch } from '@/lib/api';
+import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import StatsCards from './StatsCards';
 import EmailTable from './EmailTable';
 import LogoutButton from './LogoutButton';
@@ -8,19 +8,51 @@ import LogoutButton from './LogoutButton';
 export const dynamic = 'force-dynamic';
 
 export default async function OverviewPage() {
-  const cookieStore = cookies();
-  const sessionToken = cookieStore.get('fms_dashboard')?.value;
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  const { status, data } = await expressFetch('/api/dashboard/overview', {
-    sessionToken,
-  });
-
-  if (status === 401) {
+  if (!user) {
     redirect('/login');
   }
 
-  const stats = data?.stats || { total: 0, sent: 0, failed: 0, queued: 0 };
-  const emails = data?.emails || [];
+  // Read directly from Supabase instead of proxying to Express
+  const sb = createAdminClient();
+
+  const { data: apiKeys } = await sb
+    .from('api_keys')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+
+  const keys = apiKeys || [];
+  const apiKeyIds = keys.map((k: any) => k.id);
+
+  let emails: any[] = [];
+  let stats = { total: 0, sent: 0, failed: 0, queued: 0 };
+
+  if (apiKeyIds.length > 0) {
+    const { data: emailRows } = await sb
+      .from('emails')
+      .select('*')
+      .in('api_key_id', apiKeyIds)
+      .order('created_at', { ascending: false })
+      .limit(100);
+    emails = emailRows || [];
+
+    const { data: allEmails } = await sb
+      .from('emails')
+      .select('status')
+      .in('api_key_id', apiKeyIds);
+
+    if (allEmails) {
+      stats = {
+        total: allEmails.length,
+        sent: allEmails.filter((e: any) => e.status === 'sent').length,
+        failed: allEmails.filter((e: any) => e.status === 'failed').length,
+        queued: allEmails.filter((e: any) => e.status === 'queued').length,
+      };
+    }
+  }
 
   return (
     <div className="space-y-8">

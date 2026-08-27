@@ -1,7 +1,6 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import Link from 'next/link';
 import { CopyButton } from './CopyButton';
 import { VerifiedBadge } from './VerifiedBadge';
 
@@ -46,6 +45,7 @@ export default function DomainsPage() {
   const [error, setError] = useState('');
   const [creating, setCreating] = useState(false);
   const [connected, setConnected] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const applyVerification = useCallback((payload: VerificationPayload) => {
@@ -103,7 +103,37 @@ export default function DomainsPage() {
     try {
       const res = await fetch('/api/domains');
       const data = await res.json();
-      if (data.data) setDomains(data.data);
+      if (data.data) {
+        setDomains(data.data);
+        // Auto-verify all domains server-side on page load
+        const pendingOrStale = data.data.filter((d: Domain) =>
+          d.status !== 'verified' || !d.last_checked_at || (Date.now() - new Date(d.last_checked_at).getTime() > 60 * 60 * 1000)
+        );
+        if (pendingOrStale.length > 0) {
+          // Mark them all as checking
+          setCheckingIds(new Set(pendingOrStale.map((d: Domain) => d.id)));
+          try {
+            const verifyRes = await fetch('/api/domains/verify-all', { method: 'POST' });
+            const verifyData = await verifyRes.json();
+            if (verifyData.results) {
+              // Update domains with verification results
+              setDomains((prev) => {
+                const updated = [...prev];
+                for (const result of verifyData.results) {
+                  const idx = updated.findIndex((d) => d.id === result.id);
+                  if (idx !== -1 && result.domain) updated[idx] = result.domain;
+                  if (result.checks) setChecks((p) => ({ ...p, [result.id]: result.checks }));
+                }
+                return updated;
+              });
+            }
+          } catch {
+            // Silent fail — domains remain in their current state
+          } finally {
+            setCheckingIds(new Set());
+          }
+        }
+      }
     } catch {
       // Silently fail
     }
@@ -175,6 +205,10 @@ export default function DomainsPage() {
     } catch {
       // Error handling
     }
+  }
+
+  function toggleExpand(id: string) {
+    setExpandedId((prev) => (prev === id ? null : id));
   }
 
   const STATUS_STYLES: Record<string, string> = {
@@ -336,39 +370,39 @@ export default function DomainsPage() {
             <p className="text-slate-500">No domains added yet. Add your first domain above.</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-2">
             {domains.map((domain) => {
               const checking = checkingIds.has(domain.id);
+              const expanded = expandedId === domain.id;
               return (
-              <div
-                key={domain.id}
-                className="border border-canvas-border bg-canvas/50 p-5"
-              >
-                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center bg-canvas-border">
-                      <svg className="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                <div
+                  key={domain.id}
+                  className="border border-canvas-border bg-canvas/30 overflow-hidden"
+                >
+                  {/* Collapsed row — click to expand */}
+                  <button
+                    onClick={() => toggleExpand(domain.id)}
+                    className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-brand/5 transition-colors"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-canvas-border">
+                      <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                       </svg>
                     </div>
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <Link
-                          href={`/overview/domains/${domain.id}`}
-                          className="font-medium text-white hover:text-brand transition-colors"
-                        >
-                          {domain.name}
-                        </Link>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-white truncate">{domain.name}</span>
                         {domain.status === 'verified' && <VerifiedBadge />}
                       </div>
-                      <div className="mt-1 flex items-center gap-1.5 overflow-x-auto pb-0.5">
-                        {recordBadge(domain, 'DOMAIN')}
-                        {recordBadge(domain, 'NS')}
-                        {recordBadge(domain, 'SPF')}
-                        {recordBadge(domain, 'DKIM')}
-                        {recordBadge(domain, 'DMARC')}
-                      </div>
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="mt-0.5 text-xs text-slate-500 flex items-center gap-1.5">
+                        {checking && (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" className="shrink-0 animate-spin">
+                            <path d="M0 0h24v24H0z" fill="none" />
+                            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M12 6.99998C9.1747 6.99987 6.99997 9.24998 7 12C7.00003 14.55 9.02119 17 12 17C14.7712 17 17 14.75 17 12">
+                              <animateTransform attributeName="transform" attributeType="XML" dur="560ms" from="0,12,12" repeatCount="indefinite" to="360,12,12" type="rotate" />
+                            </path>
+                          </svg>
+                        )}
                         {checking
                           ? 'Checking DNS records…'
                           : domain.last_checked_at
@@ -376,95 +410,118 @@ export default function DomainsPage() {
                             : `Added ${new Date(domain.created_at).toLocaleDateString()}`}
                       </p>
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
                     <span
-                      className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                      className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                         STATUS_STYLES[domain.status] || 'bg-slate-500/15 text-slate-400'
                       }`}
                     >
                       {domain.status.charAt(0).toUpperCase() + domain.status.slice(1)}
                     </span>
-
-                    <button
-                      onClick={() => verifyDomain(domain.id)}
-                      disabled={checking}
-                      className="bg-brand px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-wait"
+                    <svg
+                      className={`h-5 w-5 shrink-0 text-slate-500 transition-transform duration-200 ${
+                        expanded ? 'rotate-180' : ''
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
-                      {checking ? 'Verifying…' : 'Verify DNS'}
-                    </button>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
 
-                    <button
-                      onClick={() => deleteDomain(domain.id)}
-                      className="border border-canvas-border px-4 py-1.5 text-sm font-medium text-slate-400 hover:bg-canvas-border hover:text-white transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
+                  {/* Expanded details */}
+                  {expanded && (
+                    <div className="border-t border-canvas-border px-5 py-4 space-y-4">
+                      {/* DNS record badges */}
+                      <div className="flex flex-wrap gap-2">
+                        {recordBadge(domain, 'DOMAIN')}
+                        {recordBadge(domain, 'NS')}
+                        {recordBadge(domain, 'SPF')}
+                        {recordBadge(domain, 'DKIM')}
+                        {recordBadge(domain, 'DMARC')}
+                      </div>
 
-                {/* Per-record realtime results */}
-                {checks[domain.id] && (
-                  <div className="mt-4 space-y-2">
-                    {checks[domain.id].map((check) => (
-                      <div
-                        key={check.type}
-                        className={`flex flex-col gap-1 border px-3 py-2 text-xs ${
-                          check.verified
-                            ? 'border-emerald-500/20 bg-emerald-500/[0.04]'
-                            : 'border-red-500/20 bg-red-500/[0.04]'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`font-semibold ${
-                              check.verified ? 'text-emerald-400' : 'text-red-400'
-                            }`}
-                          >
-                            {check.type} {check.verified ? '✓' : '✗'}
-                          </span>
-                          <code className="font-mono text-slate-500">{check.hostname}</code>
+                      {/* Per-record realtime results */}
+                      {checks[domain.id] && (
+                        <div className="space-y-2">
+                          {checks[domain.id].map((check) => (
+                            <div
+                              key={check.type}
+                              className={`flex flex-col gap-1 border px-3 py-2 text-xs ${
+                                check.verified
+                                  ? 'border-emerald-500/20 bg-emerald-500/[0.04]'
+                                  : 'border-red-500/20 bg-red-500/[0.04]'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={`font-semibold ${
+                                    check.verified ? 'text-emerald-400' : 'text-red-400'
+                                  }`}
+                                >
+                                  {check.type} {check.verified ? '✓' : '✗'}
+                                </span>
+                                <code className="font-mono text-slate-500">{check.hostname}</code>
+                              </div>
+                              <p className="text-slate-400">{check.detail}</p>
+                            </div>
+                          ))}
                         </div>
-                        <p className="text-slate-400">{check.detail}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      )}
 
-                {/* DNS Records */}
-                <details className="mt-4">
-                  <summary className="cursor-pointer text-sm text-slate-400 hover:text-white">
-                    View DNS Records
-                  </summary>
-                  <div className="mt-4 space-y-3 text-sm">
-                    <div className="border border-canvas-border bg-canvas p-3">
-                      <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">DKIM (TXT)</p>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <code className="flex-1 font-mono text-slate-300 break-all">{domain.dkim_record_name}</code>
-                        <CopyButton text={domain.dkim_record_name} label="DKIM record name" />
+                      {/* DNS Records */}
+                      <div className="space-y-3 text-sm">
+                        <div className="border border-canvas-border bg-canvas p-3">
+                          <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">DKIM (TXT)</p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <code className="flex-1 font-mono text-slate-300 break-all">{domain.dkim_record_name}</code>
+                            <CopyButton text={domain.dkim_record_name} label="DKIM record name" />
+                          </div>
+                          <code className="block mt-1 font-mono text-slate-400 break-all">{domain.dkim_record_value}</code>
+                        </div>
+                        <div className="border border-canvas-border bg-canvas p-3">
+                          <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">SPF (TXT)</p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <code className="flex-1 font-mono text-slate-300 break-all">@{domain.name}</code>
+                            <CopyButton text={`@${domain.name}`} label="SPF record name" />
+                          </div>
+                          <code className="block mt-1 font-mono text-slate-400 break-all">{domain.spf_record}</code>
+                        </div>
+                        <div className="border border-canvas-border bg-canvas p-3">
+                          <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">DMARC (TXT)</p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <code className="flex-1 font-mono text-slate-300 break-all">_dmarc.{domain.name}</code>
+                            <CopyButton text={`_dmarc.${domain.name}`} label="DMARC record name" />
+                          </div>
+                          <code className="block mt-1 font-mono text-slate-400 break-all">{domain.dmarc_record}</code>
+                        </div>
                       </div>
-                      <code className="block mt-1 font-mono text-slate-400 break-all">{domain.dkim_record_value}</code>
-                    </div>
-                    <div className="border border-canvas-border bg-canvas p-3">
-                      <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">SPF (TXT)</p>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <code className="flex-1 font-mono text-slate-300 break-all">@{domain.name}</code>
-                        <CopyButton text={`@${domain.name}`} label="SPF record name" />
+
+                      {/* Action buttons */}
+                      <div className="flex items-center gap-3 pt-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            verifyDomain(domain.id);
+                          }}
+                          disabled={checking}
+                          className="bg-brand px-4 py-1.5 text-sm font-medium text-black transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-wait"
+                        >
+                          {checking ? 'Verifying…' : 'Verify DNS'}
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteDomain(domain.id);
+                          }}
+                          className="border border-canvas-border px-4 py-1.5 text-sm font-medium text-slate-400 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30 transition-colors"
+                        >
+                          Delete
+                        </button>
                       </div>
-                      <code className="block mt-1 font-mono text-slate-400 break-all">{domain.spf_record}</code>
                     </div>
-                    <div className="border border-canvas-border bg-canvas p-3">
-                      <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">DMARC (TXT)</p>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <code className="flex-1 font-mono text-slate-300 break-all">_dmarc.{domain.name}</code>
-                        <CopyButton text={`_dmarc.${domain.name}`} label="DMARC record name" />
-                      </div>
-                      <code className="block mt-1 font-mono text-slate-400 break-all">{domain.dmarc_record}</code>
-                    </div>
-                  </div>
-                </details>
-              </div>
+                  )}
+                </div>
               );
             })}
           </div>

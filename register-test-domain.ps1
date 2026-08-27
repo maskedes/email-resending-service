@@ -1,0 +1,2 @@
+$body = @{domain='boardme.qd.je';slot_type='free';nameservers=@('ns1.digitalplat.org','ns2.digitalplat.org')} | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri 'https://domain-api.digitalplat.org/api/v1/domains' -Headers @{Authorization='Bearer dp_live_bHe4Cl0KNXI5VU25qNGnav7j'} -ContentType 'application/json' -Body $body

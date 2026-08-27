@@ -13,9 +13,10 @@ export async function expressFetch(
     method?: string;
     body?: unknown;
     sessionToken?: string;
+    userId?: string;
   } = {}
 ): Promise<{ status: number; data: any; setCookie?: string | null }> {
-  const { method = 'GET', body, sessionToken } = options;
+  const { method = 'GET', body, sessionToken, userId } = options;
 
   const headers: Record<string, string> = {
     Accept: 'application/json',
@@ -34,6 +35,11 @@ export async function expressFetch(
   const serviceSecret = process.env.DASHBOARD_SERVICE_SECRET;
   if (serviceSecret) {
     headers['X-Dashboard-Service-Secret'] = serviceSecret;
+  }
+
+  // Forward the Supabase user ID so backend can filter by owner.
+  if (userId) {
+    headers['X-Dashboard-User-Id'] = userId;
   }
 
   const res = await fetch(`${API_URL}${path}`, {

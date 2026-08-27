@@ -140,7 +140,7 @@ export default function DomainDetailPage() {
           <p className="text-slate-400">Domain not found.</p>
           <button
             onClick={() => router.push('/overview/domains')}
-            className="mt-4 bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand/90"
+            className="mt-4 bg-brand px-4 py-2 text-sm font-medium text-black hover:bg-brand/90"
           >
             Back to Domains
           </button>
@@ -227,7 +227,7 @@ export default function DomainDetailPage() {
             <button
               onClick={verifyDomain}
               disabled={checking}
-              className="bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-wait"
+              className="bg-brand px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-wait"
             >
               {checking ? 'Verifying…' : 'Restart'}
             </button>

@@ -34,6 +34,7 @@ const NAV = [
   {
     title: 'SDKs',
     items: [
+      { label: 'Overview', href: '/sdks' },
       { label: 'Node.js', href: '/sdks/node' },
       { label: 'Python', href: '/sdks/python' },
       { label: 'Go', href: '/sdks/go' },

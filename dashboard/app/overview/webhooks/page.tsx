@@ -10,6 +10,8 @@ interface Webhook {
   is_active: boolean;
   created_at: string;
   last_triggered_at: string | null;
+  /** Returned once on creation — the HMAC signing secret. */
+  secret?: string;
 }
 
 export default function WebhooksPage() {
@@ -122,22 +124,22 @@ export default function WebhooksPage() {
       <section className="border border-canvas-border bg-canvas-raised p-6">
         <h2 className="mb-5 text-lg font-semibold text-white">Create Webhook</h2>
 
-        {newWebhook && (
+        {newWebhook && newWebhook.secret && (
           <div className="mb-5 border border-emerald-500/30 bg-emerald-500/10 p-4">
             <p className="text-sm text-emerald-300 mb-2">Webhook created! Save your signing secret:</p>
             <div className="flex items-center gap-3">
               <code className="flex-1 rounded bg-canvas px-3 py-2 text-sm text-emerald-100 font-mono break-all">
-                {newWebhook.id}
+                {newWebhook.secret}
               </code>
               <button
-                onClick={() => copyValue(newWebhook.id)}
+                onClick={() => copyValue(newWebhook.secret!)}
                 className="bg-brand/15 px-4 py-2 text-sm font-medium text-white hover:bg-brand/30 transition-colors"
               >
                 Copy Secret
               </button>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Use this secret to verify webhook signatures. It won't be shown again.
+              Verify the signature using the <code className="font-mono">X-Webhook-Signature</code> header (HMAC-SHA256 of the raw body with this secret). It won't be shown again.
             </p>
           </div>
         )}
@@ -200,7 +202,7 @@ export default function WebhooksPage() {
           <button
             type="submit"
             disabled={creating}
-            className="w-full md:w-auto bg-brand px-6 py-2.5 font-medium text-white transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full md:w-auto bg-brand px-6 py-2.5 font-medium text-black transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {creating ? 'Creating…' : 'Create Webhook'}
           </button>

@@ -3,39 +3,39 @@ import Link from 'next/link';
 export default function Home() {
   return (
     <div className="prose">
-      <h1>E-NVOY Documentation</h1>
+      <h1 className="!text-4xl !font-bold !text-white">E-NVOY Documentation</h1>
       <p className="text-lg text-zinc-300">
         The open source email sending platform. Send transactional emails via REST API, SMTP, or CLI — self-hosted and free forever.
       </p>
 
       <div className="not-prose mt-8 grid gap-4 sm:grid-cols-2">
         <Link href="/quickstart" className="group rounded-lg border border-canvas-border bg-canvas-raised p-5 transition hover:border-brand/50">
-          <div className="mb-2 flex items-center gap-2">
-            <span className="material-symbols-outlined text-brand text-xl">bolt</span>
-            <span className="font-semibold text-white">Quickstart</span>
+          <div className="mb-2 flex flex-col items-start gap-2 no-underline">
+            <span className="material-symbols-outlined text-brand text-3xl">bolt</span>
+            <span className="font-bold text-2xl uppercase text-white underline underline-offset-4 decoration-2 decoration-white whitespace-nowrap">Quickstart</span>
           </div>
-          <p className="text-sm text-zinc-400">Send your first email in under 2 minutes.</p>
+          <p className="text-sm text-zinc-400 no-underline">Send your first email in under 2 minutes.</p>
         </Link>
         <Link href="/cli" className="group rounded-lg border border-canvas-border bg-canvas-raised p-5 transition hover:border-brand/50">
-          <div className="mb-2 flex items-center gap-2">
-            <span className="material-symbols-outlined text-brand text-xl">terminal</span>
-            <span className="font-semibold text-white">CLI</span>
+          <div className="mb-2 flex flex-col items-start gap-2 no-underline">
+            <span className="material-symbols-outlined text-brand text-3xl">terminal</span>
+            <span className="font-bold text-2xl uppercase text-white underline underline-offset-4 decoration-2 decoration-white whitespace-nowrap">CLI</span>
           </div>
-          <p className="text-sm text-zinc-400">Send emails, manage domains — all from the terminal.</p>
+          <p className="text-sm text-zinc-400 no-underline">Send emails, manage domains — all from the terminal.</p>
         </Link>
         <Link href="/api/send" className="group rounded-lg border border-canvas-border bg-canvas-raised p-5 transition hover:border-brand/50">
-          <div className="mb-2 flex items-center gap-2">
-            <span className="material-symbols-outlined text-brand text-xl">api</span>
-            <span className="font-semibold text-white">API Reference</span>
+          <div className="mb-2 flex flex-col items-start gap-2 no-underline">
+            <span className="material-symbols-outlined text-brand text-3xl">api</span>
+            <span className="font-bold text-2xl uppercase text-white underline underline-offset-4 decoration-2 decoration-white whitespace-nowrap">API Reference</span>
           </div>
-          <p className="text-sm text-zinc-400">Complete REST API docs with examples in every language.</p>
+          <p className="text-sm text-zinc-400 no-underline">Complete REST API docs with examples in every language.</p>
         </Link>
         <Link href="/authentication" className="group rounded-lg border border-canvas-border bg-canvas-raised p-5 transition hover:border-brand/50">
-          <div className="mb-2 flex items-center gap-2">
-            <span className="material-symbols-outlined text-brand text-xl">key</span>
-            <span className="font-semibold text-white">Authentication</span>
+          <div className="mb-2 flex flex-col items-start gap-2 no-underline">
+            <span className="material-symbols-outlined text-brand text-3xl">key</span>
+            <span className="font-bold text-2xl uppercase text-white underline underline-offset-4 decoration-2 decoration-white whitespace-nowrap">Authentication</span>
           </div>
-          <p className="text-sm text-zinc-400">Set up API keys and secure your requests.</p>
+          <p className="text-sm text-zinc-400 no-underline">Set up API keys and secure your requests.</p>
         </Link>
       </div>
 

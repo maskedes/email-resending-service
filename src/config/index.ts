@@ -51,6 +51,11 @@ export const config = {
     maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
   },
 
+  /** Per-API-key email send rate limit (emails allowed per second). */
+  emailRateLimit: {
+    perSecond: parseInt(process.env.EMAIL_RATE_LIMIT_PER_SECOND || '3', 10),
+  },
+
   apiKeyHeader: process.env.API_KEY_HEADER || 'x-api-key',
 
   /** Optional shared secret that Cloudflare edge Worker sends to verify proxied traffic. */

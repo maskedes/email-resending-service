@@ -16,14 +16,213 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-canvas text-slate-100 antialiased;
+/* ─── Theme tokens ───────────────────────────────────────────────────────────
+   Default (dark) values live here. A `light` class on <html> flips them so the
+   whole dashboard — backgrounds, text, borders, icons — follows the user's
+   Dark Mode preference fetched from the backend. Driven by ThemeProvider. */
+:root {
+  --bg: #000000;
+  --fg: #ffffff;
+  --canvas: #000000;
+  --canvas-raised: #0b0d10;
+  --canvas-border: #1f2937;
+  --muted: #94a3b8;          /* slate-400 */
+  --muted-2: #64748b;        /* slate-500 */
+  --muted-3: #cbd5e1;        /* slate-300 */
+  --brand: #f8fafc;
+  --brand-hover: #e2e8f0;
+  --accent: #cbd5e1;
+  --emerald: #6ee7b7;        /* emerald-300 */
+  --emerald-strong: #34d399; /* emerald-400 */
+  --red: #fca5a5;            /* red-300 */
+  --red-strong: #f87171;     /* red-400 */
+  --amber: #fcd34d;          /* amber-300 */
+  --blue: #93c5fd;           /* blue-400 */
+  --scrollbar: rgba(148, 163, 184, 0.35);
+  --glow: rgba(148, 163, 184, 0.18);
+  color-scheme: dark;
 }
+
+:root.light {
+  --bg: #f1f5f9;             /* slate-100 */
+  --fg: #0f172a;             /* slate-900 */
+  --canvas: #f1f5f9;
+  --canvas-raised: #ffffff;
+  --canvas-border: #e2e8f0;  /* slate-200 */
+  --muted: #475569;          /* slate-600 */
+  --muted-2: #94a3b8;        /* slate-400 */
+  --muted-3: #334155;        /* slate-700 */
+  --brand: #4f46e5;          /* indigo-600 */
+  --brand-hover: #4338ca;    /* indigo-700 */
+  --accent: #475569;         /* slate-600 */
+  --emerald: #047857;        /* emerald-700 */
+  --emerald-strong: #059669; /* emerald-600 */
+  --red: #b91c1c;            /* red-700 */
+  --red-strong: #dc2626;     /* red-600 */
+  --amber: #b45309;          /* amber-700 */
+  --blue: #1d4ed8;           /* blue-700 */
+  --scrollbar: rgba(100, 116, 139, 0.4);
+  --glow: rgba(79, 70, 229, 0.1);
+  color-scheme: light;
+}
+
+body {
+  @apply bg-[#000000] text-white antialiased;
+  background: var(--bg);
+  color: var(--fg);
+  color-scheme: dark;
+}
+:root.light body {
+  color-scheme: light;
+}
+
+svg {
+  color: var(--fg);
+}
+:root.light svg {
+  color: var(--fg);
+}
+
+/* ─── Light theme overrides ──────────────────────────────────────────────────
+   These remap the existing dark-only utility/custom classes when <html> has the
+   `light` class. No component JSX is changed. */
+:root.light .bg-canvas { background-color: var(--canvas) !important; }
+:root.light .bg-canvas-raised { background-color: var(--canvas-raised) !important; }
+:root.light .bg-canvas\/30 { background-color: rgba(15, 23, 42, 0.03) !important; }
+:root.light .bg-canvas\/60 { background-color: rgba(15, 23, 42, 0.06) !important; }
+:root.light .bg-canvas\/80 { background-color: rgba(15, 23, 42, 0.04) !important; }
+:root.light .border-canvas-border { border-color: var(--canvas-border) !important; }
+:root.light .border-canvas-border\/60 { border-color: rgba(15, 23, 42, 0.12) !important; }
+
+/* Brand / accent */
+:root.light .text-brand { color: var(--brand) !important; }
+:root.light .bg-brand { background-color: var(--brand) !important; }
+:root.light .hover\:bg-brand\/90:hover { background-color: var(--brand-hover) !important; }
+:root.light .hover\:bg-brand\/30:hover { background-color: rgba(79, 70, 229, 0.12) !important; }
+:root.light .hover\:bg-brand\/10:hover { background-color: rgba(79, 70, 229, 0.08) !important; }
+:root.light .hover\:bg-brand\/5:hover { background-color: rgba(79, 70, 229, 0.05) !important; }
+:root.light .bg-brand\/15 { background-color: rgba(79, 70, 229, 0.12) !important; }
+:root.light .bg-brand\/5 { background-color: rgba(79, 70, 229, 0.05) !important; }
+:root.light .bg-brand\/10 { background-color: rgba(79, 70, 229, 0.1) !important; }
+:root.light .hover\:border-brand\/60:hover { border-color: rgba(79, 70, 229, 0.5) !important; }
+:root.light .hover\:text-brand:hover { color: var(--brand) !important; }
+:root.light .ring-brand { --tw-ring-color: var(--brand) !important; }
+:root.light .focus\:ring-brand:focus { --tw-ring-color: var(--brand) !important; }
+:root.light .shadow-brand\/5 { --tw-shadow-color: rgba(79, 70, 229, 0.12) !important; }
+:root.light .shadow-brand\/20 { --tw-shadow-color: rgba(79, 70, 229, 0.2) !important; }
+:root.light .from-brand\/20, :root.light .via-brand\/20, :root.light .to-brand\/20 { /* gradient hint */ }
+:root.light .bg-brand\/30 { background-color: rgba(79, 70, 229, 0.12) !important; }
+:root.light .bg-brand\/90 { background-color: var(--brand-hover) !important; }
+
+/* Text colors */
+:root.light .text-white { color: var(--fg) !important; }
+:root.light .text-slate-100 { color: #1e293b !important; }
+:root.light .text-slate-200 { color: #334155 !important; }
+:root.light .text-slate-300 { color: var(--muted-3) !important; }
+:root.light .text-slate-400 { color: var(--muted) !important; }
+:root.light .text-slate-500 { color: var(--muted-2) !important; }
+:root.light .text-slate-600 { color: #475569 !important; }
+:root.light .text-black { color: #ffffff !important; }
+:root.light .text-slate-950 { color: #ffffff !important; }
+
+/* Status colors (emerald/red/amber/blue) */
+:root.light .text-emerald-400 { color: var(--emerald-strong) !important; }
+:root.light .text-emerald-300 { color: var(--emerald) !important; }
+:root.light .text-emerald-200 { color: var(--emerald) !important; }
+:root.light .bg-emerald-500\/15 { background-color: rgba(5, 150, 105, 0.12) !important; }
+:root.light .bg-emerald-500\/10 { background-color: rgba(5, 150, 105, 0.1) !important; }
+:root.light .bg-emerald-500\/30 { background-color: rgba(5, 150, 105, 0.15) !important; }
+:root.light .border-emerald-500\/30 { border-color: rgba(5, 150, 105, 0.4) !important; }
+:root.light .border-emerald-500\/40 { border-color: rgba(5, 150, 105, 0.5) !important; }
+:root.light .border-emerald-500\/20 { border-color: rgba(5, 150, 105, 0.35) !important; }
+:root.light .from-emerald-500 { /* status pills */ }
+
+:root.light .text-red-400 { color: var(--red-strong) !important; }
+:root.light .text-red-300 { color: var(--red) !important; }
+:root.light .text-red-200 { color: var(--red) !important; }
+:root.light .text-red-500 { color: #ef4444 !important; }
+:root.light .bg-red-500\/15 { background-color: rgba(220, 38, 38, 0.12) !important; }
+:root.light .bg-red-500\/10 { background-color: rgba(220, 38, 38, 0.1) !important; }
+:root.light .bg-red-500\/30 { background-color: rgba(220, 38, 38, 0.15) !important; }
+:root.light .bg-red-500\/40 { background-color: rgba(220, 38, 38, 0.18) !important; }
+:root.light .bg-red-500\/20 { background-color: rgba(220, 38, 38, 0.12) !important; }
+:root.light .border-red-500\/30 { border-color: rgba(220, 38, 38, 0.4) !important; }
+:root.light .border-red-500\/40 { border-color: rgba(220, 38, 38, 0.5) !important; }
+:root.light .border-red-500\/20 { border-color: rgba(220, 38, 38, 0.35) !important; }
+:root.light .hover\:border-red-500:hover { border-color: #dc2626 !important; }
+:root.light .hover\:bg-red-500\/10:hover { background-color: rgba(220, 38, 38, 0.1) !important; }
+:root.light .hover\:text-red-300:hover { color: var(--red) !important; }
+
+:root.light .text-amber-300 { color: var(--amber) !important; }
+:root.light .bg-amber-500\/10 { background-color: rgba(180, 83, 9, 0.12) !important; }
+:root.light .border-amber-500\/30 { border-color: rgba(180, 83, 9, 0.4) !important; }
+
+:root.light .text-blue-400 { color: var(--blue) !important; }
+:root.light .bg-blue-500\/15 { background-color: rgba(29, 78, 216, 0.12) !important; }
+
+:root.light .bg-yellow-500\/60 { background-color: #eab308 !important; }
+:root.light .bg-green-500\/60 { background-color: #22c55e !important; }
+:root.light .bg-red-500\/60 { background-color: #ef4444 !important; }
+
+/* White-based utilities (buttons, dividers, borders) */
+:root.light .bg-white { background-color: #ffffff !important; }
+:root.light .hover\:bg-slate-200:hover { background-color: #e2e8f0 !important; }
+:root.light .bg-slate-200 { background-color: #e2e8f0 !important; }
+:root.light .bg-slate-950 { background-color: #0f172a !important; }
+:root.light .bg-black { background-color: #0f172a !important; }
+:root.light .border-white\/10 { border-color: rgba(15, 23, 42, 0.1) !important; }
+:root.light .border-white\/20 { border-color: rgba(15, 23, 42, 0.18) !important; }
+:root.light .border-white\/\[0\.08\] { border-color: rgba(15, 23, 42, 0.08) !important; }
+:root.light .border-white\/\[0\.16\] { border-color: rgba(15, 23, 42, 0.16) !important; }
+:root.light .border-slate-500\/60 { border-color: rgba(100, 116, 139, 0.4) !important; }
+:root.light .bg-white\/\[0\.08\] { background-color: rgba(15, 23, 42, 0.05) !important; }
+:root.light .bg-white\/5 { background-color: rgba(15, 23, 42, 0.04) !important; }
+:root.light .hover\:bg-white\/5:hover { background-color: rgba(15, 23, 42, 0.04) !important; }
+:root.light .hover\:bg-white\/20:hover { background-color: rgba(15, 23, 42, 0.08) !important; }
+:root.light .hover\:border-white\/20:hover { border-color: rgba(15, 23, 42, 0.18) !important; }
+:root.light .from-transparent { /* neutralized in light */ }
+:root.light .shadow-black\/30 { --tw-shadow-color: rgba(15, 23, 42, 0.12) !important; }
+:root.light .shadow-black\/40 { --tw-shadow-color: rgba(15, 23, 42, 0.15) !important; }
+:root.light .divide-white\/10 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(15, 23, 42, 0.1) !important; }
+:root.light .ring-white\/20 { --tw-ring-color: rgba(15, 23, 42, 0.2) !important; }
+:root.light .ring-white\/50 { --tw-ring-color: rgba(15, 23, 42, 0.35) !important; }
+
+/* Auth inputs / buttons */
+:root.light .auth-input {
+  border-color: rgba(15, 23, 42, 0.15);
+  background: #ffffff;
+  color: #0f172a;
+}
+:root.light .auth-input::placeholder { color: rgba(100, 116, 139, 0.6); }
+:root.light .auth-input:focus {
+  border-color: rgba(79, 70, 229, 0.5);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+:root.light .auth-btn-primary {
+  background: var(--brand);
+  color: #ffffff;
+}
+:root.light .auth-btn-primary:hover { background: var(--brand-hover); }
+
+/* Custom component classes */
+:root.light .app-ambient { background: radial-gradient(ellipse 70% 40% at 50% -10%, rgba(79, 70, 229, 0.08), transparent 70%); }
+:root.light .hero-glow { background: radial-gradient(ellipse 60% 50% at 50% -20%, rgba(79, 70, 229, 0.1), transparent 70%); }
+:root.light .hero-grid {
+  background-image:
+    linear-gradient(to right, rgba(15, 23, 42, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.05) 1px, transparent 1px);
+}
+:root.light .code-block { background: rgba(15, 23, 42, 0.04); border-color: rgba(15, 23, 42, 0.1); }
+:root.light .gradient-border::before {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.18), rgba(79, 70, 229, 0.1));
+}
+:root.light .feature-card { border-color: var(--canvas-border); background: var(--canvas-raised); }
+:root.light .feature-card:hover { border-color: rgba(79, 70, 229, 0.5); background: var(--canvas-raised); }
 
 /* ─── Thin capsule scrollbars ─── */
 * {
   scrollbar-width: thin;                          /* Firefox */
-  scrollbar-color: rgba(60, 146, 69, 0.35) transparent; /* Firefox */
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent; /* Firefox */
 }
 *::-webkit-scrollbar {
   width: 5px;
@@ -33,11 +232,11 @@ body {
   background: transparent;
 }
 *::-webkit-scrollbar-thumb {
-  background: rgba(60, 146, 69, 0.35);
+  background: rgba(148, 163, 184, 0.35);
   border-radius: 9999px;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(60, 146, 69, 0.55);
+  background: rgba(148, 163, 184, 0.55);
 }
 *::-webkit-scrollbar-corner {
   background: transparent;
@@ -52,16 +251,16 @@ body {
     'opsz' 24;
 }
 
-/* Ambient jungle green top-glow for depth */
+/* Ambient dark neutral glow */
 .app-ambient {
   background:
-    radial-gradient(ellipse 70% 40% at 50% -10%, rgba(60, 146, 69, 0.16), transparent 70%),
-    radial-gradient(ellipse 40% 30% at 90% 0%, rgba(252, 180, 4, 0.08), transparent 60%);
+    radial-gradient(ellipse 70% 40% at 50% -10%, rgba(148, 163, 184, 0.12), transparent 70%),
+    radial-gradient(ellipse 40% 30% at 90% 0%, rgba(203, 213, 225, 0.06), transparent 60%);
 }
 
 /* Landing page glow effects */
 .hero-glow {
-  background: radial-gradient(ellipse 60% 50% at 50% -20%, rgba(60, 146, 69, 0.25), transparent 70%);
+  background: radial-gradient(ellipse 60% 50% at 50% -20%, rgba(148, 163, 184, 0.18), transparent 70%);
 }
 
 .hero-grid {
@@ -80,6 +279,29 @@ body {
   animation: float 6s ease-in-out infinite;
 }
 
+/* Submit-button status icon animations */
+@keyframes status-pop {
+  0% { transform: scale(0.2); opacity: 0; }
+  60% { transform: scale(1.18); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.status-pop {
+  animation: status-pop 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fade-in 0.35s ease-out both;
+}
+
+.auth-btn-primary.status-done:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
 /* Code block styling */
 .code-block {
   background: rgba(15, 23, 42, 0.8);
@@ -95,7 +317,7 @@ body {
   position: absolute;
   inset: 0;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(60, 146, 69, 0.3), rgba(252, 180, 4, 0.15));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(148, 163, 184, 0.12));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -106,7 +328,7 @@ body {
   @apply relative border border-canvas-border bg-canvas-raised p-6 transition-all duration-300;
 }
 .feature-card:hover {
-  @apply border-brand/40 bg-canvas-raised;
+  @apply border-slate-500/60 bg-canvas-raised;
 }
 
 /* ─── Auth page inputs & buttons — flat, sharp ─── */
@@ -126,24 +348,24 @@ body {
   color: rgba(148, 163, 184, 0.55);
 }
 .auth-input:focus {
-  border-color: rgba(60, 146, 69, 0.45);
-  box-shadow: 0 0 0 3px rgba(60, 146, 69, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
 }
 
 .auth-btn-primary {
   width: 100%;
   min-height: 3.25rem;
-  border: 1px solid rgba(60, 146, 69, 0.4);
-  background: #3C9245;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #f8fafc;
   padding: 0.95rem 1.25rem;
-  color: white;
+  color: #020303;
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 .auth-btn-primary:hover {
-  background: #4da85c;
+  background: #e2e8f0;
 }
 .auth-btn-primary:disabled {
   opacity: 0.55;

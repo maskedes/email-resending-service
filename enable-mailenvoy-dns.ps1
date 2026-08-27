@@ -1,0 +1,2 @@
+$body = @{} | ConvertTo-Json -Compress
+Invoke-RestMethod -Method Post -Uri 'https://domain-api.digitalplat.org/api/v1/domains/mailenvoy.qd.je/dns/enable' -Headers @{Authorization='Bearer dp_live_bHe4Cl0KNXI5VU25qNGnav7j'} -ContentType 'application/json' -Body $body

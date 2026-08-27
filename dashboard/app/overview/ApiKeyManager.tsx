@@ -102,7 +102,7 @@ export default function ApiKeyManager({ initialKeys }: { initialKeys: ApiKey[] }
         <button
           type="submit"
           disabled={loading}
-          className="bg-brand px-5 py-2.5 font-semibold text-white transition hover:bg-brand-hover disabled:opacity-60"
+          className="bg-brand px-5 py-2.5 font-semibold text-black transition hover:bg-brand-hover disabled:opacity-60"
         >
           {loading ? 'Generating…' : 'Generate Token'}
         </button>

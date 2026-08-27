@@ -51,6 +51,8 @@ CREATE TABLE IF NOT EXISTS public.webhooks (
   events TEXT DEFAULT 'sent,delivered,bounced',
   is_active BOOLEAN DEFAULT TRUE,
   secret TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  last_triggered_at TIMESTAMPTZ
   created_at TIMESTAMPTZ DEFAULT now()
 );
 

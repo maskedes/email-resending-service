@@ -86,12 +86,18 @@ async function runMigrations(pool: Pool): Promise<void> {
     CREATE TABLE IF NOT EXISTS webhooks (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       api_key_id UUID NOT NULL REFERENCES api_keys(id),
+      name TEXT NOT NULL DEFAULT '',
       url TEXT NOT NULL,
       events TEXT DEFAULT 'sent,delivered,bounced',
       is_active BOOLEAN DEFAULT TRUE,
       secret TEXT,
-      created_at TIMESTAMPTZ DEFAULT now()
+      created_at TIMESTAMPTZ DEFAULT now(),
+      last_triggered_at TIMESTAMPTZ
     );
+
+    -- Add new columns for existing installs (idempotent).
+    ALTER TABLE IF EXISTS webhooks ADD COLUMN IF NOT EXISTS name TEXT NOT NULL DEFAULT '';
+    ALTER TABLE IF EXISTS webhooks ADD COLUMN IF NOT EXISTS last_triggered_at TIMESTAMPTZ;
 
     CREATE TABLE IF NOT EXISTS domains (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -138,6 +144,14 @@ async function runMigrations(pool: Pool): Promise<void> {
     ALTER TABLE domains ADD COLUMN IF NOT EXISTS dkim_verified BOOLEAN DEFAULT FALSE;
     ALTER TABLE domains ADD COLUMN IF NOT EXISTS dmarc_verified BOOLEAN DEFAULT FALSE;
     ALTER TABLE domains ADD COLUMN IF NOT EXISTS last_checked_at TIMESTAMPTZ;
+  `);
+
+  // ── api_keys user ownership (links to Supabase auth.users) ──
+  await pool.query(`
+    ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS user_id UUID;
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_api_keys_user_id ON api_keys(user_id);
   `);
 }
 

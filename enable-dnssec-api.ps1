@@ -1,0 +1,2 @@
+$body = @{enabled=$true} | ConvertTo-Json -Compress
+Invoke-RestMethod -Method Post -Uri 'https://domain-api.digitalplat.org/api/v1/domains/axofeeds.qd.je/dnssec' -Headers @{Authorization='Bearer dp_live_bHe4Cl0KNXI5VU25qNGnav7j'} -ContentType 'application/json' -Body $body

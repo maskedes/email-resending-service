@@ -65,7 +65,7 @@ export default function WorkersPage() {
           <button
             onClick={checkStatus}
             disabled={loading}
-            className="bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90 disabled:opacity-50"
+            className="bg-brand px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-brand/90 disabled:opacity-50"
           >
             {loading ? 'Checking…' : 'Check Status'}
           </button>

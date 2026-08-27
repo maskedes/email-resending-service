@@ -84,9 +84,15 @@ Fill in at minimum:
 - `DEFAULT_FROM_EMAIL` — the "from" address recipients see
 - `DASHBOARD_SESSION_SECRET` / `DASHBOARD_SERVICE_SECRET` — `openssl rand -hex 32`
 - `DASHBOARD_PASSWORD` — admin login for the dashboard
+- **`SUPABASE_URL`** — your Supabase project URL (e.g. `https://xxx.supabase.co`)
+- **`SUPABASE_SERVICE_ROLE_KEY`** — your Supabase service_role key (starts with `eyJ...`)
 
 > ⚠️ `DASHBOARD_SERVICE_SECRET` is shared by the backend AND the dashboard — the two
 > must match exactly, which this single `.env` guarantees.
+
+> ⚠️ `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are **required** for the new
+> architecture. All app data (api_keys, emails, domains, etc.) lives in Supabase.
+> The backend's local PostgreSQL is only used for embedded dev mode and legacy schema.
 
 ---
 
@@ -131,8 +137,8 @@ curl -X POST http://185.227.111.25/api/apikeys \
   -d '{"name":"prod-key"}'
 ```
 
-Open **http://185.227.111.25** in your browser → login with `DASHBOARD_USERNAME` /
-`DASHBOARD_PASSWORD` (because `SKIP_AUTH=true`, it skips Supabase login for now).
+Open **http://185.227.111.25** in your browser → sign in with your Supabase account
+(email/password) via the dashboard login page.
 
 ---
 

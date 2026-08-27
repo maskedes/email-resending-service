@@ -1,6 +1,14 @@
 import Link from 'next/link';
 import Navbar from './components/Navbar';
 import HeroLanguageTabs from './components/HeroLanguageTabs';
+import {
+  RestApiIcon,
+  SmtpIcon,
+  ApiKeyIcon,
+  DeliveryTrackingIcon,
+  BullMqIcon,
+  SelfHostedIcon,
+} from './components/FeatureIcons';
 
 /* ─── Code snippet ─── */
 const codeSnippet = `curl -X POST https://api.freemailsend.dev/send \\
@@ -172,18 +180,20 @@ export default function Home() {
 
           <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {[
-              { icon: <span className="material-symbols-outlined text-brand">speed</span>, title: 'REST API', desc: 'Simple JSON API to send emails. Works with any language or framework.' },
-              { icon: <span className="material-symbols-outlined text-brand">mail</span>, title: 'SMTP Relay', desc: 'Connect via SMTP using your own Postfix or any relay service.' },
-              { icon: <span className="material-symbols-outlined text-brand">key</span>, title: 'API Key Auth', desc: 'HMAC-signed API keys with full CRUD management from the dashboard.' },
-              { icon: <span className="material-symbols-outlined text-brand">monitoring</span>, title: 'Delivery Tracking', desc: 'Real-time queue status, delivery logs, and success/failure stats.' },
-              { icon: <span className="material-symbols-outlined text-brand">sync_alt</span>, title: 'BullMQ Queue', desc: 'Reliable email queue with Redis-backed workers and automatic retries.' },
-              { icon: <span className="material-symbols-outlined text-brand">dns</span>, title: 'Self-Hosted', desc: 'Run on your own server. Your data never leaves your infrastructure.' },
-            ].map(({ icon, title, desc }) => (
+              { title: 'REST API', desc: 'Simple JSON API to send emails. Works with any language or framework.', icon: <RestApiIcon /> },
+              { title: 'SMTP Relay', desc: 'Connect via SMTP using your own Postfix or any relay service.', icon: <SmtpIcon /> },
+              { title: 'API Key Auth', desc: 'HMAC-signed API keys with full CRUD management from the dashboard.', icon: <ApiKeyIcon /> },
+              { title: 'Delivery Tracking', desc: 'Real-time queue status, delivery logs, and success/failure stats.', icon: <DeliveryTrackingIcon /> },
+              { title: 'BullMQ Queue', desc: 'Reliable email queue with Redis-backed workers and automatic retries.', icon: <BullMqIcon /> },
+              { title: 'Self-Hosted', desc: 'Run on your own server. Your data never leaves your infrastructure.', icon: <SelfHostedIcon /> },
+            ].map(({ title, desc, icon }) => (
               <div key={title} className="feature-card group">
-                <div className="mb-3 flex h-10 w-10 items-center justify-center bg-brand/10 transition group-hover:bg-brand/20">
-                  {icon}
-                </div>
-                <h3 className="text-lg font-semibold">{title}</h3>
+                {icon && (
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand/10 text-brand">
+                    <span className="text-2xl">{icon}</span>
+                  </div>
+                )}
+                <h3 className="text-lg font-semibold text-white">{title}</h3>
                 <p className="mt-2 text-sm text-slate-400">{desc}</p>
               </div>
             ))}
@@ -279,7 +289,7 @@ export default function Home() {
       </section>
 
       {/* ══════════ FOOTER ══════════ */}
-      <footer className="border-t border-canvas-border/50">
+      <footer id="about" className="border-t border-canvas-border/50">
         <div className="mx-auto max-w-6xl px-6 py-12">
           <div className="flex flex-col items-center justify-between gap-8 md:flex-row">
             {/* Left: brand */}
@@ -288,7 +298,6 @@ export default function Home() {
                 <img src="/logo-icon.svg" alt="E-NVOY" className="h-7 w-7" />
                 <span>E-NVOY</span>
               </div>
-              <p className="mt-2 text-sm text-slate-500">By <span className="text-slate-400">Ink E-socialz Inc</span></p>
             </div>
 
             {/* Center: links */}
@@ -318,7 +327,7 @@ export default function Home() {
 
           {/* Bottom line */}
           <div className="mt-8 border-t border-canvas-border/50 pt-6 text-center text-xs text-slate-600">
-            © 2026 Ink E-socialz Inc. E-NVOY is open source.
+            © 2026 E-NVOY is open source.
           </div>
         </div>
       </footer>

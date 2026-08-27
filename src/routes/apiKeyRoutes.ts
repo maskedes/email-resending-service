@@ -1,10 +1,11 @@
 import { Router, Request, Response } from 'express';
-import { createApiKey, getAllApiKeys, deactivateApiKey, deleteApiKey } from '../services/apiKeyService';
+import { createApiKey, getAllApiKeys, getApiKeysByUserId, deactivateApiKey, deleteApiKey } from '../services/apiKeyService';
 
 const router = Router();
 
 router.post('/', async (req: Request, res: Response): Promise<void> => {
   const { name, email } = req.body;
+  const userId = req.headers['x-dashboard-user-id'] as string | undefined;
 
   if (!name || !email) {
     res.status(400).json({
@@ -27,7 +28,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  const { apiKey, rawKey } = await createApiKey({ name, email });
+  const { apiKey, rawKey } = await createApiKey({ name, email, userId });
 
   res.status(201).json({
     id: apiKey.id,
@@ -39,8 +40,9 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
   });
 });
 
-router.get('/', async (_req: Request, res: Response): Promise<void> => {
-  const keys = await getAllApiKeys();
+router.get('/', async (req: Request, res: Response): Promise<void> => {
+  const userId = req.headers['x-dashboard-user-id'] as string | undefined;
+  const keys = userId ? await getApiKeysByUserId(userId) : await getAllApiKeys();
 
   res.json({
     data: keys.map((k) => ({

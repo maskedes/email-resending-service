@@ -19,9 +19,9 @@ export default function AuthShell({
 
       <Link
         href="/"
-        className="absolute left-4 top-4 inline-flex items-center gap-2 border border-white/10 bg-canvas-raised px-3 py-2 text-sm text-slate-200 transition hover:border-white/20 hover:bg-canvas-border focus:outline-none focus:ring-2 focus:ring-brand"
+        className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-canvas-raised px-3 py-2 text-sm text-slate-200 transition hover:border-white/20 hover:bg-canvas-border focus:outline-none focus:ring-2 focus:ring-brand"
       >
-        <span className="inline-flex h-7 w-7 items-center justify-center bg-canvas-border text-white">←</span>
+        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-canvas-border text-white">←</span>
         Home
       </Link>
 

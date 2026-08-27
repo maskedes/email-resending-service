@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { generateKeyPairSync } from 'node:crypto';
-import { query, queryOne } from '../database/db';
+import { getSupabase } from '../database/supabase';
 import { checkAllDns, DnsRecordStatus } from './dnsService';
 
 export interface Domain {
@@ -66,11 +66,12 @@ function generateDMARCRecord(domain: string): string {
 }
 
 export async function createDomain(input: CreateDomainInput): Promise<Domain> {
+  const sb = getSupabase();
   // Reject domains already registered to ANOTHER account in this service.
-  const existing = await queryOne<{ id: string; api_key_id: string }>(
-    `SELECT id, api_key_id FROM domains WHERE name = $1`,
-    [input.name]
-  );
+  const { data: existing } = await sb.from('domains')
+    .select('id, api_key_id')
+    .eq('name', input.name)
+    .single();
 
   if (existing) {
     const error: any = new Error(
@@ -88,29 +89,34 @@ export async function createDomain(input: CreateDomainInput): Promise<Domain> {
   const spfRecord = generateSPFRecord();
   const dmarcRecord = generateDMARCRecord(input.name);
 
-  await query(
-    `INSERT INTO domains (id, api_key_id, name, dkim_private_key, dkim_public_key, spf_record, dkim_record_name, dkim_record_value, dmarc_record)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-    [id, input.apiKeyId, input.name, privateKey, publicKey, spfRecord, dkimRecordName, publicKey, dmarcRecord]
-  );
+  const { error: insertErr } = await sb.from('domains').insert({
+    id, api_key_id: input.apiKeyId, name: input.name,
+    dkim_private_key: privateKey, dkim_public_key: publicKey,
+    spf_record: spfRecord, dkim_record_name: dkimRecordName,
+    dkim_record_value: publicKey, dmarc_record: dmarcRecord,
+  });
+  if (insertErr) throw insertErr;
 
-  const domain = await queryOne<Domain>(`SELECT * FROM domains WHERE id = $1`, [id]);
+  const { data: domain } = await sb.from('domains').select('*').eq('id', id).single();
   return domain!;
 }
 
 export async function getDomainsByApiKey(apiKeyId: string): Promise<Domain[]> {
-  return query<Domain>(
-    `SELECT * FROM domains WHERE api_key_id = $1 ORDER BY created_at DESC`,
-    [apiKeyId]
-  );
+  const sb = getSupabase();
+  const { data } = await sb.from('domains').select('*').eq('api_key_id', apiKeyId).order('created_at', { ascending: false });
+  return (data || []) as Domain[];
 }
 
 export async function getAllDomains(): Promise<Domain[]> {
-  return query<Domain>(`SELECT * FROM domains ORDER BY created_at DESC`);
+  const sb = getSupabase();
+  const { data } = await sb.from('domains').select('*').order('created_at', { ascending: false });
+  return (data || []) as Domain[];
 }
 
 export async function getDomainById(id: string): Promise<Domain | null> {
-  return (await queryOne<Domain>(`SELECT * FROM domains WHERE id = $1`, [id])) || null;
+  const sb = getSupabase();
+  const { data } = await sb.from('domains').select('*').eq('id', id).single();
+  return (data as Domain) || null;
 }
 
 /**
@@ -137,17 +143,15 @@ export async function verifyDomainDns(id: string): Promise<DomainVerification | 
       ? 'partial'
       : 'failed';
 
-  await query(
-    `UPDATE domains
-       SET spf_verified = $2,
-           dkim_verified = $3,
-           dmarc_verified = $4,
-           status = $5,
-           verified_at = CASE WHEN $5 = 'verified' THEN now() ELSE verified_at END,
-           last_checked_at = now()
-     WHERE id = $1`,
-    [id, byType['SPF'] || false, byType['DKIM'] || false, byType['DMARC'] || false, overall]
-  );
+  const sb = getSupabase();
+  await sb.from('domains').update({
+    spf_verified: byType['SPF'] || false,
+    dkim_verified: byType['DKIM'] || false,
+    dmarc_verified: byType['DMARC'] || false,
+    status: overall,
+    verified_at: overall === 'verified' ? new Date().toISOString() : undefined,
+    last_checked_at: new Date().toISOString(),
+  }).eq('id', id);
 
   const updated = await getDomainById(id);
 
@@ -160,9 +164,7 @@ export async function verifyDomainDns(id: string): Promise<DomainVerification | 
 }
 
 export async function deleteDomain(id: string): Promise<boolean> {
-  const result = await queryOne<{ ok: boolean }>(
-    `DELETE FROM domains WHERE id = $1 RETURNING TRUE AS ok`,
-    [id]
-  );
-  return !!result;
+  const sb = getSupabase();
+  const { error } = await sb.from('domains').delete().eq('id', id);
+  return !error;
 }

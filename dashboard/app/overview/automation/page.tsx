@@ -40,7 +40,7 @@ export default function AutomationPage() {
             <option>On webhook received</option>
             <option>Scheduled (cron)</option>
           </select>
-          <button className="bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand/90">
+          <button className="bg-brand px-4 py-2 text-sm font-semibold text-black hover:bg-brand/90">
             Create
           </button>
         </div>

@@ -1,6 +1,8 @@
 import { Router, Response } from 'express';
 import { AuthRequest, authMiddleware } from '../middleware/auth';
 import { sendEmail, getEmailById, getEmailsByApiKeyId, getEmailEvents, getEmailStats, SendEmailInput } from '../services/emailService';
+import { checkRateLimit } from '../services/rateLimiter';
+import { config } from '../config';
 
 const router = Router();
 
@@ -25,6 +27,21 @@ router.post('/send', authMiddleware, async (req: AuthRequest, res: Response): Pr
     if (!html && !text) {
       res.status(400).json({
         error: { type: 'validation_error', message: 'Either "html" or "text" content is required.' },
+      });
+      return;
+    }
+
+    // Per-API-key send rate limit (default 3 emails/second).
+    const limit = config.emailRateLimit.perSecond;
+    const rl = await checkRateLimit(req.apiKey!.id, limit);
+    res.set('X-RateLimit-Limit', String(limit));
+    res.set('X-RateLimit-Remaining', String(rl.remaining));
+    if (!rl.allowed) {
+      res.status(429).json({
+        error: {
+          type: 'rate_limit_exceeded',
+          message: `Rate limit exceeded. Maximum ${limit} email(s) per second per API key. Try again in ${Math.ceil(rl.retryAfterSeconds)}s.`,
+        },
       });
       return;
     }

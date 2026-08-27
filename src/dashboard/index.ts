@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { getAllApiKeys } from '../services/apiKeyService';
-import { query } from '../database/db';
+import { getAllApiKeys, getApiKeysByUserId } from '../services/apiKeyService';
+import { getSupabase } from '../database/supabase';
 import { config } from '../config';
 import {
   requireDashboardAuth,
@@ -46,24 +46,21 @@ router.get('/logout', (_req: Request, res: Response): void => {
 });
 
 // ---- Overview dashboard (protected) ----
-router.get('/', requireDashboardAuth, async (_req: Request, res: Response): Promise<void> => {
+router.get('/', requireDashboardAuth, async (req: Request, res: Response): Promise<void> => {
   const apiKeys = await getAllApiKeys();
+  const sb = getSupabase();
 
-  const emails = await query('SELECT * FROM emails ORDER BY created_at DESC LIMIT 100');
+  const { data: emails } = await sb.from('emails')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(100);
 
-  const statsRow = await query(`
-    SELECT
-      COUNT(*)::int as total,
-      COUNT(*) FILTER (WHERE status = 'sent')::int as sent,
-      COUNT(*) FILTER (WHERE status = 'failed')::int as failed,
-      COUNT(*) FILTER (WHERE status = 'queued')::int as queued
-    FROM emails
-  `);
+  const { data: statsRow } = await sb.rpc('get_email_stats');
 
-  const stats = statsRow[0] || { total: 0, sent: 0, failed: 0, queued: 0 };
+  const stats = statsRow || { total: 0, sent: 0, failed: 0, queued: 0 };
 
   res.setHeader('Content-Type', 'text/html');
-  res.send(renderOverview({ apiKeys, emails, stats }));
+  res.send(renderOverview({ apiKeys, emails: emails || [], stats }));
 });
 
 // ---- Email logs (events) for the Next.js dashboard ----
@@ -71,21 +68,56 @@ router.get('/api/logs', requireDashboardAuthApi, async (req: Request, res: Respo
   try {
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 200);
     const offset = parseInt(req.query.offset as string) || 0;
+    const userId = req.headers['x-dashboard-user-id'] as string | undefined;
+    const sb = getSupabase();
 
-    const logs = await query(
-      `SELECT ee.id, ee.event as level, 
-              COALESCE(ee.details, ee.event) as message,
-              ee.timestamp as created_at,
-              ee.email_id,
-              e.subject,
-              e.to_email,
-              e.status as email_status
-       FROM email_events ee
-       LEFT JOIN emails e ON e.id = ee.email_id
-       ORDER BY ee.timestamp DESC
-       LIMIT $1 OFFSET $2`,
-      [limit, offset]
-    );
+    let logs: any[] = [];
+    if (userId) {
+      const userKeys = await getApiKeysByUserId(userId);
+      const apiKeyIds = userKeys.map((k: any) => k.id);
+      if (apiKeyIds.length > 0) {
+        // Get emails for these API keys, then events for those emails
+        const { data: emails } = await sb.from('emails')
+          .select('id')
+          .in('api_key_id', apiKeyIds);
+
+        if (emails && emails.length > 0) {
+          const emailIds = emails.map((e: any) => e.id);
+          const { data } = await sb.from('email_events')
+            .select('*, emails!inner(subject, to_email, status)')
+            .in('email_id', emailIds)
+            .order('timestamp', { ascending: false })
+            .range(offset, offset + limit - 1);
+
+          logs = (data || []).map((ee: any) => ({
+            id: ee.id,
+            level: ee.event,
+            message: ee.details || ee.event,
+            created_at: ee.timestamp,
+            email_id: ee.email_id,
+            subject: ee.emails?.subject,
+            to_email: ee.emails?.to_email,
+            email_status: ee.emails?.status,
+          }));
+        }
+      }
+    } else {
+      const { data } = await sb.from('email_events')
+        .select('*, emails!inner(subject, to_email, status)')
+        .order('timestamp', { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      logs = (data || []).map((ee: any) => ({
+        id: ee.id,
+        level: ee.event,
+        message: ee.details || ee.event,
+        created_at: ee.timestamp,
+        email_id: ee.email_id,
+        subject: ee.emails?.subject,
+        to_email: ee.emails?.to_email,
+        email_status: ee.emails?.status,
+      }));
+    }
 
     res.json({ data: logs });
   } catch (err) {
@@ -95,21 +127,40 @@ router.get('/api/logs', requireDashboardAuthApi, async (req: Request, res: Respo
 });
 
 // ---- JSON API for the Next.js dashboard ----
-router.get('/api/dashboard/overview', requireDashboardAuthApi, async (_req: Request, res: Response): Promise<void> => {
+router.get('/api/dashboard/overview', requireDashboardAuthApi, async (req: Request, res: Response): Promise<void> => {
   try {
-    const apiKeys = await getAllApiKeys();
-    const emails = await query('SELECT * FROM emails ORDER BY created_at DESC LIMIT 100');
-    const statsRow = await query(`
-      SELECT
-        COUNT(*)::int as total,
-        COUNT(*) FILTER (WHERE status = 'sent')::int as sent,
-        COUNT(*) FILTER (WHERE status = 'failed')::int as failed,
-        COUNT(*) FILTER (WHERE status = 'queued')::int as queued
-      FROM emails
-    `);
+    const userId = req.headers['x-dashboard-user-id'] as string | undefined;
+    const apiKeys = userId ? await getApiKeysByUserId(userId) : await getAllApiKeys();
+    const apiKeyIds = apiKeys.map((k: any) => k.id);
+    const sb = getSupabase();
+
+    let emails: any[] = [];
+    let stats: any = { total: 0, sent: 0, failed: 0, queued: 0 };
+
+    if (apiKeyIds.length > 0) {
+      const { data: emailRows } = await sb.from('emails')
+        .select('*')
+        .in('api_key_id', apiKeyIds)
+        .order('created_at', { ascending: false })
+        .limit(100);
+      emails = emailRows || [];
+
+      const { data: allEmails } = await sb.from('emails')
+        .select('status')
+        .in('api_key_id', apiKeyIds);
+
+      if (allEmails) {
+        stats = {
+          total: allEmails.length,
+          sent: allEmails.filter((e: any) => e.status === 'sent').length,
+          failed: allEmails.filter((e: any) => e.status === 'failed').length,
+          queued: allEmails.filter((e: any) => e.status === 'queued').length,
+        };
+      }
+    }
 
     res.json({
-      stats: statsRow[0] || { total: 0, sent: 0, failed: 0, queued: 0 },
+      stats,
       apiKeys: apiKeys.map((k) => ({
         id: k.id,
         name: k.name,

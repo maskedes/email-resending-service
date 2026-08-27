@@ -1,12 +1,13 @@
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
-import { query, queryOne, getPool } from '../database/db';
+import { getSupabase } from '../database/supabase';
 
 export interface ApiKey {
   id: string;
   key: string;
   name: string;
   email: string;
+  user_id: string | null;
   created_at: string;
   is_active: boolean;
   total_emails_sent: number;
@@ -16,6 +17,7 @@ export interface ApiKey {
 export interface CreateApiKeyInput {
   name: string;
   email: string;
+  userId?: string;
 }
 
 function generateApiKey(): string {
@@ -31,76 +33,81 @@ export async function createApiKey(input: CreateApiKeyInput): Promise<{ apiKey: 
   const id = uuidv4();
   const rawKey = generateApiKey();
   const hashedKey = await bcrypt.hash(rawKey, 10);
+  const sb = getSupabase();
 
-  await query(
-    `INSERT INTO api_keys (id, key, name, email) VALUES ($1, $2, $3, $4)`,
-    [id, hashedKey, input.name, input.email]
-  );
+  const { error } = await sb.from('api_keys').insert({
+    id, key: hashedKey, name: input.name, email: input.email, user_id: input.userId || null,
+  });
+  if (error) throw error;
 
-  const apiKey = await queryOne<ApiKey>(`SELECT * FROM api_keys WHERE id = $1`, [id]);
-  return { apiKey: apiKey!, rawKey };
+  const { data, error: fetchErr } = await sb.from('api_keys').select('*').eq('id', id).single();
+  if (fetchErr) throw fetchErr;
+  return { apiKey: data as ApiKey, rawKey };
 }
 
 export async function validateApiKey(rawKey: string): Promise<ApiKey | null> {
-  const keys = await query<ApiKey>(`SELECT * FROM api_keys WHERE is_active = TRUE`);
+  const sb = getSupabase();
+  const { data: keys, error } = await sb.from('api_keys').select('*').eq('is_active', true);
+  if (error || !keys) return null;
 
   for (const storedKey of keys) {
     if (await bcrypt.compare(rawKey, storedKey.key)) {
-      await query(`UPDATE api_keys SET last_used_at = now() WHERE id = $1`, [storedKey.id]);
-      return storedKey;
+      await sb.from('api_keys').update({ last_used_at: new Date().toISOString() }).eq('id', storedKey.id);
+      return storedKey as ApiKey;
     }
   }
-
   return null;
 }
 
 export async function getAllApiKeys(): Promise<ApiKey[]> {
-  return query<ApiKey>(`SELECT * FROM api_keys ORDER BY created_at DESC`);
+  const sb = getSupabase();
+  const { data, error } = await sb.from('api_keys').select('*').order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data || []) as ApiKey[];
+}
+
+/** Return all API keys owned by a specific Supabase user. */
+export async function getApiKeysByUserId(userId: string): Promise<ApiKey[]> {
+  const sb = getSupabase();
+  const { data, error } = await sb.from('api_keys').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data || []) as ApiKey[];
 }
 
 export async function deactivateApiKey(id: string): Promise<boolean> {
-  const result = await queryOne<{ ok: boolean }>(
-    `UPDATE api_keys SET is_active = FALSE WHERE id = $1 RETURNING TRUE AS ok`,
-    [id]
-  );
-  return !!result;
+  const sb = getSupabase();
+  const { error } = await sb.from('api_keys').update({ is_active: false }).eq('id', id);
+  return !error;
 }
 
 export async function getApiKeyById(id: string): Promise<ApiKey | null> {
-  return (await queryOne<ApiKey>(`SELECT * FROM api_keys WHERE id = $1`, [id])) || null;
+  const sb = getSupabase();
+  const { data, error } = await sb.from('api_keys').select('*').eq('id', id).single();
+  if (error || !data) return null;
+  return data as ApiKey;
 }
 
-/**
- * Permanently deletes an API key and all of its dependent data.
- * The schema has no ON DELETE CASCADE, so we clean up child rows
- * (email_events -> emails -> webhooks/domains/templates) in a transaction
- * before removing the key itself. Once deleted the key can never authorize.
- */
 export async function deleteApiKey(id: string): Promise<boolean> {
-  const pool = getPool();
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
-    // email_events reference emails(id), so delete them first (scoped to this key's emails).
-    await client.query(
-      `DELETE FROM email_events WHERE email_id IN (SELECT id FROM emails WHERE api_key_id = $1)`,
-      [id]
-    );
-    await client.query(`DELETE FROM emails WHERE api_key_id = $1`, [id]);
-    await client.query(`DELETE FROM webhooks WHERE api_key_id = $1`, [id]);
-    await client.query(`DELETE FROM domains WHERE api_key_id = $1`, [id]);
-    await client.query(`DELETE FROM templates WHERE api_key_id = $1`, [id]);
-    const result = await client.query(`DELETE FROM api_keys WHERE id = $1`, [id]);
-    await client.query('COMMIT');
-    return (result.rowCount ?? 0) > 0;
-  } catch (err) {
-    await client.query('ROLLBACK');
-    throw err;
-  } finally {
-    client.release();
+  const sb = getSupabase();
+  // CASCADE handles children but we clean explicitly for safety
+  const { data: emails } = await sb.from('emails').select('id').eq('api_key_id', id);
+  if (emails && emails.length > 0) {
+    const emailIds = emails.map((e: any) => e.id);
+    await sb.from('email_events').delete().in('email_id', emailIds);
+    await sb.from('emails').delete().eq('api_key_id', id);
   }
+  await sb.from('webhooks').delete().eq('api_key_id', id);
+  await sb.from('domains').delete().eq('api_key_id', id);
+  await sb.from('templates').delete().eq('api_key_id', id);
+  const { error } = await sb.from('api_keys').delete().eq('id', id);
+  return !error;
 }
 
 export async function incrementEmailCount(apiKeyId: string): Promise<void> {
-  await query(`UPDATE api_keys SET total_emails_sent = total_emails_sent + 1 WHERE id = $1`, [apiKeyId]);
+  const sb = getSupabase();
+  // Supabase doesn't have atomic increment, so fetch + update
+  const { data } = await sb.from('api_keys').select('total_emails_sent').eq('id', apiKeyId).single();
+  if (data) {
+    await sb.from('api_keys').update({ total_emails_sent: (data.total_emails_sent || 0) + 1 }).eq('id', apiKeyId);
+  }
 }

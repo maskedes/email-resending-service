@@ -104,7 +104,7 @@ export default function ApiKeysPage() {
   async function deleteKey(id: string) {
     if (!confirm('Delete this API key permanently? It will be revoked and removed from the database. This cannot be undone.')) return;
     try {
-      await fetch(`/api/apikeys/${id}/delete`, { method: 'DELETE' });
+      await fetch(`/api/apikeys/${id}?permanent=true`, { method: 'DELETE' });
       await fetchKeys();
     } catch {
       // Error handling
@@ -175,7 +175,7 @@ export default function ApiKeysPage() {
             <button
               type="submit"
               disabled={creating}
-              className="w-full bg-brand px-4 py-2.5 font-medium text-white transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-brand px-4 py-2.5 font-medium text-black transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {creating ? 'Creating…' : 'Generate Key'}
             </button>

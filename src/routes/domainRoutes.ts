@@ -6,7 +6,7 @@ import {
   verifyDomainDns,
   deleteDomain,
 } from '../services/domainService';
-import { queryOne } from '../database/db';
+import { getSupabase } from '../database/supabase';
 
 const router = Router();
 
@@ -17,9 +17,9 @@ const clients = new Map<string, Response>();
 
 /** Returns the most recently created active API key (used as a dev fallback). */
 async function getMostRecentApiKey(): Promise<{ id: string } | undefined> {
-  return queryOne<{ id: string }>(
-    `SELECT id FROM api_keys WHERE is_active = TRUE ORDER BY created_at DESC LIMIT 1`
-  );
+  const sb = getSupabase();
+  const { data } = await sb.from('api_keys').select('id').eq('is_active', true).order('created_at', { ascending: false }).limit(1).single();
+  return data || undefined;
 }
 
 function broadcast(event: string, data: unknown) {

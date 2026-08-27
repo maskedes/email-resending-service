@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { config } from '../config';
-import { query, queryOne } from '../database/db';
+import { getSupabase } from '../database/supabase';
 import { enqueueEmail } from '../queue/emailQueue';
+import { dispatchWebhooks } from './webhookService';
 
 export interface SendEmailInput {
   from?: string;
@@ -72,62 +73,74 @@ export async function sendEmail(apiKeyId: string, input: SendEmailInput): Promis
     ? new Date(Date.now() + input.scheduleInMs).toISOString()
     : null;
 
-  await query(
-    `INSERT INTO emails (id, api_key_id, from_email, from_name, to_email, subject, html, text, metadata, scheduled_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-    [id, apiKeyId, email, name, input.to, input.subject, input.html || null, input.text || null, metadata, scheduledAt]
-  );
+  const sb = getSupabase();
+  await sb.from('emails').insert({
+    id, api_key_id: apiKeyId, from_email: email, from_name: name,
+    to_email: input.to, subject: input.subject,
+    html: input.html || null, text: input.text || null,
+    metadata: input.tags || null, scheduled_at: scheduledAt,
+  });
 
   await addEmailEvent(id, 'queued', 'Email queued for delivery');
 
   await enqueueEmail({ emailId: id }, { delay: input.scheduleInMs });
 
-  return (await queryOne<EmailRecord>(`SELECT * FROM emails WHERE id = $1`, [id]))!;
+  const { data } = await sb.from('emails').select('*').eq('id', id).single();
+  return data as EmailRecord;
 }
 
 export async function addEmailEvent(emailId: string, event: string, details?: string): Promise<void> {
-  await query(
-    `INSERT INTO email_events (email_id, event, details) VALUES ($1, $2, $3)`,
-    [emailId, event, details || null]
-  );
+  const sb = getSupabase();
+  await sb.from('email_events').insert({ email_id: emailId, event, details: details || null });
+
+  // Fan out to any subscribed webhooks. Fire-and-forget: never block the
+  // caller and never let a webhook failure break email processing.
+  dispatchWebhooks(emailId, event, details).catch(() => {});
 }
 
 export async function recordEmailSuccess(emailId: string, messageId: string): Promise<void> {
-  await query(
-    `UPDATE emails SET status = 'sent', sent_at = now() WHERE id = $1`,
-    [emailId]
-  );
+  const sb = getSupabase();
+  await sb.from('emails').update({ status: 'sent', sent_at: new Date().toISOString() }).eq('id', emailId);
   await addEmailEvent(emailId, 'sent', `Message ID: ${messageId}`);
 }
 
 export async function recordEmailFailure(emailId: string, errorMessage: string): Promise<void> {
-  await query(
-    `UPDATE emails SET status = 'failed', error_message = $1 WHERE id = $2`,
-    [errorMessage, emailId]
-  );
+  const sb = getSupabase();
+  await sb.from('emails').update({ status: 'failed', error_message: errorMessage }).eq('id', emailId);
   await addEmailEvent(emailId, 'failed', errorMessage);
 }
 
 export async function incrementEmailCount(apiKeyId: string): Promise<void> {
-  await query(`UPDATE api_keys SET total_emails_sent = total_emails_sent + 1 WHERE id = $1`, [apiKeyId]);
+  const sb = getSupabase();
+  const { data } = await sb.from('api_keys').select('total_emails_sent').eq('id', apiKeyId).single();
+  if (data) {
+    await sb.from('api_keys').update({ total_emails_sent: (data.total_emails_sent || 0) + 1 }).eq('id', apiKeyId);
+  }
 }
 
 export async function getEmailById(id: string): Promise<EmailRecord | null> {
-  return (await queryOne<EmailRecord>(`SELECT * FROM emails WHERE id = $1`, [id])) || null;
+  const sb = getSupabase();
+  const { data, error } = await sb.from('emails').select('*').eq('id', id).single();
+  if (error || !data) return null;
+  return data as EmailRecord;
 }
 
 export async function getEmailsByApiKeyId(apiKeyId: string, limit = 50, offset = 0): Promise<EmailRecord[]> {
-  return query<EmailRecord>(
-    `SELECT * FROM emails WHERE api_key_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
-    [apiKeyId, limit, offset]
-  );
+  const sb = getSupabase();
+  const { data, error } = await sb.from('emails')
+    .select('*').eq('api_key_id', apiKeyId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+  if (error) throw error;
+  return (data || []) as EmailRecord[];
 }
 
 export async function getEmailEvents(emailId: string): Promise<any[]> {
-  return query(
-    `SELECT * FROM email_events WHERE email_id = $1 ORDER BY timestamp ASC`,
-    [emailId]
-  );
+  const sb = getSupabase();
+  const { data, error } = await sb.from('email_events')
+    .select('*').eq('email_id', emailId).order('timestamp', { ascending: true });
+  if (error) throw error;
+  return data || [];
 }
 
 export interface EmailStats {
@@ -138,20 +151,14 @@ export interface EmailStats {
 }
 
 export async function getEmailStats(apiKeyId: string): Promise<EmailStats> {
-  const row = await queryOne<{ total: string; sent: string; failed: string; queued: string }>(
-    `SELECT
-       COUNT(*) as total,
-       COUNT(*) FILTER (WHERE status = 'sent') as sent,
-       COUNT(*) FILTER (WHERE status = 'failed') as failed,
-       COUNT(*) FILTER (WHERE status = 'queued') as queued
-     FROM emails WHERE api_key_id = $1`,
-    [apiKeyId]
-  );
-
+  const sb = getSupabase();
+  const { data, error } = await sb.from('emails')
+    .select('status').eq('api_key_id', apiKeyId);
+  if (error || !data) return { total: 0, sent: 0, failed: 0, queued: 0 };
   return {
-    total: Number(row?.total || 0),
-    sent: Number(row?.sent || 0),
-    failed: Number(row?.failed || 0),
-    queued: Number(row?.queued || 0),
+    total: data.length,
+    sent: data.filter((e: any) => e.status === 'sent').length,
+    failed: data.filter((e: any) => e.status === 'failed').length,
+    queued: data.filter((e: any) => e.status === 'queued').length,
   };
 }

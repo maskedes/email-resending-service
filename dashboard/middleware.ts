@@ -1,8 +1,14 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { AUTH_SKIPPED } from '@/lib/auth-server';
 import { updateSession } from '@/lib/supabase/middleware';
 
-// Public routes that never require a Supabase session
+// Auth-flow pages: signed-in users are redirected away from these to /overview
+const AUTH_PAGES = ['/', '/login', '/signup', '/forgot-password', '/reset-password'];
+
+// Routes reachable by anyone (signed-in or not) without a session.
+// The auth pages MUST be here too — otherwise an unauthenticated request to
+// /login (or /signup, which redirects to /login) hits the "redirect to login"
+// guard below and rewrites itself to /login?next=/login, causing an infinite
+// redirect loop ("too many redirects").
 const PUBLIC_PATHS = [
   '/',
   '/login',
@@ -11,17 +17,22 @@ const PUBLIC_PATHS = [
   '/reset-password',
   '/auth/callback',
   '/auth/confirm',
+  '/help',
+  '/contacts',
+  '/support',
+  '/ceo-bio',
+  '/documentation',
+  '/api-reference',
+  '/self-hosted-setup',
+  '/rest-api',
+  '/smtp-relay',
+  '/api-key-auth',
+  '/delivery-tracking',
+  '/bullmq-queue',
+  '/self-hosted',
 ];
 
-/**
- * When SKIP_AUTH=true the middleware lets every request through, so you can
- * browse the dashboard without logging in or configuring Cloudflare Access.
- */
 export async function middleware(request: NextRequest) {
-  if (AUTH_SKIPPED) {
-    return NextResponse.next();
-  }
-
   const { pathname } = request.nextUrl;
 
   // ---- Cloudflare Zero Trust Access check ----
@@ -57,7 +68,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Signed in -> keep them out of auth pages, send to overview
-  if (user && isPublic && !pathname.startsWith('/auth/')) {
+  if (user && AUTH_PAGES.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
     const url = request.nextUrl.clone();
     url.pathname = '/overview';
     return NextResponse.redirect(url);
@@ -73,8 +84,14 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon)
+     * - public assets served from /public (logo-icon.svg, logo.svg, fonts, css,
+     *   images). Without this, /logo-icon.svg etc. were treated as protected
+     *   routes and redirected to /login, so the logo never rendered.
+     * - SEO/verification files (robots.txt, sitemap.xml, *.html verification
+     *   files). These must be served publicly and unauthenticated so Google
+     *   Search Console can read them; otherwise they get redirected to /login.
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|css|js|woff|woff2|ttf|eot|otf|pdf|txt|map|xml|html)$).*)',
   ],
 };
 

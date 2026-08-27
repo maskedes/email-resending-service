@@ -36,7 +36,7 @@ body {
 .prose h2 { @apply text-xl font-semibold text-white mt-10 mb-3; }
 .prose h3 { @apply text-lg font-semibold text-white mt-8 mb-2; }
 .prose p { @apply text-zinc-400 leading-relaxed mb-4; }
-.prose a { @apply text-brand underline underline-offset-2 hover:text-brand-light transition-colors; }
+.prose a:not(.group) { @apply text-brand underline underline-offset-2 hover:text-brand-light transition-colors; }
 .prose ul { @apply list-disc pl-6 mb-4 space-y-1 text-zinc-400; }
 .prose ol { @apply list-decimal pl-6 mb-4 space-y-1 text-zinc-400; }
 .prose li { @apply leading-relaxed; }

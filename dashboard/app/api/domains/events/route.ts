@@ -1,46 +1,36 @@
 import { NextRequest } from 'next/server';
-import { API_URL } from '@/lib/api';
 import { requireSupabaseUser } from '@/lib/auth-server';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * Proxies the Express SSE stream to the browser.
- * The Next.js server authenticates via Supabase, then pipes the
- * domain-updated events through so the dashboard updates in realtime.
+ * SSE heartbeat stream. Domain verification results are now returned
+ * directly from the POST /api/domains/[id] handler, so this stream
+ * just keeps the connection alive for the client.
  */
 export async function GET(request: NextRequest) {
   const { response } = await requireSupabaseUser(request);
   if (response) return response;
 
-  const upstream = await fetch(`${API_URL}/api/domains/events`, {
-    headers: { Accept: 'text/event-stream' },
-    cache: 'no-store',
-  });
-
-  if (!upstream.ok || !upstream.body) {
-    return new Response('Failed to connect to event stream', { status: 502 });
-  }
-
   const stream = new ReadableStream({
     start(controller) {
-      const reader = upstream.body!.getReader();
+      // Send initial connected event
+      controller.enqueue(`event: connected\ndata: ${JSON.stringify({ connected: true })}\n\n`);
 
-      function push(): Promise<void> {
-        return reader.read().then(({ done, value }) => {
-          if (done) {
-            controller.close();
-            return;
-          }
-          controller.enqueue(value);
-          return push();
-        });
-      }
+      // Heartbeat every 25 seconds to keep the connection alive
+      const heartbeat = setInterval(() => {
+        try {
+          controller.enqueue(': ping\n\n');
+        } catch {
+          clearInterval(heartbeat);
+        }
+      }, 25000);
 
-      push().catch((err) => controller.error(err));
-    },
-    cancel() {
-      upstream.body?.cancel();
+      // Clean up on close
+      request.signal?.addEventListener('abort', () => {
+        clearInterval(heartbeat);
+        try { controller.close(); } catch { /* already closed */ }
+      });
     },
   });
 
@@ -48,7 +38,7 @@ export async function GET(request: NextRequest) {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache, no-transform',
-      Connection: 'keep-alive',
+      'Connection': 'keep-alive',
       'X-Accel-Buffering': 'no',
     },
   });

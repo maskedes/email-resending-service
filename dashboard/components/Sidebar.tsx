@@ -92,7 +92,7 @@ export default function Sidebar({ className = '' }: { className?: string }) {
       <div className="flex h-16 items-center justify-center border-b border-canvas-border px-6">
         <Link href="/overview" className="flex items-center gap-3">
           <img src="/logo-icon.svg" alt="E-NVOY" className="h-8 w-8" />
-          <span className="bg-gradient-to-r from-brand-300 to-brand-500 bg-clip-text text-xl font-bold text-transparent">E-NVOY</span>
+          <span className="text-xl font-bold text-[var(--fg)]">E-NVOY</span>
         </Link>
       </div>
 
