@@ -3,6 +3,7 @@ import './globals.css';
 import Script from 'next/script';
 import CookieConsent from './components/CookieConsent';
 import ThemeProvider from '@/components/ThemeProvider';
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://mailenvoy.qd.je'),
@@ -90,6 +91,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
           <CookieConsent />
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
