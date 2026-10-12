@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     default: 'E-NVOY — Free Open Source Email Sending Service',
     template: '%s — E-NVOY',
   },
-  description: 'E-NVOY by Ink E-socialz Inc. Send transactional and marketing emails for free. Open source email platform with SMTP relay, REST API, and real-time delivery tracking. Self-hosted and developer-friendly.',
+  description: 'E-NVOY by Ink E-socialz Inc. Free open source email platform with SMTP relay, REST API, and real-time delivery tracking for transactional and marketing emails.',
   alternates: { canonical: '/' },
   icons: { icon: '/logo-icon.svg' },
   // ─── Search-engine webmaster verification ───────────────────────────────

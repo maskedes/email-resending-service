@@ -7,6 +7,7 @@ interface StatsOptions {
   host?: string;
   json?: boolean;
   edgeSecret?: string;
+  edgeProxySecret?: string;
   [key: string]: unknown;
 }
 
@@ -22,7 +23,7 @@ export async function statsCommand(opts?: StatsOptions) {
     const { status, data } = await api('GET', '/api/emails/stats', undefined, {
       apiKey: opts?.apiKey,
       host: opts?.host,
-      edgeProxySecret: opts?.edgeSecret,
+      edgeProxySecret: opts?.edgeProxySecret || opts?.edgeSecret,
     });
 
     if (status !== 200) {

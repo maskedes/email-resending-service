@@ -56,6 +56,21 @@ export const config = {
     perSecond: parseInt(process.env.EMAIL_RATE_LIMIT_PER_SECOND || '3', 10),
   },
 
+  smsRateLimit: {
+    perSecond: parseInt(process.env.SMS_RATE_LIMIT_PER_SECOND || '2', 10),
+  },
+
+  smsGateway: {
+    /** HMAC secret used to sign gateway tokens (change in production!). */
+    tokenSecret: process.env.SMS_GATEWAY_TOKEN_SECRET || 'fms-dev-gateway-token-secret-change-me',
+    /** How long a gateway poll holds before returning empty (ms). */
+    pollTimeoutMs: parseInt(process.env.SMS_GATEWAY_POLL_TIMEOUT_MS || '25000', 10),
+    /** Consider gateway offline after this much silence (ms). */
+    offlineAfterMs: parseInt(process.env.SMS_GATEWAY_OFFLINE_AFTER_MS || '90000', 10),
+    /** Header the Android app sends with its gateway token. */
+    header: process.env.SMS_GATEWAY_HEADER || 'x-gateway-token',
+  },
+
   apiKeyHeader: process.env.API_KEY_HEADER || 'x-api-key',
 
   /** Optional shared secret that Cloudflare edge Worker sends to verify proxied traffic. */

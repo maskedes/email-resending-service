@@ -153,6 +153,52 @@ async function runMigrations(pool: Pool): Promise<void> {
   await pool.query(`
     CREATE INDEX IF NOT EXISTS idx_api_keys_user_id ON api_keys(user_id);
   `);
+
+  // ── SMS gateway + messages (Android phone as sender) ──
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS sms_gateways (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      api_key_id UUID REFERENCES api_keys(id) ON DELETE SET NULL,
+      name TEXT NOT NULL DEFAULT '',
+      phone_number TEXT,
+      gateway_token_hash TEXT NOT NULL UNIQUE,
+      is_online BOOLEAN DEFAULT FALSE,
+      last_seen_at TIMESTAMPTZ,
+      last_heartbeat_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT now()
+    );
+
+    CREATE TABLE IF NOT EXISTS sms_messages (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      api_key_id UUID NOT NULL REFERENCES api_keys(id),
+      gateway_id UUID REFERENCES sms_gateways(id) ON DELETE SET NULL,
+      to_phone TEXT NOT NULL,
+      from_phone TEXT,
+      body TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'queued',
+      parts INTEGER DEFAULT 1,
+      error_message TEXT,
+      metadata JSONB,
+      scheduled_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT now(),
+      sent_at TIMESTAMPTZ,
+      delivered_at TIMESTAMPTZ
+    );
+
+    CREATE TABLE IF NOT EXISTS sms_events (
+      id BIGSERIAL PRIMARY KEY,
+      sms_id UUID NOT NULL REFERENCES sms_messages(id) ON DELETE CASCADE,
+      event TEXT NOT NULL,
+      timestamp TIMESTAMPTZ DEFAULT now(),
+      details TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_sms_messages_api_key ON sms_messages(api_key_id);
+    CREATE INDEX IF NOT EXISTS idx_sms_messages_status ON sms_messages(status);
+    CREATE INDEX IF NOT EXISTS idx_sms_messages_created_at ON sms_messages(created_at);
+    CREATE INDEX IF NOT EXISTS idx_sms_events_sms_id ON sms_events(sms_id);
+    CREATE INDEX IF NOT EXISTS idx_sms_gateways_api_key ON sms_gateways(api_key_id);
+  `);
 }
 
 export async function closeDatabase(): Promise<void> {

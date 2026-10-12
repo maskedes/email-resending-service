@@ -26,7 +26,15 @@ export const config = {
     return process.env.ENVOY_HOST || store.get('host', 'https://api.freemailsend.dev');
   },
   set host(url: string) {
-    store.set('host', url.replace(/\/$/, ''));
+    const cleaned = (url || '').trim().replace(/\/$/, '');
+    if (!cleaned) return;
+    try {
+      const u = new URL(cleaned);
+      if (!['http:', 'https:'].includes(u.protocol)) throw new Error('invalid protocol');
+    } catch {
+      // still store — validation happens at command time for better errors
+    }
+    store.set('host', cleaned);
   },
   get edgeProxySecret(): string {
     return process.env.ENVOY_EDGE_PROXY_SECRET || store.get('edgeProxySecret', '');
@@ -42,13 +50,12 @@ export async function api(
   body?: Record<string, unknown>,
   opts?: { apiKey?: string; host?: string; json?: boolean; edgeProxySecret?: string }
 ): Promise<{ status: number; data: unknown }> {
-  const host = opts?.host || config.host;
+  const host = (opts?.host || config.host || '').replace(/\/$/, '');
   const apiKey = opts?.apiKey || config.apiKey;
   const url = `${host}${path}`;
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
+  const headers: Record<string, string> = {};
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
 
   if (apiKey) {
     headers['x-api-key'] = apiKey;
@@ -65,7 +72,13 @@ export async function api(
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  const data = await res.json();
+  const raw = await res.text();
+  let data: unknown;
+  try {
+    data = raw ? JSON.parse(raw) : {};
+  } catch {
+    data = { error: { message: raw.slice(0, 500) || res.statusText } } as unknown;
+  }
 
   return { status: res.status, data };
 }

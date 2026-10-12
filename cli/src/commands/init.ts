@@ -14,8 +14,18 @@ function ask(question: string, defaultValue?: string): Promise<string> {
 }
 
 function askHidden(question: string): Promise<string> {
+  // Non-TTY (piped/CI) fallback — use plain readline
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    return new Promise((resolve) => {
+      rl.question(`  ${question} (leave empty to keep current): `, (answer) => {
+        rl.close();
+        resolve(answer.trim());
+      });
+    });
+  }
   return new Promise((resolve) => {
-    process.stdout.write(`  ${question}: `);
+    process.stdout.write(`  ${question} (leave empty to keep current): `);
     process.stdin.setRawMode?.(true);
     process.stdin.resume();
     process.stdin.setEncoding('utf-8');
@@ -29,7 +39,11 @@ function askHidden(question: string): Promise<string> {
         process.stdout.write('\n');
         resolve(password);
       } else if (char === '\u0003') {
-        process.exit();
+        process.stdin.setRawMode?.(false);
+        process.stdin.pause();
+        process.stdin.removeListener('data', onData);
+        process.stdout.write('\n');
+        process.exit(1);
       } else if (char === '\u007F' || char === '\b') {
         if (password.length > 0) {
           password = password.slice(0, -1);
@@ -55,20 +69,47 @@ export async function initCommand() {
     console.log(chalk.dim(`  Current host:    ${currentHost}\n`));
   }
 
-  const apiKey = await askHidden('  API Key');
-  if (!apiKey.startsWith('fms_')) {
+  let apiKey = await askHidden('  API Key');
+  // Empty keeps current key
+  if (!apiKey) {
+    if (!currentKey) {
+      console.error(chalk.red('\n  ✗ API key is required on first setup.\n'));
+      process.exit(1);
+    }
+    apiKey = currentKey;
+    console.log(chalk.dim('  Keeping current API key.'));
+  } else if (!apiKey.startsWith('fms_')) {
     console.error(chalk.red('\n  ✗ API key must start with fms_\n'));
     process.exit(1);
   }
 
-  const host = await ask('  API Host', currentHost);
+  let host = await ask('  API Host', currentHost);
+  host = host.trim();
+  if (host) {
+    try {
+      const u = new URL(host);
+      if (!['http:', 'https:'].includes(u.protocol)) throw new Error('');
+    } catch {
+      console.error(chalk.red('\n  ✗ Invalid host URL (must be http(s)://...).\n'));
+      process.exit(1);
+    }
+  } else {
+    host = currentHost;
+  }
 
   const currentEdge = config.edgeProxySecret;
-  const edgeSecret = await ask('  Edge Proxy Secret (leave empty to skip)', currentEdge || '');
+  const edgeSecretRaw = await ask('  Edge Proxy Secret (leave empty to keep, \"clear\" to remove)', currentEdge ? '***' : '');
+  let edgeSecret = edgeSecretRaw;
+  // Empty keeps current; "clear" removes it
+  if (!edgeSecretRaw) {
+    edgeSecret = currentEdge;
+  } else if (edgeSecretRaw.toLowerCase() === 'clear') {
+    edgeSecret = '';
+  }
 
   config.apiKey = apiKey;
   config.host = host;
-  if (edgeSecret) config.edgeProxySecret = edgeSecret;
+  config.edgeProxySecret = edgeSecret;
 
   console.log(chalk.green('\n  ✓ Configuration saved!\n'));
 }

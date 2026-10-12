@@ -14,27 +14,24 @@ export default function AuthShell({
   children: ReactNode;
 }) {
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-canvas text-white px-4 py-10">
-      <div className="pointer-events-none absolute inset-0" />
+    <div className="flex min-h-screen flex-col bg-canvas text-white">
+      <header className="flex h-14 items-center gap-3 px-6 sm:px-10">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold tracking-tight text-white">
+          <img src="/logo-icon.svg" alt="E-NVOY" className="h-7 w-7" />
+          E-NVOY
+        </Link>
+        <Link href="/" className="ml-auto text-sm text-slate-400 transition hover:text-white">
+          ← Home
+        </Link>
+      </header>
 
-      <Link
-        href="/"
-        className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-canvas-raised px-3 py-2 text-sm text-slate-200 transition hover:border-white/20 hover:bg-canvas-border focus:outline-none focus:ring-2 focus:ring-brand"
-      >
-        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-canvas-border text-white">←</span>
-        Home
-      </Link>
-
-      <div className="relative z-10 w-full max-w-xl border border-canvas-border bg-canvas-raised p-8 sm:p-10">
-        <div className="absolute inset-x-0 top-0 h-0.5 bg-brand/30" />
-        <div className="mb-8 text-center">
-          <img src="/logo-icon.svg" alt="E-NVOY" className="mx-auto mb-4 h-12 w-12" />
-          <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">{title}</h1>
-          <p className="mt-2 text-sm text-slate-400 sm:text-base">{subtitle}</p>
+      <main className="flex flex-1 items-center justify-center px-6 py-10 sm:px-10 sm:py-16">
+        <div className="w-full max-w-xl">
+          <h1 className="text-center text-3xl font-semibold tracking-tight text-white sm:text-4xl">{title}</h1>
+          <p className="mt-2 text-center text-sm text-slate-400 sm:text-base">{subtitle}</p>
+          <div className="mt-8 space-y-6">{children}</div>
         </div>
-
-        <div className="space-y-6">{children}</div>
-      </div>
+      </main>
     </div>
   );
 }

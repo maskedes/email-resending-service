@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="vertical" android:padding="16dp" android:layout_width="match_parent" android:layout_height="match_parent">
+  <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="E-NVOY SMS Gateway" android:textSize="20sp" android:textStyle="bold" android:layout_marginBottom="12dp"/>
+  <EditText android:id="@+id/serverUrl" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Server URL (e.g. https://api.example.com)" android:inputType="textUri"/>
+  <EditText android:id="@+id/gatewayToken" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Gateway token (gw_...)" android:inputType="text"/>
+  <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp">
+    <Button android:id="@+id/btnSave" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Save"/>
+    <Button android:id="@+id/btnStart" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Start"/>
+    <Button android:id="@+id/btnStop" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Stop"/>
+  </LinearLayout>
+  <TextView android:id="@+id/status" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Enter server URL + token and tap Save → Start. Grant SMS permission when asked." android:textSize="12sp" android:layout_marginTop="12dp"/>
+</LinearLayout>

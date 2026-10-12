@@ -4,12 +4,15 @@ import { config, api } from '../config';
 
 type KeyAction = 'list' | 'create' | 'delete';
 
-export async function keysCommand(action: KeyAction, arg?: string, opts?: { email?: string }, globalOpts?: { apiKey?: string; host?: string; json?: boolean }) {
+interface GlobalOpts2 { apiKey?: string; host?: string; edgeProxySecret?: string; edgeSecret?: string; json?: boolean }
+function apiOpts2(g?: GlobalOpts2) { return { apiKey: g?.apiKey, host: g?.host, edgeProxySecret: g?.edgeProxySecret || g?.edgeSecret }; }
+
+export async function keysCommand(action: KeyAction, arg?: string, opts?: { email?: string }, globalOpts?: GlobalOpts2) {
   switch (action) {
     case 'list': {
       const spinner = ora('  Loading API keys...').start();
       try {
-        const { status, data } = await api('GET', '/api/apikeys');
+        const { status, data } = await api('GET', '/api/apikeys', undefined, apiOpts2(globalOpts));
         if (status !== 200) {
           spinner.fail(chalk.red('  Failed to load API keys'));
           process.exit(1);
@@ -51,7 +54,7 @@ export async function keysCommand(action: KeyAction, arg?: string, opts?: { emai
         const { status, data } = await api('POST', '/api/apikeys', {
           name: arg,
           email: opts?.email || '',
-        });
+        }, apiOpts2(globalOpts));
         if (status === 201) {
           const result = data as Record<string, unknown>;
           spinner.succeed(chalk.green('  API key created!'));
@@ -83,7 +86,7 @@ export async function keysCommand(action: KeyAction, arg?: string, opts?: { emai
       }
       const spinner = ora('  Deleting API key...').start();
       try {
-        const { status, data } = await api('DELETE', `/api/apikeys/${arg}/delete`);
+        const { status, data } = await api('DELETE', `/api/apikeys/${arg}/delete`, undefined, apiOpts2(globalOpts));
         if (status === 200) {
           spinner.succeed(chalk.green('  API key deleted.'));
         } else {

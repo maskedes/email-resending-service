@@ -10,6 +10,9 @@ import domainRoutes from './routes/domainRoutes';
 import dashboardRoutes from './dashboard';
 import { errorHandler, edgeProxyMiddleware } from './middleware/auth';
 import { initEmailWorker } from './workers/emailWorker';
+import { initSmsWorker } from './workers/smsWorker';
+import smsRoutes from './routes/smsRoutes';
+import smsGatewayRoutes from './routes/smsGatewayRoutes';
 
 const app = express();
 
@@ -39,6 +42,8 @@ app.use('/', dashboardRoutes);
 app.use('/api/emails', edgeProxyMiddleware, emailRoutes);
 app.use('/api/apikeys', apiKeyRoutes);
 app.use('/api/domains', domainRoutes);
+app.use('/api/sms', smsRoutes);
+app.use('/api/sms/gateway', smsGatewayRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {
@@ -54,6 +59,7 @@ async function bootstrap(): Promise<void> {
   console.log('[db] PostgreSQL ready');
 
   initEmailWorker();
+  initSmsWorker();
 
   const server = app.listen(config.port, config.host, () => {
     console.log(`

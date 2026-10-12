@@ -34,6 +34,9 @@ export default function ApiKeysPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [previews, setPreviews] = useState<Record<string, string>>({});
+  const [confirmDialog, setConfirmDialog] = useState<{ type: 'revoke' | 'delete'; id: string } | null>(null);
 
   async function fetchKeys() {
     try {
@@ -64,9 +67,14 @@ export default function ApiKeysPage() {
       const data = await res.json();
 
       if (data.key) {
-        setNewKey(data.key);
+        const raw = String(data.key);
+        setNewKey(raw);
         setName('');
         setEmail('');
+        // Build a masked preview (fms_••••••••wxyz) so the key is also
+        // visible in the list below after the one-time reveal is dismissed.
+        const preview = `${raw.slice(0, 4)}••••••••${raw.slice(-4)}`;
+        if (data.id) setPreviews((p) => ({ ...p, [String(data.id)]: preview }));
         await fetchKeys();
       } else {
         setError(data.error?.message || 'Failed to generate API key.');
@@ -89,10 +97,19 @@ export default function ApiKeysPage() {
       document.execCommand('copy');
       document.body.removeChild(ta);
     }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
-  async function revokeKey(id: string) {
-    if (!confirm('Are you sure you want to revoke this API key? This action cannot be undone.')) return;
+  function revokeKey(id: string) {
+    setConfirmDialog({ type: 'revoke', id });
+  }
+
+  function deleteKey(id: string) {
+    setConfirmDialog({ type: 'delete', id });
+  }
+
+  async function performRevoke(id: string) {
     try {
       await fetch(`/api/apikeys/${id}`, { method: 'DELETE' });
       await fetchKeys();
@@ -101,8 +118,7 @@ export default function ApiKeysPage() {
     }
   }
 
-  async function deleteKey(id: string) {
-    if (!confirm('Delete this API key permanently? It will be revoked and removed from the database. This cannot be undone.')) return;
+  async function performDelete(id: string) {
     try {
       await fetch(`/api/apikeys/${id}?permanent=true`, { method: 'DELETE' });
       await fetchKeys();
@@ -112,70 +128,94 @@ export default function ApiKeysPage() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-white">API Keys</h1>
-        <p className="mt-1 text-slate-400">Manage your API keys for sending emails via REST API or SMTP.</p>
-      </div>
+    <>
+      <div className="space-y-8">
+        {/* Page Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-white">API Keys</h1>
+          <p className="mt-1 text-slate-400">Manage your API keys for sending emails via REST API or SMTP.</p>
+        </div>
 
       {/* Create Key Form */}
-      <section className="border border-canvas-border bg-canvas-raised p-6">
-        <h2 className="mb-5 text-lg font-semibold text-white">Create New API Key</h2>
+      <section className="rounded-xl border border-canvas-border bg-canvas-raised p-6 shadow-sm">
+        <h2 className="mb-1 text-lg font-semibold text-white">Create New API Key</h2>
+        <p className="mb-5 text-sm text-slate-400">Generate a key to authenticate API or SMTP requests.</p>
 
         {newKey && (
-          <div className="mb-5 border border-emerald-500/30 bg-emerald-500/10 p-4">
-            <p className="text-sm text-emerald-300 mb-2">Your new API key (copy now - it won't be shown again):</p>
-            <div className="flex items-center gap-3">
-              <code className="flex-1 rounded bg-canvas px-3 py-2 text-sm text-emerald-100 font-mono break-all">
+          <div className="relative mb-6 overflow-hidden rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 p-5 shadow-lg shadow-emerald-500/5">
+            <span className="absolute inset-y-0 left-0 w-1 bg-emerald-400/70" aria-hidden="true" />
+            <button
+              type="button"
+              onClick={() => setNewKey(null)}
+              aria-label="Dismiss"
+              className="absolute right-3 top-3 rounded-md p-1.5 text-slate-400 transition-colors hover:bg-canvas hover:text-white"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M18.3 5.71L12 12.01l-6.3-6.3l-1.4 1.41l6.29 6.3l-6.3 6.29l1.41 1.41l6.3-6.3l6.29 6.3l1.41-1.41l-6.3-6.29l6.3-6.3z" />
+              </svg>
+            </button>
+            <h3 className="mb-3 pr-8 text-sm font-semibold text-emerald-300">
+              API key created — copy it now, it won&apos;t be shown again
+            </h3>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
+              <code className="flex-1 break-all rounded-lg border border-canvas-border bg-canvas px-3.5 py-3 text-sm text-emerald-200 font-mono">
                 {newKey}
               </code>
               <button
+                type="button"
                 onClick={() => copyKey(newKey)}
-                className="bg-brand/15 px-4 py-2 text-sm font-medium text-white hover:bg-brand/30 transition-colors"
+                className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-brand px-5 py-3 text-sm font-semibold text-black transition-colors hover:bg-brand/90"
               >
-                Copy
+                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 36 36" aria-hidden="true">
+                  <path d="M0 0h36v36H0z" fill="none" />
+                  <path fill="currentColor" d="M27 3.56A1.56 1.56 0 0 0 25.43 2H5.57A1.56 1.56 0 0 0 4 3.56v24.88A1.56 1.56 0 0 0 5.57 30h.52V4.07H27Z" className="clr-i-solid clr-i-solid-path-1" />
+                  <rect width="23" height="28" x="8" y="6" fill="currentColor" className="clr-i-solid clr-i-solid-path-2" rx="1.5" ry="1.5" />
+                  <path fill="none" d="M0 0h36v36H0z" />
+                </svg>
+                {copied ? 'Copied' : 'Copy'}
               </button>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="mb-5 border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+          <div className="mb-5 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleCreate} className="space-y-4 md:grid md:grid-cols-3 md:gap-4">
+        <form onSubmit={handleCreate} className="grid gap-4 md:grid-cols-3 md:items-end">
           <div className="md:col-span-1">
-            <label className="mb-1.5 block text-sm text-slate-400">Name</label>
+            <label htmlFor="apikey-name" className="mb-1.5 block text-sm font-medium text-slate-300">Name</label>
             <input
+              id="apikey-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="My App"
               required
               disabled={creating}
-              className="w-full border border-canvas-border bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none focus:border-brand disabled:opacity-50"
+              className="w-full rounded-lg border border-canvas-border bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/30 disabled:opacity-50"
             />
           </div>
           <div className="md:col-span-1">
-            <label className="mb-1.5 block text-sm text-slate-400">Email</label>
+            <label htmlFor="apikey-email" className="mb-1.5 block text-sm font-medium text-slate-300">Email</label>
             <input
+              id="apikey-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               required
               disabled={creating}
-              className="w-full border border-canvas-border bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none focus:border-brand disabled:opacity-50"
+              className="w-full rounded-lg border border-canvas-border bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/30 disabled:opacity-50"
             />
           </div>
-          <div className="md:col-span-1 flex items-end">
+          <div className="md:col-span-1">
             <button
               type="submit"
               disabled={creating}
-              className="w-full bg-brand px-4 py-2.5 font-medium text-black transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full rounded-lg bg-brand px-4 py-2.5 font-medium text-black transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {creating ? 'Creating…' : 'Generate Key'}
             </button>
@@ -184,31 +224,35 @@ export default function ApiKeysPage() {
       </section>
 
       {/* API Keys List */}
-      <section className="border border-canvas-border bg-canvas-raised p-6">
+      <section className="rounded-xl border border-canvas-border bg-canvas-raised p-6 shadow-sm">
         <h2 className="mb-5 text-lg font-semibold text-white">Your API Keys</h2>
 
         {keys.length === 0 ? (
-          <div className="py-12 text-center">
+          <div className="rounded-lg border border-dashed border-canvas-border py-12 text-center">
             <p className="text-slate-500">No API keys yet. Create one above to get started.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-hidden rounded-lg border border-canvas-border">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-canvas-border text-xs uppercase tracking-wider text-slate-500">
-                  <th className="px-4 py-3">Name</th>
-                  <th className="px-4 py-3">Email</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Emails Sent</th>
-                  <th className="px-4 py-3">Last Used</th>
-                  <th className="px-4 py-3">Created</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                <tr className="bg-canvas text-xs uppercase tracking-wider text-slate-400">
+                  <th className="px-4 py-3 font-medium">Name</th>
+                  <th className="px-4 py-3 font-medium">Key</th>
+                  <th className="px-4 py-3 font-medium">Email</th>
+                  <th className="px-4 py-3 font-medium">Status</th>
+                  <th className="px-4 py-3 font-medium">Emails Sent</th>
+                  <th className="px-4 py-3 font-medium">Last Used</th>
+                  <th className="px-4 py-3 font-medium">Created</th>
+                  <th className="px-4 py-3 text-right font-medium">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-canvas-border/60">
                 {keys.map((key) => (
-                  <tr key={key.id} className="border-b border-canvas-border/60 hover:bg-brand/5">
+                  <tr key={key.id} className="bg-canvas-raised transition-colors hover:bg-brand/5">
                     <td className="px-4 py-3 font-medium text-white">{key.name}</td>
+                    <td className="px-4 py-3">
+                      <code className="rounded bg-canvas px-2 py-1 font-mono text-xs text-slate-400">{previews[key.id] ?? 'fms_••••••••••••'}</code>
+                    </td>
                     <td className="px-4 py-3 text-slate-300">{key.email}</td>
                     <td className="px-4 py-3">
                       <span
@@ -261,8 +305,8 @@ export default function ApiKeysPage() {
       </section>
 
       {/* SMTP Info */}
-      <section className="border border-canvas-border bg-canvas-raised p-6">
-        <h2 className="mb-4 text-lg font-semibold text-white">SMTP Configuration</h2>
+      <section className="rounded-xl border border-canvas-border bg-canvas-raised p-6 shadow-sm">
+        <h2 className="mb-1 text-lg font-semibold text-white">SMTP Configuration</h2>
         <p className="mb-4 text-sm text-slate-400">
           Use your API key as the password for SMTP authentication.
         </p>
@@ -285,6 +329,57 @@ export default function ApiKeysPage() {
           </div>
         </div>
       </section>
-    </div>
+
+      {/* Confirmation popout card for revoke / delete (dark blue, solid) */}
+      {confirmDialog && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setConfirmDialog(null)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={confirmDialog.type === 'delete' ? 'Delete API key' : 'Revoke API key'}
+            className="w-full max-w-md rounded-xl border border-blue-500/40 bg-[#0c1f3f] p-6 shadow-2xl shadow-black/50"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-white">
+              {confirmDialog.type === 'delete' ? 'Delete API key?' : 'Revoke API key?'}
+            </h3>
+            <p className="mt-2 text-sm text-slate-300">
+              {confirmDialog.type === 'delete'
+                ? 'This key will be permanently deleted and removed from the database. This cannot be undone.'
+                : 'This key will be revoked and can no longer be used to send emails. This cannot be undone.'}
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmDialog(null)}
+                className="rounded-lg border border-slate-400/30 px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-white/5"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const { id, type } = confirmDialog;
+                  setConfirmDialog(null);
+                  if (type === 'delete') performDelete(id);
+                  else performRevoke(id);
+                }}
+                className={`rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors ${
+                  confirmDialog.type === 'delete'
+                    ? 'bg-red-600 hover:bg-red-500'
+                    : 'bg-amber-600 hover:bg-amber-500'
+                }`}
+              >
+                {confirmDialog.type === 'delete' ? 'Delete' : 'Revoke'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
+    </>
   );
 }

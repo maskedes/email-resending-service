@@ -7,6 +7,12 @@ data/
 *.sqlite
 .DS_Store
 
+# Android gateway build outputs
+android-gateway/.gradle/
+android-gateway/app/build/
+android-gateway/build/
+wispbyte.zip
+
 # Next.js
 .next/
 out/

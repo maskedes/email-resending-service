@@ -32,8 +32,8 @@
   --brand: #f8fafc;
   --brand-hover: #e2e8f0;
   --accent: #cbd5e1;
-  --emerald: #6ee7b7;        /* emerald-300 */
-  --emerald-strong: #34d399; /* emerald-400 */
+  --emerald: #00fa96;        /* emerald-300 */
+  --emerald-strong: #00ffa2; /* emerald-400 */
   --red: #fca5a5;            /* red-300 */
   --red-strong: #f87171;     /* red-400 */
   --amber: #fcd34d;          /* amber-300 */
@@ -133,7 +133,7 @@ svg {
 :root.light .bg-emerald-500\/10 { background-color: rgba(5, 150, 105, 0.1) !important; }
 :root.light .bg-emerald-500\/30 { background-color: rgba(5, 150, 105, 0.15) !important; }
 :root.light .border-emerald-500\/30 { border-color: rgba(5, 150, 105, 0.4) !important; }
-:root.light .border-emerald-500\/40 { border-color: rgba(5, 150, 105, 0.5) !important; }
+:root.light .border-emerald-500\/40 { border-color: rgba(2, 253, 86, 0.5) !important; }
 :root.light .border-emerald-500\/20 { border-color: rgba(5, 150, 105, 0.35) !important; }
 :root.light .from-emerald-500 { /* status pills */ }
 

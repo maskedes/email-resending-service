@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import StatsCards from './StatsCards';
 import EmailTable from './EmailTable';
 import LogoutButton from './LogoutButton';
+import SmsSender from './SmsSender';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,6 +68,9 @@ export default async function OverviewPage() {
 
       {/* Stats Cards */}
       <StatsCards stats={stats} />
+
+      {/* SMS — Twilio-like, realtime via same Android gateway API */}
+      <SmsSender keyName={keys[0]?.name} />
 
       {/* Recent Emails */}
       <EmailTable emails={emails} />

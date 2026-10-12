@@ -9,6 +9,7 @@ interface LogsOptions {
   host?: string;
   json?: boolean;
   edgeSecret?: string;
+  edgeProxySecret?: string;
   [key: string]: unknown;
 }
 
@@ -26,15 +27,17 @@ export async function logsCommand(opts: LogsOptions) {
     process.exit(1);
   }
 
-  const limit = opts.limit || '20';
-  const offset = opts.offset || '0';
+  const limitNum = Math.min(Math.max(parseInt(String(opts.limit ?? '20'), 10) || 20, 1), 100);
+  const offsetNum = Math.max(parseInt(String(opts.offset ?? '0'), 10) || 0, 0);
+  const limit = String(limitNum);
+  const offset = String(offsetNum);
   const spinner = ora('  Loading emails...').start();
 
   try {
     const { status, data } = await api('GET', `/api/emails?limit=${limit}&offset=${offset}`, undefined, {
       apiKey: opts.apiKey,
       host: opts.host,
-      edgeProxySecret: opts.edgeSecret,
+      edgeProxySecret: opts.edgeProxySecret || opts.edgeSecret,
     });
 
     if (status !== 200) {

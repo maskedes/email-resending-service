@@ -20,9 +20,22 @@ interface SendOptions {
   [key: string]: unknown;
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export async function sendCommand(opts: SendOptions) {
   if (!config.apiKey && !opts.apiKey) {
     console.error(chalk.red('\n  ✗ No API key configured. Run `envoy init` first.\n'));
+    process.exit(1);
+  }
+  if (!opts.to || !EMAIL_RE.test(opts.to)) {
+    console.error(chalk.red('\n  ✗ Invalid --to email address.\n'));
+    process.exit(1);
+  }
+  if (opts.from && !EMAIL_RE.test(opts.from.replace(/^.*<([^>]+)>$/, '$1').trim())) {
+    console.error(chalk.red('\n  ✗ Invalid --from email address.\n'));
+    process.exit(1);
+  }
+  if (opts.schedule !== undefined && (Number.isNaN(opts.schedule) || opts.schedule < 0)) {
+    console.error(chalk.red('\n  ✗ --schedule must be a non-negative integer (ms).\n'));
     process.exit(1);
   }
 
@@ -52,16 +65,20 @@ export async function sendCommand(opts: SendOptions) {
     }
   }
 
+  if (!opts.subject || !opts.subject.trim()) {
+    console.error(chalk.red('\n  ✗ --subject is required.\n'));
+    process.exit(1);
+  }
   const body: Record<string, unknown> = {
     to: opts.to,
-    subject: opts.subject || '(no subject)',
+    subject: opts.subject.trim(),
   };
 
   if (opts.from) body.from = opts.from;
   if (htmlBody) body.html = htmlBody;
   if (opts.text) body.text = opts.text;
   if (Object.keys(tags).length > 0) body.tags = tags;
-  if (opts.schedule) body.scheduleInMs = opts.schedule;
+  if (opts.schedule !== undefined && opts.schedule > 0) body.scheduleInMs = opts.schedule;
 
   const spinner = ora('  Sending email...').start();
 
@@ -70,7 +87,7 @@ export async function sendCommand(opts: SendOptions) {
       apiKey: opts.apiKey,
       host: opts.host,
       json: opts.json,
-      edgeProxySecret: opts.edgeSecret,
+      edgeProxySecret: (opts.edgeProxySecret as string) || opts.edgeSecret,
     });
 
     if (status === 200) {

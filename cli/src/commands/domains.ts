@@ -20,7 +20,12 @@ function checkMark(val: boolean): string {
   return val ? chalk.green('✓') : chalk.red('✗');
 }
 
-export async function domainsCommand(action: DomainAction, arg?: string, globalOpts?: { apiKey?: string; host?: string; json?: boolean }) {
+interface GlobalOpts { apiKey?: string; host?: string; edgeProxySecret?: string; edgeSecret?: string; json?: boolean }
+function apiOpts(g?: GlobalOpts) {
+  return { apiKey: g?.apiKey, host: g?.host, edgeProxySecret: g?.edgeProxySecret || g?.edgeSecret };
+}
+
+export async function domainsCommand(action: DomainAction, arg?: string, globalOpts?: GlobalOpts) {
   if (!config.apiKey && !globalOpts?.apiKey) {
     console.error(chalk.red('\n  ✗ No API key configured. Run `envoy init` first.\n'));
     process.exit(1);
@@ -30,7 +35,7 @@ export async function domainsCommand(action: DomainAction, arg?: string, globalO
     case 'list': {
       const spinner = ora('  Loading domains...').start();
       try {
-        const { status, data } = await api('GET', '/api/domains');
+        const { status, data } = await api('GET', '/api/domains', undefined, apiOpts(globalOpts));
         if (status !== 200) {
           spinner.fail(chalk.red('  Failed to load domains'));
           process.exit(1);
@@ -68,7 +73,7 @@ export async function domainsCommand(action: DomainAction, arg?: string, globalO
       }
       const spinner = ora(`  Registering ${arg}...`).start();
       try {
-        const { status, data } = await api('POST', '/api/domains', { name: arg });
+        const { status, data } = await api('POST', '/api/domains', { name: arg }, apiOpts(globalOpts));
         if (status === 201) {
           const domain = (data as { domain: Record<string, unknown> }).domain;
           spinner.succeed(chalk.green(`  Domain ${arg} registered!`));
@@ -100,7 +105,7 @@ export async function domainsCommand(action: DomainAction, arg?: string, globalO
       }
       const spinner = ora('  Verifying DNS records...').start();
       try {
-        const { status, data } = await api('POST', `/api/domains/${arg}/verify`);
+        const { status, data } = await api('POST', `/api/domains/${arg}/verify`, undefined, apiOpts(globalOpts));
         if (status === 200) {
           const result = data as { domain: Record<string, unknown>; checks: Record<string, unknown>[]; overall: string };
           spinner.succeed(chalk.green(`  Verification complete: ${formatStatus(result.overall)}`));
@@ -130,7 +135,7 @@ export async function domainsCommand(action: DomainAction, arg?: string, globalO
       }
       const spinner = ora('  Deleting domain...').start();
       try {
-        const { status, data } = await api('DELETE', `/api/domains/${arg}`);
+        const { status, data } = await api('DELETE', `/api/domains/${arg}`, undefined, apiOpts(globalOpts));
         if (status === 200) {
           spinner.succeed(chalk.green('  Domain deleted.'));
         } else {

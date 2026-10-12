@@ -51,6 +51,14 @@
 		reverse_proxy {$API_ADDRESS}
 	}
 
+	# SMS API → backend (includes /api/sms/gateway/* sub-routes)
+	handle /api/sms {
+		reverse_proxy {$API_ADDRESS}
+	}
+	handle /api/sms/* {
+		reverse_proxy {$API_ADDRESS}
+	}
+
 	# Liveness probe → backend
 	handle /health {
 		reverse_proxy {$API_ADDRESS}
