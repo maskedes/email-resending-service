@@ -19,7 +19,7 @@ envoy = ENovoy(api_key="fms_YOUR_API_KEY")
 
 result = envoy.emails.send(
     to="user@example.com",
-    from_address="hello@yourdomain.com",
+    from_address="noreply@onboard.qd.je",
     subject="Welcome!",
     html="<h1>Hello!</h1><p>Your account is ready.</p>",
 )

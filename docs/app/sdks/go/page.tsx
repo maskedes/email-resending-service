@@ -28,7 +28,7 @@ func main() {
 
 	result, err := client.Emails.Send(&envoy.SendRequest{
 		To:      "user@example.com",
-		From:    "hello@yourdomain.com",
+		From:    "noreply@onboard.qd.je",
 		Subject: "Welcome!",
 		HTML:    "<h1>Hello!</h1><p>Your account is ready.</p>",
 	})

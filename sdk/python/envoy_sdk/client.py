@@ -22,7 +22,7 @@ import os
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 #: Default API host. Overridable per-client via ``host`` or the ``ENVOY_HOST`` env var.
 DEFAULT_HOST = os.environ.get("ENVOY_HOST", "http://78.154.103.19:12083")
@@ -59,7 +59,7 @@ class EmailsResource:
     def send(
         self,
         *,
-        to: Union[str, List[str]],
+        to: str,
         subject: str,
         html: Optional[str] = None,
         text: Optional[str] = None,

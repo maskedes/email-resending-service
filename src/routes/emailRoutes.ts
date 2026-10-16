@@ -10,9 +10,9 @@ router.post('/send', authMiddleware, async (req: AuthRequest, res: Response): Pr
   try {
     const { from, to, subject, html, text, reply_to, tags, scheduleInMs } = req.body;
 
-    if (!to) {
+    if (!to || typeof to !== 'string' || !to.trim()) {
       res.status(400).json({
-        error: { type: 'validation_error', message: 'The "to" field is required.' },
+        error: { type: 'validation_error', message: 'The "to" field is required as a single recipient email string.' },
       });
       return;
     }

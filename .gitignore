@@ -33,3 +33,6 @@ workers/email-api-worker/node_modules/
 # Python
 __pycache__/
 *.pyc
+
+# Confidential internal docs (never push)
+CONFIDENTIAL-PIPELINE.md

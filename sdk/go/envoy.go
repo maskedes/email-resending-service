@@ -78,8 +78,8 @@ func (e *Error) Error() string {
 
 // SendRequest describes an email to send.
 type SendRequest struct {
-	// To is a recipient string or a []string of recipients.
-	To           interface{}       `json:"to"`
+	// To is a single recipient email address.
+	To           string            `json:"to"`
 	From         string            `json:"from,omitempty"`
 	Subject      string            `json:"subject,omitempty"`
 	HTML         string            `json:"html,omitempty"`

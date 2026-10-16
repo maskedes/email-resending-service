@@ -29,8 +29,7 @@ import { ENovoy } from '@envoy/sdk';
 const envoy = new ENovoy({ apiKey: process.env.ENVOY_API_KEY! });
 
 const result = await envoy.emails.send({
-  from: 'hello@yourdomain.com',
-  to: ['user@example.com'],
+  to: 'user@example.com',
   subject: 'Welcome!',
   html: '<h1>Hello!</h1><p>Your account is ready.</p>',
 });
@@ -54,10 +53,10 @@ hosted E-NVOY API.
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
-| `to` | `string \| string[]` | yes | Recipients |
+| `to` | `string` | yes | Single recipient |
 | `subject` | `string` | yes | |
 | `html` / `text` | `string` | one of | Body |
-| `from` | `string` | no | Defaults to your sending domain |
+| `from` | `string` | no | Accepted but replaced by your platform sending domain (display name kept) |
 | `reply_to` | `string` | no | |
 | `tags` | `Record<string,string>` | no | |
 | `scheduleInMs` | `number` | no | Delay delivery |

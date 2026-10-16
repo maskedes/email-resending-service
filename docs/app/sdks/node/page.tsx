@@ -18,7 +18,7 @@ export default function SDKNode() {
 const envoy = new ENovoy({ apiKey: 'fms_YOUR_API_KEY' });
 
 const result = await envoy.emails.send({
-  from: 'hello@yourdomain.com',
+  from: 'noreply@onboard.qd.je',
   to: ['user@example.com'],
   subject: 'Welcome!',
   html: '<h1>Hello!</h1><p>Your account is ready.</p>',

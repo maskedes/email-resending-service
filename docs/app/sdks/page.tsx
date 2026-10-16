@@ -23,6 +23,24 @@ export default function SDKsOverview() {
         <code>id</code>. Point them at your API host with <code>ENVOY_HOST</code>.
       </div>
 
+      <h2>Server setup for public SDK use</h2>
+      <div className="callout callout-tip">
+        <strong>Direct access required:</strong> the SDKs call{' '}
+        <code>POST /api/emails/send</code> with only your <code>x-api-key</code>.
+        If the server sets <code>EDGE_PROXY_SECRET</code>, it answers{' '}
+        <code>403 Direct access is not allowed</code>. For public SDK use, leave{' '}
+        <code>EDGE_PROXY_SECRET</code> empty on the server and restart — per-key
+        auth and rate limits still apply.
+      </div>
+      <div className="callout callout-tip">
+        <strong>Sender fixed to your platform domain:</strong> every send uses{' '}
+        <code>noreply@onboard.qd.je</code> (or <code>DEFAULT_FROM_EMAIL</code>).
+        A custom <code>from</code> is accepted but its address is replaced —
+        only your display name is kept — so mail always passes provider
+        verification. Send to a <strong>single</strong> <code>to</code> address
+        per request.
+      </div>
+
       <h2>Installation</h2>
       <table>
         <thead>
@@ -53,7 +71,7 @@ export default function SDKsOverview() {
           <tr><th>Field</th><th>Type</th><th>Description</th></tr>
         </thead>
         <tbody>
-          <tr><td><code>to</code></td><td>string | string[]</td><td>Recipient address(es)</td></tr>
+          <tr><td><code>to</code></td><td>string</td><td>Single recipient address (one per request)</td></tr>
           <tr><td><code>subject</code></td><td>string</td><td>Email subject</td></tr>
           <tr><td><code>html</code> <em>or</em> <code>text</code></td><td>string</td><td>Body — at least one is required</td></tr>
         </tbody>
@@ -65,7 +83,7 @@ export default function SDKsOverview() {
           <tr><th>Field</th><th>Type</th><th>Description</th></tr>
         </thead>
         <tbody>
-          <tr><td><code>from</code></td><td>string</td><td>Sender address (falls back to your default domain)</td></tr>
+          <tr><td><code>from</code></td><td>string</td><td>Accepted but replaced by your platform sending domain (only your display name is kept)</td></tr>
           <tr><td><code>reply_to</code></td><td>string</td><td>Reply-To address</td></tr>
           <tr><td><code>tags</code></td><td>object</td><td>Key/value metadata (e.g. <code>{'{ campaign: "welcome" }'}</code>)</td></tr>
           <tr><td><code>scheduleInMs</code></td><td>number</td><td>Delay delivery by N milliseconds</td></tr>
@@ -75,8 +93,8 @@ export default function SDKsOverview() {
       <h3>Response</h3>
       <pre><code>{`{
   "id": "a1b2c3d4-...",
-  "from": "hello@mail.yourdomain.com",
-  "to": ["user@example.com"],
+  "from": "noreply@onboard.qd.je",
+  "to": "user@example.com",
   "subject": "Welcome aboard!",
   "status": "queued",
   "created_at": "2026-08-08T12:00:00.000Z"
@@ -85,7 +103,7 @@ export default function SDKsOverview() {
       <h2>Code examples</h2>
 
       <h3>CLI</h3>
-      <pre><code>{`curl -X POST http://78.154.103.19:12083/api/emails/send -H "Content-Type: application/json" -H "x-api-key: $ENVOY_API_KEY" -d '{"from":"hello@mail.yourdomain.com","to":["user@example.com"],"subject":"Welcome aboard!","html":"<h1>Hello!</h1><p>Your account is ready.</p>"}'`}</code></pre>
+      <pre><code>{`curl -X POST http://78.154.103.19:12083/api/emails/send -H "Content-Type: application/json" -H "x-api-key: $ENVOY_API_KEY" -d '{"from":"noreply@onboard.qd.je","to":"user@example.com","subject":"Welcome aboard!","html":"<h1>Hello!</h1><p>Your account is ready.</p>"}'`}</code></pre>
 
       <h3>Node.js</h3>
       <pre><code>{`import { ENovoy } from '@envoy/sdk';
@@ -93,8 +111,8 @@ export default function SDKsOverview() {
 const envoy = new ENovoy({ apiKey: process.env.ENVOY_API_KEY });
 
 const result = await envoy.emails.send({
-  from: 'hello@mail.yourdomain.com',
-  to: ['user@example.com'],
+  from: 'noreply@onboard.qd.je',
+  to: 'user@example.com',
   subject: 'Welcome aboard!',
   html: '<h1>Hello!</h1><p>Your account is ready.</p>',
 });
@@ -110,7 +128,7 @@ envoy = ENovoy(
 )
 
 result = envoy.emails.send(
-    from_address="hello@mail.yourdomain.com",
+    from_address="noreply@onboard.qd.je",
     to="user@example.com",
     subject="Welcome aboard!",
     html="""
@@ -134,7 +152,7 @@ func main() {
     client := envoy.New(os.Getenv("ENVOY_API_KEY"))
 
     result, err := client.Emails.Send(&envoy.SendRequest{
-        From:    "hello@mail.yourdomain.com",
+        From:    "noreply@onboard.qd.je",
         To:      "user@example.com",
         Subject: "Welcome aboard!",
         HTML:    "<h1>Hello!</h1><p>Your account is ready.</p>",
@@ -155,7 +173,7 @@ use EnvoySdk\\Envoy;
 $client = new Envoy($_ENV['ENVOY_API_KEY']);
 
 $result = $client->emails->send([
-    'from'    => 'hello@mail.yourdomain.com',
+    'from'    => 'noreply@onboard.qd.je',
     'to'      => ['user@example.com'],
     'subject' => 'Welcome aboard!',
     'html'    => '<h1>Hello!</h1><p>Your account is ready.</p>',
@@ -169,7 +187,7 @@ echo $result->id; // queued message ID`}</code></pre>
 client = ENovoy.new(api_key: ENV['ENVOY_API_KEY'])
 
 result = client.emails.send(
-  from: 'hello@mail.yourdomain.com',
+  from: 'noreply@onboard.qd.je',
   to: 'user@example.com',
   subject: 'Welcome aboard!',
   html: '<h1>Hello!</h1><p>Your account is ready.</p>',
@@ -185,8 +203,8 @@ puts result.id # queued message id`}</code></pre>
     "Content-Type": "application/json"
   },
   body: JSON.stringify({
-    from: "hello@mail.yourdomain.com",
-    to: ["user@example.com"],
+    from: "noreply@onboard.qd.je",
+    to: "user@example.com",
     subject: "Welcome aboard!",
     html: "<h1>Hello!</h1><p>Your account is ready.</p>"
   })
@@ -203,8 +221,8 @@ console.log(result.id);`}</code></pre>
     "Content-Type": "application/json"
   },
   body: JSON.stringify({
-    from: "hello@mail.yourdomain.com",
-    to: ["user@example.com"],
+    from: "noreply@onboard.qd.je",
+    to: "user@example.com",
     subject: "Welcome aboard!",
     html: "<h1>Hello!</h1><p>Your account is ready.</p>"
   })
@@ -221,8 +239,8 @@ import java.net.URI;
 
 String body = """
     {
-      "from": "hello@mail.yourdomain.com",
-      "to": ["user@example.com"],
+      "from": "noreply@onboard.qd.je",
+      "to": "user@example.com",
       "subject": "Welcome aboard!",
       "html": "<h1>Hello!</h1><p>Your account is ready.</p>"
     }
@@ -251,8 +269,8 @@ val response: HttpResponse = client.post("http://78.154.103.19:12083/api/emails/
     header("Content-Type", "application/json")
     setBody("""
         {
-          "from": "hello@mail.yourdomain.com",
-          "to": ["user@example.com"],
+          "from": "noreply@onboard.qd.je",
+          "to": "user@example.com",
           "subject": "Welcome aboard!",
           "html": "<h1>Hello!</h1><p>Your account is ready.</p>"
         }
@@ -267,7 +285,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 var client = new HttpClient();
-var json = @"{""from"":""hello@mail.yourdomain.com"",""to"":[""user@example.com""],""subject"":""Welcome aboard!"",""html"":""<h1>Hello!</h1><p>Your account is ready.</p>""}";
+var json = @"{""from"":""noreply@onboard.qd.je"",""to"":""user@example.com"",""subject"":""Welcome aboard!"",""html"":""<h1>Hello!</h1><p>Your account is ready.</p>""}";
 
 var request = new HttpRequestMessage(HttpMethod.Post, "http://78.154.103.19:12083/api/emails/send");
 request.Headers.Add("x-api-key", Environment.GetEnvironmentVariable("ENVOY_API_KEY"));
@@ -288,8 +306,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .post("http://78.154.103.19:12083/api/emails/send")
         .header("x-api-key", env::var("ENVOY_API_KEY")?)
         .json(&json!({
-            "from": "hello@mail.yourdomain.com",
-            "to": ["user@example.com"],
+            "from": "noreply@onboard.qd.je",
+            "to": "user@example.com",
             "subject": "Welcome aboard!",
             "html": "<h1>Hello!</h1><p>Your account is ready.</p>"
         }))
@@ -309,8 +327,8 @@ request.httpMethod = "POST"
 request.setValue(ProcessInfo.processInfo.environment["ENVOY_API_KEY"] ?? "", forHTTPHeaderField: "x-api-key")
 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 request.httpBody = try? JSONSerialization.data(withJSONObject: [
-    "from": "hello@mail.yourdomain.com",
-    "to": ["user@example.com"],
+    "from": "noreply@onboard.qd.je",
+    "to": "user@example.com",
     "subject": "Welcome aboard!",
     "html": "<h1>Hello!</h1><p>Your account is ready.</p>"
 ])
@@ -335,8 +353,8 @@ void main() async {
       'Content-Type': 'application/json',
     },
     body: jsonEncode({
-      'from': 'hello@mail.yourdomain.com',
-      'to': ['user@example.com'],
+      'from': 'noreply@onboard.qd.je',
+      'to': 'user@example.com',
       'subject': 'Welcome aboard!',
       'html': '<h1>Hello!</h1><p>Your account is ready.</p>',
     }),
@@ -362,7 +380,7 @@ int main() {
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS,
-            R"({"from":"hello@mail.yourdomain.com","to":["user@example.com"],"subject":"Welcome aboard!","html":"<h1>Hello!</h1><p>Your account is ready.</p>"})");
+            R"({"from":"noreply@onboard.qd.je","to":"user@example.com","subject":"Welcome aboard!","html":"<h1>Hello!</h1><p>Your account is ready.</p>"})");
 
         curl_easy_perform(curl);
         curl_slist_free_all(headers);
@@ -375,8 +393,8 @@ int main() {
       <pre><code>{`Mix.install([{:req, "~> 0.5"}])
 
 body = %{
-  from: "hello@mail.yourdomain.com",
-  to: ["user@example.com"],
+  from: "noreply@onboard.qd.je",
+  to: "user@example.com",
   subject: "Welcome aboard!",
   html: "<h1>Hello!</h1><p>Your account is ready.</p>"
 }

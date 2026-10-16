@@ -1,3 +1,3 @@
 module github.com/maskedes/envoy-go
 
-go 1.20
+go 1.21

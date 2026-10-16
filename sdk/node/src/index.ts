@@ -10,13 +10,16 @@
  *
  * const envoy = new ENovoy({ apiKey: process.env.ENVOY_API_KEY! });
  * const result = await envoy.emails.send({
- *   from: 'hello@yourdomain.com',
- *   to: ['user@example.com'],
+ *   to: 'user@example.com',
  *   subject: 'Welcome!',
  *   html: '<h1>Hello!</h1>',
  * });
  * console.log(result.id);
  * ```
+ *
+ * Note: the sender address is always your platform domain
+ * (ENFORCE_PLATFORM_FROM). Any `from` you pass is accepted but its email
+ * is replaced — only your display name is kept.
  */
 
 /** Default API host. Overridable per-client via `host`, or globally via the `ENVOY_HOST` env var. */
@@ -30,8 +33,8 @@ export interface ENovoyOptions {
 }
 
 export interface SendEmailParams {
-  /** Recipient address or list of addresses. */
-  to: string | string[];
+  /** Single recipient address. (One recipient per send.) */
+  to: string;
   /** Email subject line. */
   subject: string;
   /** HTML body. At least one of `html` / `text` is required. */
