@@ -48,6 +48,16 @@ export const config = {
     name: process.env.DEFAULT_FROM_NAME || 'E-NVOY',
   },
 
+  /**
+   * When true (default), every send uses the platform From address above and
+   * ignores any custom `from` email callers pass (their display name is kept).
+   * This guarantees the sender is on a domain verified with the email provider
+   * (Brevo), so user mail is accepted instead of rejected as "sender invalid".
+   * Set ENFORCE_PLATFORM_FROM=false to allow per-caller From addresses
+   * (each must then be verified with the provider independently).
+   */
+  enforcePlatformFrom: process.env.ENFORCE_PLATFORM_FROM !== 'false',
+
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
     maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),

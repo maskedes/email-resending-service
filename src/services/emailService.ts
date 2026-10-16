@@ -49,11 +49,16 @@ export function parseFrom(from?: string): { email: string; name: string } {
   if (from) {
     const match = from.match(/^(.*?)<([^>]+)>$/);
     if (match) {
+      // Display name is always caller-controlled (cosmetic only).
       name = match[1].trim().replace(/"/g, '') || config.defaultFrom.name;
-      email = normalizeEmailLiteralIp(match[2].trim());
-    } else if (from.includes('@')) {
+      if (!config.enforcePlatformFrom) {
+        email = normalizeEmailLiteralIp(match[2].trim());
+      }
+    } else if (from.includes('@') && !config.enforcePlatformFrom) {
       email = normalizeEmailLiteralIp(from.trim());
     }
+    // When enforcePlatformFrom is on, the sender email stays on the platform
+    // domain (verified with the provider) so delivery is never rejected.
   } else {
     email = normalizeEmailLiteralIp(email);
   }
