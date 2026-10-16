@@ -15,10 +15,12 @@ export default function SDKsOverview() {
       </p>
 
       <div className="callout callout-tip">
-        All examples below are the exact same snippets shown on the landing page and
-        are verified against the live API contract: <code>x-api-key</code> auth,
-        <code> https://api.freemailsend.dev/api/emails/send</code>, and a
-        <code> 200</code> response containing <code>id</code>.
+        <strong>Availability:</strong> the Node, Python and Go SDKs ship in this
+        repository under <code>sdk/</code> and are not yet published to npm, PyPI or
+        the Go module proxy — install them straight from the repo (each SDK README
+        shows how). They all call <code>POST /api/emails/send</code> with your{' '}
+        <code>x-api-key</code> and return a <code>200</code> response containing{' '}
+        <code>id</code>. Point them at your API host with <code>ENVOY_HOST</code>.
       </div>
 
       <h2>Installation</h2>
@@ -27,11 +29,11 @@ export default function SDKsOverview() {
           <tr><th>Language</th><th>Package</th><th>Install</th></tr>
         </thead>
         <tbody>
-          <tr><td>Node.js / TS</td><td><code>@envoy/sdk</code></td><td><code>npm install @envoy/sdk</code></td></tr>
-          <tr><td>Python</td><td><code>envoy-sdk</code></td><td><code>pip install envoy-sdk</code></td></tr>
-          <tr><td>Go</td><td><code>github.com/maskedes/envoy-go</code></td><td><code>go get github.com/maskedes/envoy-go</code></td></tr>
-          <tr><td>PHP</td><td><code>envoy-sdk</code></td><td><code>composer require envoy-sdk</code></td></tr>
-          <tr><td>Ruby</td><td><code>envoy</code></td><td><code>gem install envoy</code></td></tr>
+          <tr><td>Node.js / TS</td><td><code>@envoy/sdk</code></td><td><code>cd sdk/node &amp;&amp; npm install &amp;&amp; npm run build</code></td></tr>
+          <tr><td>Python</td><td><code>envoy-sdk</code></td><td><code>pip install ./sdk/python</code></td></tr>
+          <tr><td>Go</td><td><code>github.com/maskedes/envoy-go</code></td><td>not published — use a <code>replace</code> to <code>./sdk/go</code></td></tr>
+          <tr><td>PHP</td><td>—</td><td>no official SDK yet — call the REST API</td></tr>
+          <tr><td>Ruby</td><td>—</td><td>no official SDK yet — call the REST API</td></tr>
         </tbody>
       </table>
 
@@ -83,7 +85,7 @@ export default function SDKsOverview() {
       <h2>Code examples</h2>
 
       <h3>CLI</h3>
-      <pre><code>{`curl -X POST https://api.freemailsend.dev/api/emails/send -H "Content-Type: application/json" -H "x-api-key: $ENVOY_API_KEY" -d '{"from":"hello@mail.yourdomain.com","to":["user@example.com"],"subject":"Welcome aboard!","html":"<h1>Hello!</h1><p>Your account is ready.</p>"}'`}</code></pre>
+      <pre><code>{`curl -X POST http://78.154.103.19:12083/api/emails/send -H "Content-Type: application/json" -H "x-api-key: $ENVOY_API_KEY" -d '{"from":"hello@mail.yourdomain.com","to":["user@example.com"],"subject":"Welcome aboard!","html":"<h1>Hello!</h1><p>Your account is ready.</p>"}'`}</code></pre>
 
       <h3>Node.js</h3>
       <pre><code>{`import { ENovoy } from '@envoy/sdk';
@@ -176,7 +178,7 @@ result = client.emails.send(
 puts result.id # queued message id`}</code></pre>
 
       <h3>JavaScript</h3>
-      <pre><code>{`const response = await fetch("https://api.freemailsend.dev/api/emails/send", {
+      <pre><code>{`const response = await fetch("http://78.154.103.19:12083/api/emails/send", {
   method: "POST",
   headers: {
     "x-api-key": process.env.ENVOY_API_KEY,
@@ -194,7 +196,7 @@ const result = await response.json();
 console.log(result.id);`}</code></pre>
 
       <h3>TypeScript</h3>
-      <pre><code>{`const response = await fetch("https://api.freemailsend.dev/api/emails/send", {
+      <pre><code>{`const response = await fetch("http://78.154.103.19:12083/api/emails/send", {
   method: "POST",
   headers: {
     "x-api-key": process.env.ENVOY_API_KEY,
@@ -228,7 +230,7 @@ String body = """
 
 HttpClient client = HttpClient.newHttpClient();
 HttpRequest request = HttpRequest.newBuilder()
-    .uri(URI.create("https://api.freemailsend.dev/api/emails/send"))
+    .uri(URI.create("http://78.154.103.19:12083/api/emails/send"))
     .header("x-api-key", System.getenv("ENVOY_API_KEY"))
     .header("Content-Type", "application/json")
     .POST(HttpRequest.BodyPublishers.ofString(body))
@@ -244,7 +246,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 
 val client = HttpClient()
-val response: HttpResponse = client.post("https://api.freemailsend.dev/api/emails/send") {
+val response: HttpResponse = client.post("http://78.154.103.19:12083/api/emails/send") {
     header("x-api-key", System.getenv("ENVOY_API_KEY"))
     header("Content-Type", "application/json")
     setBody("""
@@ -267,7 +269,7 @@ using System.Threading.Tasks;
 var client = new HttpClient();
 var json = @"{""from"":""hello@mail.yourdomain.com"",""to"":[""user@example.com""],""subject"":""Welcome aboard!"",""html"":""<h1>Hello!</h1><p>Your account is ready.</p>""}";
 
-var request = new HttpRequestMessage(HttpMethod.Post, "https://api.freemailsend.dev/api/emails/send");
+var request = new HttpRequestMessage(HttpMethod.Post, "http://78.154.103.19:12083/api/emails/send");
 request.Headers.Add("x-api-key", Environment.GetEnvironmentVariable("ENVOY_API_KEY"));
 request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
@@ -283,7 +285,7 @@ use std::env;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = Client::new();
     let res = client
-        .post("https://api.freemailsend.dev/api/emails/send")
+        .post("http://78.154.103.19:12083/api/emails/send")
         .header("x-api-key", env::var("ENVOY_API_KEY")?)
         .json(&json!({
             "from": "hello@mail.yourdomain.com",
@@ -301,7 +303,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
       <h3>Swift</h3>
       <pre><code>{`import Foundation
 
-let url = URL(string: "https://api.freemailsend.dev/api/emails/send")!
+let url = URL(string: "http://78.154.103.19:12083/api/emails/send")!
 var request = URLRequest(url: url)
 request.httpMethod = "POST"
 request.setValue(ProcessInfo.processInfo.environment["ENVOY_API_KEY"] ?? "", forHTTPHeaderField: "x-api-key")
@@ -327,7 +329,7 @@ import 'package:http/http.dart' as http;
 
 void main() async {
   final response = await http.post(
-    Uri.parse('https://api.freemailsend.dev/api/emails/send'),
+    Uri.parse('http://78.154.103.19:12083/api/emails/send'),
     headers: {
       'x-api-key': Platform.environment['ENVOY_API_KEY'] ?? '',
       'Content-Type': 'application/json',
@@ -356,7 +358,7 @@ int main() {
         headers = curl_slist_append(headers, auth.c_str());
         headers = curl_slist_append(headers, "Content-Type: application/json");
 
-        curl_easy_setopt(curl, CURLOPT_URL, "https://api.freemailsend.dev/api/emails/send");
+        curl_easy_setopt(curl, CURLOPT_URL, "http://78.154.103.19:12083/api/emails/send");
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS,
@@ -380,7 +382,7 @@ body = %{
 }
 
 Req.post!(
-  "https://api.freemailsend.dev/api/emails/send",
+  "http://78.154.103.19:12083/api/emails/send",
   headers: [{"x-api-key", System.get_env("ENVOY_API_KEY")}],
   json: body
 )`}</code></pre>

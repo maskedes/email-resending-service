@@ -12,6 +12,12 @@ export interface ApiKey {
   is_active: boolean;
   total_emails_sent: number;
   last_used_at: string | null;
+  /** Whether this key is allowed to send SMS (per-key "Allow SMS" toggle). */
+  allow_sms: boolean;
+  /** Whether this key accepts inbound email (per-key "Allow incoming email" toggle). */
+  allow_incoming_email: boolean;
+  /** Address inbound email for this key is forwarded to, when set. */
+  forward_to: string | null;
 }
 
 export interface CreateApiKeyInput {
@@ -85,6 +91,28 @@ export async function getApiKeyById(id: string): Promise<ApiKey | null> {
   const { data, error } = await sb.from('api_keys').select('*').eq('id', id).single();
   if (error || !data) return null;
   return data as ApiKey;
+}
+
+/**
+ * Resolve the active API key that owns an inbound email address.
+ * Inbound mail is routed to a key by matching the recipient against the key's
+ * `email` field (case-insensitive). Returns null when nothing matches.
+ */
+export async function getApiKeyByInboundAddress(address: string): Promise<ApiKey | null> {
+  const normalized = (address || '').trim();
+  if (!normalized) return null;
+  const sb = getSupabase();
+  // ilike is case-insensitive but treats `_`/`%` as wildcards, so confirm an
+  // exact (case-insensitive) match in JS before returning.
+  const { data, error } = await sb
+    .from('api_keys')
+    .select('*')
+    .eq('is_active', true)
+    .ilike('email', normalized);
+  if (error || !data) return null;
+  const needle = normalized.toLowerCase();
+  const match = data.find((k: any) => String(k.email || '').toLowerCase() === needle);
+  return (match as ApiKey) || null;
 }
 
 export async function deleteApiKey(id: string): Promise<boolean> {

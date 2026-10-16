@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "envoy-sdk"
+version = "0.1.0"
+description = "Official E-NVOY SDK for Python — send email through the E-NVOY API."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [{ name = "E-NVOY" }]
+keywords = ["email", "envoy", "sdk", "transactional-email"]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/maskedes/email-resending-service"
+
+[tool.setuptools]
+packages = ["envoy_sdk"]

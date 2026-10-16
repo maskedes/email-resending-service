@@ -59,6 +59,20 @@
 		reverse_proxy {$API_ADDRESS}
 	}
 
+	# Sites & Links
+	handle /api/sites-links {
+		reverse_proxy {$API_ADDRESS}
+	}
+	handle /api/sites-links/* {
+		reverse_proxy {$API_ADDRESS}
+	}
+	handle /s/* {
+		reverse_proxy {$API_ADDRESS}
+	}
+	handle /site/* {
+		reverse_proxy {$API_ADDRESS}
+	}
+
 	# Liveness probe → backend
 	handle /health {
 		reverse_proxy {$API_ADDRESS}

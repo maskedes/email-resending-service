@@ -9,7 +9,8 @@ export default function SDKNode() {
       <p>Send emails from Node.js and TypeScript projects.</p>
 
       <h2>Install</h2>
-      <pre><code>{`npm install @envoy/sdk`}</code></pre>
+      <p>The Node SDK lives in this repo under <code>sdk/node</code> and is not yet published to npm.</p>
+      <pre><code>{`cd sdk/node && npm install && npm run build`}</code></pre>
 
       <h2>Quick Start</h2>
       <pre><code>{`import { ENovoy } from '@envoy/sdk';

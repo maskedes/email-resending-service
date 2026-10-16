@@ -8,6 +8,17 @@ const router = Router();
 
 // Send SMS (queued → gateway phone delivers)
 router.post('/send', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+  // Per-key "Allow SMS" toggle. Disabled keys cannot send, even with a valid key.
+  if (!req.apiKey!.allow_sms) {
+    res.status(403).json({
+      error: {
+        type: 'sms_disabled',
+        message: 'SMS is disabled for this API key. Enable "Allow SMS" in the key\'s General settings.',
+      },
+    });
+    return;
+  }
+
   const { to, body, text, message, from, tags, scheduleInMs, gatewayId } = req.body;
   const msgBody: string | undefined = body || text || message;
 

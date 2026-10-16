@@ -11,8 +11,10 @@ import dashboardRoutes from './dashboard';
 import { errorHandler, edgeProxyMiddleware } from './middleware/auth';
 import { initEmailWorker } from './workers/emailWorker';
 import { initSmsWorker } from './workers/smsWorker';
-import smsRoutes from './routes/smsRoutes';
-import smsGatewayRoutes from './routes/smsGatewayRoutes';
+import smsRoutes from './routes/smsRoutes.js';
+import smsGatewayRoutes from './routes/smsGatewayRoutes.js';
+import siteLinkRoutes, { publicSiteLinkRouter } from './routes/siteLinkRoutes.js';
+import inboundRoutes from './routes/inboundRoutes.js';
 
 const app = express();
 
@@ -34,6 +36,9 @@ const limiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Inbound email arrives from mail providers in bursts; don't apply the
+  // generic per-IP API limiter to it (it has its own shared-secret auth).
+  skip: (req) => req.originalUrl.startsWith('/api/inbound'),
 });
 app.use('/api/', limiter);
 
@@ -44,6 +49,9 @@ app.use('/api/apikeys', apiKeyRoutes);
 app.use('/api/domains', domainRoutes);
 app.use('/api/sms', smsRoutes);
 app.use('/api/sms/gateway', smsGatewayRoutes);
+app.use('/api/sites-links', siteLinkRoutes);
+app.use('/api/inbound', inboundRoutes);
+app.use('/', publicSiteLinkRouter);
 
 // Health check
 app.get('/health', (_req, res) => {

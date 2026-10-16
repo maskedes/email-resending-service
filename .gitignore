@@ -23,3 +23,13 @@ workers/email-api-worker/.wrangler/
 workers/email-api-worker/node_modules/
 .vercel
 .env*
+
+# Tooling / caches
+.opencode/
+.asm_cache/
+.vscode/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.pyc

@@ -55,15 +55,15 @@ export default function Quickstart() {
       <div className="not-prose mt-4 grid gap-3 sm:grid-cols-3">
         <div className="rounded-lg border border-canvas-border bg-canvas-raised p-4">
           <div className="mb-2 font-semibold text-white">Node.js</div>
-          <pre className="text-xs"><code>{`npm install @envoy/sdk`}</code></pre>
+          <pre className="text-xs"><code>{`cd sdk/node && npm install && npm run build`}</code></pre>
         </div>
         <div className="rounded-lg border border-canvas-border bg-canvas-raised p-4">
           <div className="mb-2 font-semibold text-white">Python</div>
-          <pre className="text-xs"><code>{`pip install envoy`}</code></pre>
+          <pre className="text-xs"><code>{`pip install ./sdk/python`}</code></pre>
         </div>
         <div className="rounded-lg border border-canvas-border bg-canvas-raised p-4">
           <div className="mb-2 font-semibold text-white">Go</div>
-          <pre className="text-xs"><code>{`go get github.com/maskedes/envoy-go`}</code></pre>
+          <pre className="text-xs"><code>{`replace ... => ./sdk/go`}</code></pre>
         </div>
       </div>
     </div>

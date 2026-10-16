@@ -7,6 +7,9 @@ export interface AuthRequest extends Request {
     id: string;
     name: string;
     email: string;
+    allow_sms: boolean;
+    allow_incoming_email: boolean;
+    forward_to: string | null;
   };
 }
 
@@ -61,6 +64,9 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
       id: validKey.id,
       name: validKey.name,
       email: validKey.email,
+      allow_sms: validKey.allow_sms === true,
+      allow_incoming_email: validKey.allow_incoming_email === true,
+      forward_to: validKey.forward_to ?? null,
     };
 
     next();

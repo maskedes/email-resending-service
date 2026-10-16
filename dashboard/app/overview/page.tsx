@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getDashboardOverview } from '@/lib/dashboard-overview';
 import StatsCards from './StatsCards';
 import EmailTable from './EmailTable';
 import LogoutButton from './LogoutButton';
@@ -16,44 +17,7 @@ export default async function OverviewPage() {
     redirect('/login');
   }
 
-  // Read directly from Supabase instead of proxying to Express
-  const sb = createAdminClient();
-
-  const { data: apiKeys } = await sb
-    .from('api_keys')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false });
-
-  const keys = apiKeys || [];
-  const apiKeyIds = keys.map((k: any) => k.id);
-
-  let emails: any[] = [];
-  let stats = { total: 0, sent: 0, failed: 0, queued: 0 };
-
-  if (apiKeyIds.length > 0) {
-    const { data: emailRows } = await sb
-      .from('emails')
-      .select('*')
-      .in('api_key_id', apiKeyIds)
-      .order('created_at', { ascending: false })
-      .limit(100);
-    emails = emailRows || [];
-
-    const { data: allEmails } = await sb
-      .from('emails')
-      .select('status')
-      .in('api_key_id', apiKeyIds);
-
-    if (allEmails) {
-      stats = {
-        total: allEmails.length,
-        sent: allEmails.filter((e: any) => e.status === 'sent').length,
-        failed: allEmails.filter((e: any) => e.status === 'failed').length,
-        queued: allEmails.filter((e: any) => e.status === 'queued').length,
-      };
-    }
-  }
+  const overview = await getDashboardOverview(createAdminClient(), user.id);
 
   return (
     <div className="space-y-8">
@@ -67,13 +31,13 @@ export default async function OverviewPage() {
       </div>
 
       {/* Stats Cards */}
-      <StatsCards stats={stats} />
+      <StatsCards stats={overview.stats} />
 
       {/* SMS — Twilio-like, realtime via same Android gateway API */}
-      <SmsSender keyName={keys[0]?.name} />
+      <SmsSender keyName={overview.apiKeys[0]?.name} />
 
       {/* Recent Emails */}
-      <EmailTable emails={emails} />
+      <EmailTable emails={overview.emails} />
     </div>
   );
 }

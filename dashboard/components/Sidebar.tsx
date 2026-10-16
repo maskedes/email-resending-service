@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import SmsIcon from '@/components/icons/SmsIcon';
+import SiteLinkIcon from '@/components/icons/SiteLinkIcon';
+import LinkIcon from '@/components/icons/LinkIcon';
 
 const SettingsIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" className="text-2xl shrink-0 text-white" aria-hidden="true">
@@ -75,6 +77,8 @@ const DomainIcon = () => (
 const navigation = [
   { name: 'Overview', href: '/overview', icon: <OverviewIcon /> },
   { name: 'SMS', href: '/sms', icon: <SmsIcon className="h-[1.5rem] w-[1.5rem] shrink-0 text-white" /> },
+  { name: 'Sites', href: '/sites', icon: <SiteLinkIcon className="h-[1.5rem] w-[1.5rem] shrink-0 text-white" /> },
+  { name: 'Links', href: '/links', icon: <LinkIcon className="h-[1.5rem] w-[1.5rem] shrink-0 text-white" /> },
   { name: 'API Keys', href: '/overview/api-keys', icon: <ApiKeyIcon /> },
   { name: 'Domains', href: '/overview/domains', icon: <DomainIcon /> },
   { name: 'Workers', href: '/overview/workers', icon: <WorkerIcon /> },

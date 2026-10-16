@@ -9,7 +9,9 @@ export default function SDKGo() {
       <p>Send emails from Go applications.</p>
 
       <h2>Install</h2>
-      <pre><code>{`go get github.com/maskedes/envoy-go`}</code></pre>
+      <p>The Go SDK lives in this repo under <code>sdk/go</code> and is not yet tagged on the module proxy.</p>
+      <pre><code>{`// go.mod
+replace github.com/maskedes/envoy-go => ../email-resending-service/sdk/go`}</code></pre>
 
       <h2>Quick Start</h2>
       <pre><code>{`package main

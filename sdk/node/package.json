@@ -1,0 +1,30 @@
+{
+  "name": "@envoy/sdk",
+  "version": "0.1.0",
+  "description": "Official E-NVOY SDK for Node.js and TypeScript — send email through the E-NVOY API.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "smoke": "node examples/smoke.mjs"
+  },
+  "keywords": [
+    "email",
+    "envoy",
+    "sdk",
+    "transactional-email"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "typescript": "^5.4.5"
+  }
+}

@@ -198,6 +198,59 @@ async function runMigrations(pool: Pool): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_sms_messages_created_at ON sms_messages(created_at);
     CREATE INDEX IF NOT EXISTS idx_sms_events_sms_id ON sms_events(sms_id);
     CREATE INDEX IF NOT EXISTS idx_sms_gateways_api_key ON sms_gateways(api_key_id);
+
+    CREATE TABLE IF NOT EXISTS sites (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      api_key_id UUID NOT NULL REFERENCES api_keys(id),
+      domain TEXT NOT NULL DEFAULT 'onboard.qd.je',
+      subdomain TEXT,
+      title TEXT,
+      html TEXT NOT NULL DEFAULT '<h1>Hello</h1>',
+      is_published BOOLEAN DEFAULT TRUE,
+      created_at TIMESTAMPTZ DEFAULT now(),
+      updated_at TIMESTAMPTZ DEFAULT now(),
+      UNIQUE(domain, subdomain)
+    );
+
+    -- Short-domain for links: default en.12, customer can override to onboard.qd.je etc.
+    CREATE TABLE IF NOT EXISTS links (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      api_key_id UUID NOT NULL REFERENCES api_keys(id),
+      site_id UUID REFERENCES sites(id) ON DELETE SET NULL,
+      domain TEXT NOT NULL DEFAULT 'en.12',
+      slug TEXT NOT NULL,
+      target_url TEXT NOT NULL,
+      long_url TEXT,
+      clicks INTEGER DEFAULT 0,
+      is_active BOOLEAN DEFAULT TRUE,
+      created_at TIMESTAMPTZ DEFAULT now(),
+      UNIQUE(domain, slug)
+    );
+
+    CREATE TABLE IF NOT EXISTS link_logs (
+      id BIGSERIAL PRIMARY KEY,
+      link_id UUID NOT NULL REFERENCES links(id) ON DELETE CASCADE,
+      api_key_id UUID NOT NULL REFERENCES api_keys(id),
+      long_url TEXT NOT NULL,
+      short_url TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT now()
+    );
+
+    CREATE TABLE IF NOT EXISTS link_triggers (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      api_key_id UUID NOT NULL REFERENCES api_keys(id),
+      link_id UUID REFERENCES links(id) ON DELETE CASCADE,
+      event TEXT NOT NULL DEFAULT 'click',
+      target_url TEXT NOT NULL,
+      is_active BOOLEAN DEFAULT TRUE,
+      created_at TIMESTAMPTZ DEFAULT now()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_sites_api_key ON sites(api_key_id);
+    CREATE INDEX IF NOT EXISTS idx_links_api_key ON links(api_key_id);
+    CREATE INDEX IF NOT EXISTS idx_links_domain_slug ON links(domain, slug);
+    CREATE INDEX IF NOT EXISTS idx_link_logs_api_key ON link_logs(api_key_id);
+    CREATE INDEX IF NOT EXISTS idx_link_triggers_api_key ON link_triggers(api_key_id);
   `);
 }
 

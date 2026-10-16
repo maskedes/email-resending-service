@@ -3,18 +3,20 @@ interface Stats {
   sent: number;
   failed: number;
   queued: number;
+  successRate: number;
 }
 
 export default function StatsCards({ stats }: { stats: Stats }) {
   const cards = [
     { label: 'Total Emails', value: stats.total ?? 0, color: 'text-brand-300' },
-    { label: 'Delivered', value: stats.sent ?? 0, color: 'text-success' },
+    { label: 'Sent', value: stats.sent ?? 0, color: 'text-success' },
     { label: 'Failed', value: stats.failed ?? 0, color: 'text-danger' },
     { label: 'Queued', value: stats.queued ?? 0, color: 'text-warning' },
+    { label: 'Success rate', value: `${stats.successRate ?? 0}%`, color: 'text-success' },
   ];
 
   return (
-    <div className="mb-10 grid grid-cols-2 gap-5 lg:grid-cols-4">
+    <div className="mb-10 grid grid-cols-2 gap-5 xl:grid-cols-5">
       {cards.map((card) => (
         <div
           key={card.label}

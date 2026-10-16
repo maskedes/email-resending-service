@@ -15,7 +15,7 @@ const highlights = [
   'Webhooks for delivery, open, and bounce events',
 ];
 
-const example = `curl -X POST https://api.freemailsend.dev/v1/emails/send \\
+const example = `curl -X POST http://78.154.103.19:12083/api/emails/send \\
   -H "x-api-key: fms_abc123..." \\
   -d '{"from":"you@domain.com","to":["user@example.com"],"subject":"Hi"}'`;
 

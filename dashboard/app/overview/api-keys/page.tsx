@@ -10,6 +10,17 @@ interface ApiKey {
   total_emails_sent: number;
   created_at: string;
   last_used_at: string | null;
+  allow_sms?: boolean;
+  allow_incoming_email?: boolean;
+  forward_to?: string | null;
+}
+
+interface ApiKeyMember {
+  id: string;
+  email: string;
+  role: 'admin' | 'member';
+  status: 'pending' | 'active';
+  created_at: string;
 }
 
 const RevokeIcon = () => (
@@ -26,6 +37,45 @@ const DeleteIcon = () => (
   </svg>
 );
 
+const SettingsIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" className="w-5 h-5 shrink-0" aria-hidden="true">
+    <path d="M0 0h24v24H0z" fill="none" />
+    <path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94c0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6s3.6 1.62 3.6 3.6s-1.62 3.6-3.6 3.6" />
+  </svg>
+);
+
+function ToggleSwitch({
+  checked,
+  onToggle,
+  ariaLabel,
+  disabled,
+}: {
+  checked: boolean;
+  onToggle: () => void;
+  ariaLabel: string;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-label={ariaLabel}
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={onToggle}
+      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+        checked ? 'border-white bg-white/5' : 'border-slate-600 bg-canvas/30'
+      }`}
+    >
+      <span
+        className={`inline-block h-5 w-5 transform rounded-full shadow-sm transition-transform ${
+          checked ? 'translate-x-5 bg-emerald-400' : 'translate-x-0.5 bg-white'
+        }`}
+      />
+    </button>
+  );
+}
+
 export default function ApiKeysPage() {
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [name, setName] = useState('');
@@ -37,6 +87,18 @@ export default function ApiKeysPage() {
   const [copied, setCopied] = useState(false);
   const [previews, setPreviews] = useState<Record<string, string>>({});
   const [confirmDialog, setConfirmDialog] = useState<{ type: 'revoke' | 'delete'; id: string } | null>(null);
+
+  // "General settings" panel for a single API key
+  const [settingsKey, setSettingsKey] = useState<ApiKey | null>(null);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [settingsError, setSettingsError] = useState('');
+  const [forwardDraft, setForwardDraft] = useState('');
+  const [members, setMembers] = useState<ApiKeyMember[]>([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [memberEmail, setMemberEmail] = useState('');
+  const [memberRole, setMemberRole] = useState<'admin' | 'member'>('member');
+  const [memberBusy, setMemberBusy] = useState(false);
+  const [memberError, setMemberError] = useState('');
 
   async function fetchKeys() {
     try {
@@ -124,6 +186,112 @@ export default function ApiKeysPage() {
       await fetchKeys();
     } catch {
       // Error handling
+    }
+  }
+
+  // ── General settings ──────────────────────────────────────────────────────
+  async function openSettings(key: ApiKey) {
+    setSettingsKey(key);
+    setForwardDraft(key.forward_to ?? '');
+    setSettingsError('');
+    setMemberError('');
+    setMemberEmail('');
+    setMemberRole('member');
+    await loadMembers(key.id);
+  }
+
+  async function loadMembers(id: string) {
+    setMembersLoading(true);
+    try {
+      const res = await fetch(`/api/apikeys/${id}/members`);
+      const data = await res.json();
+      setMembers(Array.isArray(data.data) ? data.data : []);
+    } catch {
+      setMembers([]);
+    } finally {
+      setMembersLoading(false);
+    }
+  }
+
+  // Optimistically flip a setting, then persist it to the backend.
+  async function updateSetting(
+    patch: Partial<Pick<ApiKey, 'allow_sms' | 'allow_incoming_email' | 'forward_to'>>
+  ) {
+    if (!settingsKey) return;
+    const id = settingsKey.id;
+
+    setSettingsKey((k) => (k ? { ...k, ...patch } : k));
+    setKeys((ks) => ks.map((k) => (k.id === id ? { ...k, ...patch } : k)));
+
+    setSettingsSaving(true);
+    setSettingsError('');
+    try {
+      const res = await fetch(`/api/apikeys/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setSettingsError(data.error?.message || 'Failed to save settings.');
+      }
+    } catch {
+      setSettingsError('Could not reach the server.');
+    } finally {
+      setSettingsSaving(false);
+    }
+  }
+
+  async function addMember(e: React.FormEvent) {
+    e.preventDefault();
+    if (!settingsKey) return;
+    setMemberBusy(true);
+    setMemberError('');
+    try {
+      const res = await fetch(`/api/apikeys/${settingsKey.id}/members`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: memberEmail, role: memberRole }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setMemberError(data.error?.message || 'Failed to add user.');
+        return;
+      }
+      setMemberEmail('');
+      setMemberRole('member');
+      await loadMembers(settingsKey.id);
+    } catch {
+      setMemberError('Could not reach the server.');
+    } finally {
+      setMemberBusy(false);
+    }
+  }
+
+  async function changeMemberRole(memberId: string, role: 'admin' | 'member') {
+    if (!settingsKey) return;
+    try {
+      await fetch(`/api/apikeys/${settingsKey.id}/members`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId, role }),
+      });
+      await loadMembers(settingsKey.id);
+    } catch {
+      // silent
+    }
+  }
+
+  async function removeMember(memberId: string) {
+    if (!settingsKey) return;
+    try {
+      await fetch(
+        `/api/apikeys/${settingsKey.id}/members?memberId=${encodeURIComponent(memberId)}`,
+        { method: 'DELETE' }
+      );
+      await loadMembers(settingsKey.id);
+    } catch {
+      // silent
     }
   }
 
@@ -276,6 +444,14 @@ export default function ApiKeysPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-3">
+                        <button
+                          onClick={() => openSettings(key)}
+                          title="General settings"
+                          aria-label="General settings"
+                          className="text-slate-400 transition-colors hover:text-brand"
+                        >
+                          <SettingsIcon />
+                        </button>
                         {key.is_active && (
                           <button
                             onClick={() => revokeKey(key.id)}
@@ -375,6 +551,192 @@ export default function ApiKeysPage() {
               >
                 {confirmDialog.type === 'delete' ? 'Delete' : 'Revoke'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* General settings panel for a single API key */}
+      {settingsKey && (
+        <div
+          className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/60 p-4 py-10"
+          onClick={() => setSettingsKey(null)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`General settings for ${settingsKey.name}`}
+            className="w-full max-w-2xl rounded-xl border border-canvas-border bg-canvas-raised p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-semibold text-white">General settings</h3>
+                <p className="mt-0.5 text-sm text-slate-400">
+                  {settingsKey.name}
+                  {settingsSaving && <span className="ml-2 text-xs text-slate-500">Saving…</span>}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSettingsKey(null)}
+                aria-label="Close"
+                className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-canvas hover:text-white"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="currentColor" d="M18.3 5.71L12 12.01l-6.3-6.3l-1.4 1.41l6.29 6.3l-6.3 6.29l1.41 1.41l6.3-6.3l6.29 6.3l1.41-1.41l-6.3-6.29l6.3-6.3z" />
+                </svg>
+              </button>
+            </div>
+
+            {settingsError && (
+              <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                {settingsError}
+              </div>
+            )}
+
+            {/* Feature toggles */}
+            <div className="mb-6 space-y-3">
+              <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4">
+                <div>
+                  <p className="font-medium text-white">Allow SMS</p>
+                  <p className="text-sm text-slate-400">Let this API key send SMS messages</p>
+                </div>
+                <ToggleSwitch
+                  checked={!!settingsKey.allow_sms}
+                  disabled={settingsSaving}
+                  onToggle={() => updateSetting({ allow_sms: !settingsKey.allow_sms })}
+                  ariaLabel="Toggle SMS for this API key"
+                />
+              </div>
+
+              <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4">
+                <div>
+                  <p className="font-medium text-white">Allow incoming email</p>
+                  <p className="text-sm text-slate-400">Accept inbound email delivered to this key</p>
+                </div>
+                <ToggleSwitch
+                  checked={!!settingsKey.allow_incoming_email}
+                  disabled={settingsSaving}
+                  onToggle={() =>
+                    updateSetting({ allow_incoming_email: !settingsKey.allow_incoming_email })
+                  }
+                  ariaLabel="Toggle incoming email for this API key"
+                />
+              </div>
+
+              <div className="border border-canvas-border bg-canvas/30 p-4">
+                <p className="font-medium text-white">Forward incoming email</p>
+                <p className="mb-3 text-sm text-slate-400">
+                  Forward mail received by this key to another address
+                </p>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <input
+                    type="email"
+                    value={forwardDraft}
+                    onChange={(e) => setForwardDraft(e.target.value)}
+                    placeholder="forwarder@example.com"
+                    className="flex-1 rounded-lg border border-canvas-border bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/30"
+                  />
+                  <button
+                    type="button"
+                    disabled={settingsSaving || forwardDraft.trim() === (settingsKey.forward_to ?? '')}
+                    onClick={() => updateSetting({ forward_to: forwardDraft.trim() })}
+                    className="rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Save
+                  </button>
+                </div>
+                {settingsKey.forward_to && (
+                  <p className="mt-2 text-xs text-slate-500">
+                    Currently forwarding to {settingsKey.forward_to}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Team access */}
+            <div className="border-t border-canvas-border pt-5">
+              <h4 className="font-semibold text-white">Users &amp; admins</h4>
+              <p className="mb-3 text-sm text-slate-400">
+                Add more users to this API key, or create an admin for it.
+              </p>
+
+              <form onSubmit={addMember} className="mb-4 flex flex-col gap-2 sm:flex-row">
+                <input
+                  type="email"
+                  required
+                  value={memberEmail}
+                  onChange={(e) => setMemberEmail(e.target.value)}
+                  placeholder="teammate@example.com"
+                  className="flex-1 rounded-lg border border-canvas-border bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/30"
+                />
+                <select
+                  value={memberRole}
+                  onChange={(e) => setMemberRole(e.target.value as 'admin' | 'member')}
+                  className="rounded-lg border border-canvas-border bg-canvas px-3 py-2.5 text-sm text-white outline-none focus:border-brand"
+                >
+                  <option value="member">Member</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <button
+                  type="submit"
+                  disabled={memberBusy}
+                  className="rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {memberRole === 'admin' ? 'Create admin' : 'Add user'}
+                </button>
+              </form>
+
+              {memberError && (
+                <div className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300">
+                  {memberError}
+                </div>
+              )}
+
+              {membersLoading ? (
+                <p className="py-3 text-sm text-slate-500">Loading users…</p>
+              ) : members.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-canvas-border py-6 text-center text-sm text-slate-500">
+                  No users have been added to this API key yet.
+                </div>
+              ) : (
+                <ul className="divide-y divide-canvas-border/60 overflow-hidden rounded-lg border border-canvas-border">
+                  {members.map((m) => (
+                    <li key={m.id} className="flex items-center justify-between gap-3 bg-canvas/30 px-4 py-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm text-white">{m.email}</p>
+                        <span
+                          className={`mt-0.5 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                            m.role === 'admin'
+                              ? 'bg-brand/15 text-brand'
+                              : 'bg-slate-500/15 text-slate-300'
+                          }`}
+                        >
+                          {m.role === 'admin' ? 'Admin' : 'Member'}
+                        </span>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => changeMemberRole(m.id, m.role === 'admin' ? 'member' : 'admin')}
+                          className="text-xs font-medium text-slate-400 transition-colors hover:text-white"
+                        >
+                          {m.role === 'admin' ? 'Make member' : 'Make admin'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeMember(m.id)}
+                          aria-label={`Remove ${m.email}`}
+                          className="text-slate-500 transition-colors hover:text-red-400"
+                        >
+                          <DeleteIcon />
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         </div>

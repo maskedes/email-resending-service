@@ -21,7 +21,7 @@ program
 // ─── Global options ───
 program
   .option('--api-key <key>', 'Override API key for this command')
-  .option('--host <url>', 'Override API host (default: https://api.freemailsend.dev)')
+  .option('--host <url>', 'Override API host (default: http://78.154.103.19:12083)')
   .option('--edge-secret <secret>', 'Edge proxy secret for email routes')
   .option('--json', 'Output raw JSON instead of formatted text');
 

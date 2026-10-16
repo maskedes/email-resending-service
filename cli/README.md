@@ -6,10 +6,10 @@ Send emails, manage domains, and monitor delivery — all from your terminal.
 
 ```bash
 # Install globally
-npm install -g @envoy/cli
+npm install -g @maskedes/envoy-cli
 
 # Or run directly with npx (no install needed)
-npx @envoy/cli send --to user@example.com --subject "Hello" --html "<p>Hi!</p>"
+npx @maskedes/envoy-cli send --to user@example.com --subject "Hello" --html "<p>Hi!</p>"
 ```
 
 ## Quick Start

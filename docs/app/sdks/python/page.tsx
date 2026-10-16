@@ -9,7 +9,8 @@ export default function SDKPython() {
       <p>Send emails from Python applications.</p>
 
       <h2>Install</h2>
-      <pre><code>{`pip install envoy-sdk`}</code></pre>
+      <p>The Python SDK lives in this repo under <code>sdk/python</code> and is not yet published to PyPI.</p>
+      <pre><code>{`pip install ./sdk/python`}</code></pre>
 
       <h2>Quick Start</h2>
       <pre><code>{`from envoy_sdk import ENovoy

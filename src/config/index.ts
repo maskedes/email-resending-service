@@ -42,8 +42,10 @@ export const config = {
   },
 
   defaultFrom: {
-    email: process.env.DEFAULT_FROM_EMAIL || 'noreply@example.com',
-    name: process.env.DEFAULT_FROM_NAME || 'FreeMailSend',
+    // Prod: noreply@onboard.qd.je is the default for users who haven't configured their own domain.
+    // When a user verifies lumina.qd.je / custom domain, use that instead (EMAIL_DELIVERY_SETUP.md).
+    email: process.env.DEFAULT_FROM_EMAIL || 'noreply@onboard.qd.je',
+    name: process.env.DEFAULT_FROM_NAME || 'E-NVOY',
   },
 
   rateLimit: {
@@ -72,6 +74,16 @@ export const config = {
   },
 
   apiKeyHeader: process.env.API_KEY_HEADER || 'x-api-key',
+
+  /** Inbound email ingestion (per-key "Allow incoming email" + "Forwarding"). */
+  inbound: {
+    /** Shared secret the inbound mail provider must send. Empty = endpoint disabled. */
+    secret: process.env.INBOUND_EMAIL_SECRET || '',
+    /** Header carrying the shared secret. */
+    header: process.env.INBOUND_EMAIL_HEADER || 'x-inbound-secret',
+    /** Maximum accepted body size for an inbound message (bytes). */
+    maxBytes: parseInt(process.env.INBOUND_EMAIL_MAX_BYTES || String(1024 * 1024), 10),
+  },
 
   /** Optional shared secret that Cloudflare edge Worker sends to verify proxied traffic. */
   edgeProxySecret: process.env.EDGE_PROXY_SECRET || '',

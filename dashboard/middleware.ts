@@ -30,6 +30,9 @@ const PUBLIC_PATHS = [
   '/delivery-tracking',
   '/bullmq-queue',
   '/self-hosted',
+  // Public user content: sites published on <sub>.<SITE_DOMAIN> and short links.
+  '/site',
+  '/s',
 ];
 
 export async function middleware(request: NextRequest) {
