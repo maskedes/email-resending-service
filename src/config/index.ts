@@ -35,14 +35,10 @@ export const config = {
     tls: process.env.REDIS_TLS === 'true',
   },
 
-  smtp: {
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT || '587', 10),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-      user: process.env.SMTP_USER || '',
-      pass: process.env.SMTP_PASS || '',
-    },
+  brevo: {
+    // Brevo transactional email over HTTPS (WispByte blocks SMTP ports).
+    // Get a key at: Brevo dashboard → SMTP & API → API Keys.
+    apiKey: process.env.BREVO_API_KEY || '',
   },
 
   defaultFrom: {

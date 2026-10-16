@@ -1,5 +1,5 @@
 import { startEmailWorker, EmailJobData } from '../queue/emailQueue';
-import { sendViaSmtp } from '../services/smtp';
+import { sendViaBrevo } from '../services/brevo';
 import {
   getEmailById,
   recordEmailFailure,
@@ -8,7 +8,7 @@ import {
 import { incrementEmailCount as incrementKeyCount } from '../services/apiKeyService';
 
 /**
- * Loads the queued email record and delivers it over SMTP.
+ * Loads the queued email record and delivers it via the Brevo HTTPS API.
  * Updates status/events and the API key's usage counter on success or failure.
  */
 export async function processEmailJob(data: EmailJobData): Promise<void> {
@@ -23,7 +23,7 @@ export async function processEmailJob(data: EmailJobData): Promise<void> {
     : email.from_email;
 
   try {
-    const info = await sendViaSmtp({
+    const info = await sendViaBrevo({
       from,
       to: email.to_email,
       subject: email.subject,
