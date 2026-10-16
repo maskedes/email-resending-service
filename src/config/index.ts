@@ -26,9 +26,13 @@ export const config = {
   },
 
   redis: {
+    // Full connection URL wins over host/port. Supports rediss:// with auth
+    // (e.g. Upstash, Redis Cloud) — the queues parse it for host/port/password/TLS.
     url: process.env.REDIS_URL || '',
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6379', 10),
+    password: process.env.REDIS_PASSWORD || '',
+    tls: process.env.REDIS_TLS === 'true',
   },
 
   smtp: {

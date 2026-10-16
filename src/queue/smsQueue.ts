@@ -11,7 +11,14 @@ let queue: Queue<SmsJobData> | null = null;
 
 function makeConnection() {
   const redis = resolveRedisConfig();
-  return { host: redis.host, port: redis.port };
+  // Include auth/TLS so managed Redis (Upstash, Redis Cloud) works.
+  return {
+    host: redis.host,
+    port: redis.port,
+    username: redis.username,
+    password: redis.password,
+    tls: redis.tls ? {} : undefined,
+  };
 }
 
 function getQueue(): Queue<SmsJobData> {

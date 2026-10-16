@@ -15,7 +15,13 @@ let client: Redis | null = null;
 function getRedis(): Redis {
   if (!client) {
     const cfg = resolveRedisConfig();
-    client = new Redis({ host: cfg.host, port: cfg.port });
+    client = new Redis({
+      host: cfg.host,
+      port: cfg.port,
+      username: cfg.username,
+      password: cfg.password,
+      tls: cfg.tls ? {} : undefined,
+    });
     client.on('error', (err) => console.error('[rateLimit] redis error:', err.message));
   }
   return client;

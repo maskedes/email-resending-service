@@ -13,6 +13,10 @@ export interface EmbeddedPgConnection {
 export interface EmbeddedRedisConnection {
   host: string;
   port: number;
+  username?: string;
+  password?: string;
+  /** True when the connection must be made over TLS (e.g. a rediss:// URL). */
+  tls?: boolean;
 }
 
 export interface EmbeddedDatastores {
@@ -101,5 +105,29 @@ export function resolveRedisConfig(): EmbeddedRedisConnection {
   if (embedded) {
     return embedded.redis;
   }
-  return { host: config.redis.host, port: config.redis.port };
+
+  // Prefer a full connection URL so managed providers (Upstash, Redis Cloud)
+  // work — these need a password and, for rediss://, TLS.
+  const url = config.redis.url;
+  if (url) {
+    try {
+      const parsed = new URL(url);
+      return {
+        host: parsed.hostname,
+        port: parseInt(parsed.port || '6379', 10),
+        username: parsed.username ? decodeURIComponent(parsed.username) : undefined,
+        password: parsed.password ? decodeURIComponent(parsed.password) : undefined,
+        tls: parsed.protocol === 'rediss:',
+      };
+    } catch {
+      // Malformed URL — fall through to the host/port config below.
+    }
+  }
+
+  return {
+    host: config.redis.host,
+    port: config.redis.port,
+    password: config.redis.password || undefined,
+    tls: config.redis.tls,
+  };
 }
