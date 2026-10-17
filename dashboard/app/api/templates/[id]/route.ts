@@ -19,13 +19,14 @@ async function ownsTemplate(sb: any, userId: string, templateId: string): Promis
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, response } = await requireSupabaseUser(request);
   if (response) return response;
 
   const sb = createAdminClient();
-  if (!(await ownsTemplate(sb, user.id, params.id))) {
+  if (!(await ownsTemplate(sb, user.id, id))) {
     return NextResponse.json({ error: { type: 'not_found', message: 'Template not found.' } }, { status: 404 });
   }
 
@@ -47,7 +48,7 @@ export async function PUT(
       html: html ?? null,
       text: text ?? null,
     })
-    .eq('id', params.id)
+    .eq('id', id)
     .select()
     .single();
 
@@ -61,17 +62,18 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, response } = await requireSupabaseUser(request);
   if (response) return response;
 
   const sb = createAdminClient();
-  if (!(await ownsTemplate(sb, user.id, params.id))) {
+  if (!(await ownsTemplate(sb, user.id, id))) {
     return NextResponse.json({ error: { type: 'not_found', message: 'Template not found.' } }, { status: 404 });
   }
 
-  const { error } = await sb.from('templates').delete().eq('id', params.id);
+  const { error } = await sb.from('templates').delete().eq('id', id);
   if (error) {
     return NextResponse.json({ error: { type: 'db_error', message: error.message } }, { status: 500 });
   }

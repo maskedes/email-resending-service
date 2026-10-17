@@ -21,13 +21,14 @@ async function ownedSite(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, response } = await requireSupabaseUser(request);
   if (response) return response;
 
   const sb = createAdminClient();
-  const site = await ownedSite(sb, params.id, user!.id);
+  const site = await ownedSite(sb, id, user!.id);
   if (!site) {
     return NextResponse.json(
       { error: { type: 'not_found', message: 'Site not found.' } },
@@ -76,7 +77,7 @@ export async function PATCH(
   const { data, error } = await sb
     .from('sites')
     .update(patch)
-    .eq('id', params.id)
+    .eq('id', id)
     .select()
     .single();
 
@@ -100,13 +101,14 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, response } = await requireSupabaseUser(request);
   if (response) return response;
 
   const sb = createAdminClient();
-  const site = await ownedSite(sb, params.id, user!.id);
+  const site = await ownedSite(sb, id, user!.id);
   if (!site) {
     return NextResponse.json(
       { error: { type: 'not_found', message: 'Site not found.' } },
@@ -114,7 +116,7 @@ export async function DELETE(
     );
   }
 
-  const { error } = await sb.from('sites').delete().eq('id', params.id);
+  const { error } = await sb.from('sites').delete().eq('id', id);
   if (error) {
     return NextResponse.json(
       { error: { type: 'db_error', message: error.message } },

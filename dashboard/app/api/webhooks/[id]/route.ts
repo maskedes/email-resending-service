@@ -38,8 +38,9 @@ function normalizeWebhook(row: any) {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, response } = await requireSupabaseUser(request);
   if (response) return response;
 
@@ -55,7 +56,7 @@ export async function PATCH(
 
   const sb = createAdminClient();
 
-  if (!(await verifyOwnership(sb, user.id, params.id))) {
+  if (!(await verifyOwnership(sb, user.id, id))) {
     return NextResponse.json(
       { error: { type: 'not_found', message: 'Webhook not found.' } },
       { status: 404 }
@@ -65,7 +66,7 @@ export async function PATCH(
   const { data, error } = await sb
     .from('webhooks')
     .update({ is_active: isActive })
-    .eq('id', params.id)
+    .eq('id', id)
     .select('id, name, url, events, is_active, created_at, last_triggered_at')
     .single();
 
@@ -83,21 +84,22 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, response } = await requireSupabaseUser(request);
   if (response) return response;
 
   const sb = createAdminClient();
 
-  if (!(await verifyOwnership(sb, user.id, params.id))) {
+  if (!(await verifyOwnership(sb, user.id, id))) {
     return NextResponse.json(
       { error: { type: 'not_found', message: 'Webhook not found.' } },
       { status: 404 }
     );
   }
 
-  const { error } = await sb.from('webhooks').delete().eq('id', params.id);
+  const { error } = await sb.from('webhooks').delete().eq('id', id);
 
   if (error) {
     return NextResponse.json(

@@ -34,7 +34,7 @@ export async function requireSupabaseUser(request: NextRequest) {
     if (cached) return { user: cached, response: null };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

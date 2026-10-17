@@ -12,10 +12,11 @@ import { createAdminClient } from '@/lib/supabase/admin';
  */
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { domain: string; sub?: string[] } }
+  { params }: { params: Promise<{ domain: string; sub?: string[] }> }
 ) {
-  const domain = decodeURIComponent(params.domain);
-  const sub = params.sub?.[0] ? decodeURIComponent(params.sub[0]) : null;
+  const { domain: rawDomain, sub: rawSub } = await params;
+  const domain = decodeURIComponent(rawDomain);
+  const sub = rawSub?.[0] ? decodeURIComponent(rawSub[0]) : null;
 
   const sb = createAdminClient();
   let query = sb

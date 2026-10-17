@@ -44,18 +44,19 @@ async function ownsKey(sb: SupabaseClient, keyId: string, userId: string): Promi
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, response } = await requireSupabaseUser(request);
   if (response) return response;
 
   const sb = createAdminClient();
-  if (!(await ownsKey(sb, params.id, user.id))) return notFound();
+  if (!(await ownsKey(sb, id, user.id))) return notFound();
 
   const { data, error } = await sb
     .from('api_key_members')
     .select('*')
-    .eq('api_key_id', params.id)
+    .eq('api_key_id', id)
     .order('created_at', { ascending: true });
 
   if (error) return dbError(error.message);
@@ -68,13 +69,14 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, response } = await requireSupabaseUser(request);
   if (response) return response;
 
   const sb = createAdminClient();
-  if (!(await ownsKey(sb, params.id, user.id))) return notFound();
+  if (!(await ownsKey(sb, id, user.id))) return notFound();
 
   const body = await request.json().catch(() => ({}));
   const email = String(body?.email ?? '').trim().toLowerCase();
@@ -84,7 +86,7 @@ export async function POST(
 
   const { data, error } = await sb
     .from('api_key_members')
-    .insert({ api_key_id: params.id, email, role })
+    .insert({ api_key_id: id, email, role })
     .select('*')
     .single();
 
@@ -107,13 +109,14 @@ export async function POST(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, response } = await requireSupabaseUser(request);
   if (response) return response;
 
   const sb = createAdminClient();
-  if (!(await ownsKey(sb, params.id, user.id))) return notFound();
+  if (!(await ownsKey(sb, id, user.id))) return notFound();
 
   const body = await request.json().catch(() => ({}));
   const memberId = String(body?.memberId ?? '');
@@ -127,7 +130,7 @@ export async function PATCH(
     .from('api_key_members')
     .update({ role })
     .eq('id', memberId)
-    .eq('api_key_id', params.id)
+    .eq('api_key_id', id)
     .select('*')
     .single();
 
@@ -141,13 +144,14 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, response } = await requireSupabaseUser(request);
   if (response) return response;
 
   const sb = createAdminClient();
-  if (!(await ownsKey(sb, params.id, user.id))) return notFound();
+  if (!(await ownsKey(sb, id, user.id))) return notFound();
 
   const memberId = request.nextUrl.searchParams.get('memberId');
   if (!memberId) return validation('A memberId query parameter is required.');
@@ -156,7 +160,7 @@ export async function DELETE(
     .from('api_key_members')
     .delete()
     .eq('id', memberId)
-    .eq('api_key_id', params.id);
+    .eq('api_key_id', id);
 
   if (error) return dbError(error.message);
   return NextResponse.json({ message: 'User removed from this API key.' });

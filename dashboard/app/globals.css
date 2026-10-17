@@ -12,9 +12,8 @@
   font-variant-ligatures: contextual;
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.ts";
 
 /* ─── Theme tokens ───────────────────────────────────────────────────────────
    Default (dark) values live here. A `light` class on <html> flips them so the

@@ -10,7 +10,7 @@ import SmsSender from './SmsSender';
 export const dynamic = 'force-dynamic';
 
 export default async function OverviewPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {

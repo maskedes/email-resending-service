@@ -12,8 +12,9 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, response } = await requireSupabaseUser(request);
   if (response) return response;
 
@@ -23,7 +24,7 @@ export async function PATCH(
   const { data: key } = await sb
     .from('api_keys')
     .select('id')
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', user.id)
     .single();
 
@@ -70,7 +71,7 @@ export async function PATCH(
   const { data, error } = await sb
     .from('api_keys')
     .update(update)
-    .eq('id', params.id)
+    .eq('id', id)
     .select('*')
     .single();
 
@@ -94,8 +95,9 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { user, response } = await requireSupabaseUser(request);
   if (response) return response;
 
@@ -106,7 +108,7 @@ export async function DELETE(
   const { data: key } = await sb
     .from('api_keys')
     .select('id')
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', user.id)
     .single();
 
@@ -122,19 +124,19 @@ export async function DELETE(
     const { data: emails } = await sb
       .from('emails')
       .select('id')
-      .eq('api_key_id', params.id);
+      .eq('api_key_id', id);
 
     if (emails && emails.length > 0) {
       const emailIds = emails.map((e: any) => e.id);
       await sb.from('email_events').delete().in('email_id', emailIds);
-      await sb.from('emails').delete().eq('api_key_id', params.id);
+      await sb.from('emails').delete().eq('api_key_id', id);
     }
 
-    await sb.from('webhooks').delete().eq('api_key_id', params.id);
-    await sb.from('domains').delete().eq('api_key_id', params.id);
-    await sb.from('templates').delete().eq('api_key_id', params.id);
+    await sb.from('webhooks').delete().eq('api_key_id', id);
+    await sb.from('domains').delete().eq('api_key_id', id);
+    await sb.from('templates').delete().eq('api_key_id', id);
 
-    const { error } = await sb.from('api_keys').delete().eq('id', params.id);
+    const { error } = await sb.from('api_keys').delete().eq('id', id);
     if (error) {
       return NextResponse.json(
         { error: { type: 'db_error', message: error.message } },
@@ -152,7 +154,7 @@ export async function DELETE(
   const { error } = await sb
     .from('api_keys')
     .update({ is_active: false })
-    .eq('id', params.id);
+    .eq('id', id);
 
   if (error) {
     return NextResponse.json(
