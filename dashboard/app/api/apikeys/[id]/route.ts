@@ -139,6 +139,9 @@ export async function DELETE(
       );
     }
 
+    // Drop the cached list so the deleted key disappears instantly.
+    cacheDelete(`apikeys:${user.id}`);
+
     return NextResponse.json({ message: 'API key deleted successfully.' });
   }
 
@@ -154,6 +157,9 @@ export async function DELETE(
       { status: 500 }
     );
   }
+
+  // Drop the cached list so the revoked key updates instantly.
+  cacheDelete(`apikeys:${user.id}`);
 
   return NextResponse.json({ message: 'API key revoked successfully.' });
 }
