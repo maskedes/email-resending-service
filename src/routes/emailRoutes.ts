@@ -1,4 +1,4 @@
-import { Router, Response } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { AuthRequest, authMiddleware } from '../middleware/auth';
 import { sendEmail, getEmailById, getEmailsByApiKeyId, getEmailEvents, getEmailStats, SendEmailInput } from '../services/emailService';
 import { checkRateLimit } from '../services/rateLimiter';
@@ -6,7 +6,40 @@ import { config } from '../config';
 
 const router = Router();
 
-router.post('/send', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+/**
+ * In-app load balancer: caps concurrent /send executions (default 5 lanes).
+ * Excess bursts get a fast 503 + Retry-After instead of piling up and OOMing
+ * the container. Tune with MAX_CONCURRENT_SENDS. Per-key 3/sec rate limiting
+ * still applies on top.
+ */
+const MAX_CONCURRENT_SENDS = parseInt(process.env.MAX_CONCURRENT_SENDS || '5', 10);
+let activeSends = 0;
+
+function sendConcurrencyGuard(req: AuthRequest, res: Response, next: NextFunction): void {
+  if (activeSends >= MAX_CONCURRENT_SENDS) {
+    res.set('Retry-After', '5');
+    res.status(503).json({
+      error: {
+        type: 'overloaded',
+        message: 'Server is busy handling sends. Please retry in a few seconds.',
+      },
+    });
+    return;
+  }
+  activeSends++;
+  let released = false;
+  const release = () => {
+    if (!released) {
+      released = true;
+      activeSends = Math.max(0, activeSends - 1);
+    }
+  };
+  res.on('finish', release);
+  res.on('close', release);
+  next();
+}
+
+router.post('/send', authMiddleware, sendConcurrencyGuard, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { from, to, subject, html, text, reply_to, tags, scheduleInMs } = req.body;
 
