@@ -9,6 +9,7 @@ const paths = [
   '/documentation',
   '/api-reference',
   '/help',
+  '/privacy',
   '/contacts',
   '/support',
   '/ceo-bio',

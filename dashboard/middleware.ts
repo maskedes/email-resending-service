@@ -18,6 +18,7 @@ const PUBLIC_PATHS = [
   '/auth/callback',
   '/auth/confirm',
   '/help',
+  '/privacy',
   '/contacts',
   '/support',
   '/ceo-bio',
