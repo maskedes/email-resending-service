@@ -1,4 +1,4 @@
-# 📬 FreeMailSend
+# 📬 E-nvoy
 
 [![GitHub stars](https://img.shields.io/github/stars/maskedes/email-resending-service?style=for-the-badge)](https://github.com/maskedes/email-resending-service/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/maskedes/email-resending-service?style=for-the-badge)](https://github.com/maskedes/email-resending-service/network)
