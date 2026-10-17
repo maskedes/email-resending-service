@@ -55,9 +55,13 @@ router.get('/', requireDashboardAuth, async (req: Request, res: Response): Promi
     .order('created_at', { ascending: false })
     .limit(100);
 
-  const { data: statsRow } = await sb.rpc('get_email_stats');
+  // `list_email_stats()` returns a TABLE, so Supabase yields a one-row array.
+  // (This previously called a non-existent `get_email_stats` RPC, which made
+  // the overview silently render zeros.)
+  const { data: statsRows } = await sb.rpc('list_email_stats');
+  const statsRow = Array.isArray(statsRows) ? statsRows[0] : statsRows;
 
-  const stats = statsRow || { total: 0, sent: 0, failed: 0, queued: 0 };
+  const stats = statsRow || { total: 0, delivered: 0, failed: 0, queued: 0, sent: 0 };
 
   res.setHeader('Content-Type', 'text/html');
   res.send(renderOverview({ apiKeys, emails: emails || [], stats }));

@@ -107,15 +107,28 @@ export async function getDomainsByApiKey(apiKeyId: string): Promise<Domain[]> {
   return (data || []) as Domain[];
 }
 
-export async function getAllDomains(): Promise<Domain[]> {
-  const sb = getSupabase();
-  const { data } = await sb.from('domains').select('*').order('created_at', { ascending: false });
-  return (data || []) as Domain[];
+/**
+ * Strips secrets from a domain row before it is returned over the wire.
+ *
+ * `dkim_private_key` is a signing secret — it must NEVER leave the server.
+ * Callers get the public DNS records (SPF/DKIM/DMARC) they need to configure
+ * their DNS, but not the private key used to sign outgoing mail.
+ */
+export function sanitizeDomain(domain: Domain): Omit<Domain, 'dkim_private_key'> {
+  const { dkim_private_key: _privateKey, ...safe } = domain;
+  return safe;
 }
 
-export async function getDomainById(id: string): Promise<Domain | null> {
+/**
+ * Looks up a single domain, optionally scoped to the owning API key.
+ * When `apiKeyId` is provided, a domain owned by another key returns null
+ * (no cross-tenant access).
+ */
+export async function getDomainById(id: string, apiKeyId?: string): Promise<Domain | null> {
   const sb = getSupabase();
-  const { data } = await sb.from('domains').select('*').eq('id', id).single();
+  let query = sb.from('domains').select('*').eq('id', id);
+  if (apiKeyId) query = query.eq('api_key_id', apiKeyId);
+  const { data } = await query.single();
   return (data as Domain) || null;
 }
 
@@ -123,8 +136,8 @@ export async function getDomainById(id: string): Promise<Domain | null> {
  * Runs real DNS verification against SPF / DKIM / DMARC records and
  * updates the stored domain status + per-record flags.
  */
-export async function verifyDomainDns(id: string): Promise<DomainVerification | null> {
-  const domain = await getDomainById(id);
+export async function verifyDomainDns(id: string, apiKeyId?: string): Promise<DomainVerification | null> {
+  const domain = await getDomainById(id, apiKeyId);
   if (!domain) return null;
 
   const checks = await checkAllDns({
@@ -153,7 +166,7 @@ export async function verifyDomainDns(id: string): Promise<DomainVerification | 
     last_checked_at: new Date().toISOString(),
   }).eq('id', id);
 
-  const updated = await getDomainById(id);
+  const updated = await getDomainById(id, apiKeyId);
 
   return {
     domain: updated!,
@@ -163,8 +176,10 @@ export async function verifyDomainDns(id: string): Promise<DomainVerification | 
   };
 }
 
-export async function deleteDomain(id: string): Promise<boolean> {
+export async function deleteDomain(id: string, apiKeyId?: string): Promise<boolean> {
   const sb = getSupabase();
-  const { error } = await sb.from('domains').delete().eq('id', id);
+  let query = sb.from('domains').delete().eq('id', id);
+  if (apiKeyId) query = query.eq('api_key_id', apiKeyId);
+  const { error } = await query;
   return !error;
 }

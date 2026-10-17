@@ -53,16 +53,24 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
   });
 });
 
+// Requires an API key. Without one we used to return EVERY gateway row for
+// every tenant (including the `gateway_token_hash` column) — a total
+// cross-tenant leak. Now it is scoped to the authenticated key and the token
+// hash is never serialised.
 router.get('/status', async (req: Request, res: Response): Promise<void> => {
   const apiKey = req.headers[config.apiKeyHeader] as string;
-  let gateways: unknown[] = [];
-  if (apiKey) {
-    const valid = await validateApiKey(apiKey);
-    gateways = valid ? await listGateways(valid.id) : await listGateways();
-  } else {
-    gateways = await listGateways();
+  if (!apiKey) {
+    res.status(401).json({ error: { type: 'authentication_required', message: 'x-api-key required to list gateways.' } });
+    return;
   }
-  res.json({ data: gateways });
+  const valid = await validateApiKey(apiKey);
+  if (!valid) {
+    res.status(401).json({ error: { type: 'invalid_api_key', message: 'Invalid API key.' } });
+    return;
+  }
+  const gateways = await listGateways(valid.id);
+  const safe = (gateways as unknown as Array<Record<string, unknown>>).map(({ gateway_token_hash: _hash, ...rest }) => rest);
+  res.json({ data: safe });
 });
 
 router.delete('/:id', async (req: Request, res: Response): Promise<void> => {

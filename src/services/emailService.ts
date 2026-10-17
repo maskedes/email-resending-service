@@ -73,17 +73,24 @@ export function parseFrom(from?: string): { email: string; name: string } {
 export async function sendEmail(apiKeyId: string, input: SendEmailInput): Promise<EmailRecord> {
   const id = uuidv4();
   const { email, name } = parseFrom(input.from);
-  const metadata = input.tags ? JSON.stringify(input.tags) : null;
   const scheduledAt = input.scheduleInMs
     ? new Date(Date.now() + input.scheduleInMs).toISOString()
     : null;
+
+  // `reply_to` has no dedicated column, so both it and any caller tags live in
+  // the metadata JSONB. `_reply_to` is a reserved key so legacy rows (which
+  // stored a flat tags object) still read back correctly in the worker.
+  const metadata: Record<string, unknown> = {};
+  if (input.reply_to) metadata._reply_to = String(input.reply_to).trim();
+  if (input.tags && typeof input.tags === 'object') metadata.tags = input.tags;
+  const metadataValue = Object.keys(metadata).length > 0 ? metadata : null;
 
   const sb = getSupabase();
   await sb.from('emails').insert({
     id, api_key_id: apiKeyId, from_email: email, from_name: name,
     to_email: input.to, subject: input.subject,
     html: input.html || null, text: input.text || null,
-    metadata: input.tags || null, scheduled_at: scheduledAt,
+    metadata: metadataValue, scheduled_at: scheduledAt,
   });
 
   await addEmailEvent(id, 'queued', 'Email queued for delivery');

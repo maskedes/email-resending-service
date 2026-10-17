@@ -36,9 +36,19 @@ const limiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  // Inbound email arrives from mail providers in bursts; don't apply the
-  // generic per-IP API limiter to it (it has its own shared-secret auth).
-  skip: (req) => req.originalUrl.startsWith('/api/inbound'),
+  // Endpoints that legitimately poll in a tight loop are exempted from the
+  // generic per-IP limiter — they carry their own strong auth:
+  //  - /api/inbound: mail providers deliver in bursts (shared-secret auth).
+  //  - /api/sms/gateway: an Android phone long-polls every ~25s and heartbeats.
+  //    That is ~40 requests per 15 min per phone, so the generic 100-request
+  //    budget was exhausted within minutes (and instantly behind CGNAT/NAT,
+  //    where many phones share one public IP) — hard-429ing SMS delivery.
+  //    These routes authenticate with an HMAC-verified gateway token, so they
+  //    remain protected against abuse.
+  skip: (req) => {
+    const url = req.originalUrl;
+    return url.startsWith('/api/inbound') || url.startsWith('/api/sms/gateway');
+  },
 });
 app.use('/api/', limiter);
 
@@ -47,8 +57,10 @@ app.use('/', dashboardRoutes);
 app.use('/api/emails', edgeProxyMiddleware, emailRoutes);
 app.use('/api/apikeys', apiKeyRoutes);
 app.use('/api/domains', domainRoutes);
-app.use('/api/sms', smsRoutes);
+// Gateway routes must be mounted BEFORE /api/sms so that a bare
+// GET /api/sms/gateway isn't swallowed by smsRoutes' GET /:id handler.
 app.use('/api/sms/gateway', smsGatewayRoutes);
+app.use('/api/sms', smsRoutes);
 app.use('/api/sites-links', siteLinkRoutes);
 app.use('/api/inbound', inboundRoutes);
 app.use('/', publicSiteLinkRouter);
@@ -72,7 +84,7 @@ async function bootstrap(): Promise<void> {
   const server = app.listen(config.port, config.host, () => {
     console.log(`
   ╔══════════════════════════════════════════╗
-  ║   📬 FreeMailSend is running!           ║
+  ║   📬 E-NVOY is running!                  ║
   ║                                          ║
   ║   Dashboard:  http://${config.host}:${config.port}      ║
   ║   API:        http://${config.host}:${config.port}/api   ║

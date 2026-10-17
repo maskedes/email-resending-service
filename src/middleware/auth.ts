@@ -36,6 +36,32 @@ export function edgeProxyMiddleware(req: Request, res: Response, next: NextFunct
   next();
 }
 
+/**
+ * True when the request comes from the trusted Next.js dashboard proxy.
+ *
+ * The `x-dashboard-user-id` header is CLIENT-SUPPLIED and must never be
+ * trusted on its own — otherwise any caller could send an arbitrary user id
+ * and gain that user's API keys or elevate to admin. We therefore require the
+ * shared service secret (known only to the backend and the Vercel dashboard)
+ * before the header is honoured.
+ */
+export function isTrustedDashboardProxy(req: Request): boolean {
+  const expected = config.dashboard.serviceSecret;
+  if (!expected) return false;
+  const provided = req.headers['x-dashboard-service-secret'];
+  return typeof provided === 'string' && provided.length > 0 && provided === expected;
+}
+
+/**
+ * Returns the dashboard user id only when the request is from the trusted
+ * dashboard proxy; otherwise undefined.
+ */
+export function trustedDashboardUserId(req: Request): string | undefined {
+  if (!isTrustedDashboardProxy(req)) return undefined;
+  const userId = req.headers['x-dashboard-user-id'];
+  return typeof userId === 'string' && userId.length > 0 ? userId : undefined;
+}
+
 export async function authMiddleware(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   const apiKey = req.headers[config.apiKeyHeader] as string;
 
@@ -76,7 +102,10 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
     // When a user email is added as "admin" to an API key's members, they get
     // elevated admin rights for testing and live production. Without admin
     // membership, they only have standard key privileges.
-    const userId = req.headers['x-dashboard-user-id'] as string | undefined;
+    //
+    // Only honoured when the request comes from the trusted dashboard proxy
+    // (see isTrustedDashboardProxy) — a bare client-supplied header is ignored.
+    const userId = trustedDashboardUserId(req);
     if (userId && !req.apiKey.is_admin) {
       try {
         const { rows } = await getPool().query(

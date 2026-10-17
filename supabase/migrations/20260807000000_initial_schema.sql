@@ -53,7 +53,6 @@ CREATE TABLE IF NOT EXISTS public.webhooks (
   secret TEXT,
   created_at TIMESTAMPTZ DEFAULT now(),
   last_triggered_at TIMESTAMPTZ
-  created_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- ── Domains ────────────────────────────────────────────────────────────────

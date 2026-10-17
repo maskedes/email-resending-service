@@ -1,13 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { createApiKey, getAllApiKeys, getApiKeysByUserId, deactivateApiKey, deleteApiKey } from '../services/apiKeyService';
-import { authMiddleware, requireAdmin, isAdminKey } from '../middleware/auth';
+import { authMiddleware, requireAdmin, isAdminKey, trustedDashboardUserId } from '../middleware/auth';
 import type { AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
 router.post('/', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   const { name, email } = req.body;
-  const userId = req.headers['x-dashboard-user-id'] as string | undefined;
+  const userId = trustedDashboardUserId(req);
 
   if (!name || !email) {
     res.status(400).json({
@@ -43,7 +43,9 @@ router.post('/', authMiddleware, async (req: Request, res: Response): Promise<vo
 });
 
 router.get('/', authMiddleware, async (req: Request, res: Response): Promise<void> => {
-  const userId = req.headers['x-dashboard-user-id'] as string | undefined;
+  // Only honoured for trusted dashboard-proxy requests; a bare client-supplied
+  // header cannot enumerate another user's keys.
+  const userId = trustedDashboardUserId(req);
   // Only admin keys can list all keys; non-admin keys can only list their own
   if (!userId && !isAdminKey(req as AuthRequest)) {
     res.status(403).json({
@@ -91,8 +93,10 @@ router.delete('/:id', authMiddleware, requireAdmin, async (req: Request, res: Re
   });
 });
 
-// Permanently delete an API key (auto-revokes + removes it from the database).
-router.delete('/:id/delete', async (req: Request, res: Response): Promise<void> => {
+// Permanently delete an API key (auto-revokes + purges it and all child data:
+// emails, events, webhooks, domains, templates). This is destructive and
+// irreversible, so it requires an admin API key.
+router.delete('/:id/delete', authMiddleware, requireAdmin, async (req: Request, res: Response): Promise<void> => {
   const success = await deleteApiKey(req.params.id);
 
   if (!success) {

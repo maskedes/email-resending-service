@@ -400,7 +400,24 @@ function SiteEditor({
   busy: boolean;
 }) {
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
+  // Template the user asked to apply but hasn't confirmed yet. While set, the
+  // confirmation dialog is shown in place of the old native window.confirm().
+  const [pendingTemplate, setPendingTemplate] = useState<SiteTemplate | null>(null);
   const isNew = !draft.id;
+
+  // Dismiss the template dialog with Escape (the editor itself stays open).
+  useEffect(() => {
+    if (!pendingTemplate) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        setPendingTemplate(null);
+      }
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [pendingTemplate]);
+
   const host = `${draft.subdomain.trim().toLowerCase() || 'your-name'}.${SITE_DOMAIN}`;
   const live = `/site/${draft.domain}${draft.subdomain.trim() ? '/' + draft.subdomain.trim().toLowerCase() : ''}`;
 
@@ -484,7 +501,12 @@ function SiteEditor({
                   <button
                     key={t.id}
                     onClick={() => {
-                      if (draft.html.trim() && !window.confirm(`Replace the current content with the "${t.name}" template?`)) return;
+                      // Applying a template over existing content needs consent,
+                      // so ask via the in-app dialog (no native confirm popup).
+                      if (draft.html.trim()) {
+                        setPendingTemplate(t);
+                        return;
+                      }
                       onPatch({ html: t.html, title: draft.title || (t.name === 'Blank' ? '' : t.name) });
                     }}
                     title={t.description}
@@ -573,6 +595,81 @@ function SiteEditor({
           </div>
         </div>
       </div>
+
+    {/* ── Template confirmation dialog ─────────────────────────────────────
+        Replaces the old native window.confirm(). Everything is centred in the
+        viewport, and the actions are large cards rather than plain buttons. */}
+    {pendingTemplate && (
+      <div
+        className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="template-dialog-title"
+        onClick={() => setPendingTemplate(null)}
+      >
+        <div
+          className="w-full max-w-md overflow-hidden rounded-2xl border border-white/12 bg-slate-950 shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="border-b border-white/10 px-6 py-5 text-center">
+            <div
+              className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-white/10"
+              style={{ background: `${pendingTemplate.accent}22` }}
+            >
+              <span
+                className="h-3 w-3 rounded-full"
+                style={{ background: pendingTemplate.accent }}
+              />
+            </div>
+            <h2 id="template-dialog-title" className="text-base font-bold text-white">
+              Replace content with &ldquo;{pendingTemplate.name}&rdquo;?
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-400">
+              {pendingTemplate.description}
+            </p>
+          </div>
+
+          {/* Warning */}
+          <div className="px-6 py-4">
+            <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-center text-xs leading-relaxed text-amber-300">
+              Your current HTML will be overwritten. This can&rsquo;t be undone
+              unless you copy it first.
+            </div>
+          </div>
+
+          {/* Actions — two cards side by side */}
+          <div className="grid grid-cols-2 gap-3 px-6 pb-6">
+            <button
+              onClick={() => setPendingTemplate(null)}
+              className="rounded-xl border border-white/15 bg-white/[0.03] px-4 py-4 text-center transition hover:border-white/25 hover:bg-white/[0.07]"
+            >
+              <span className="block text-sm font-semibold text-slate-200">Cancel</span>
+              <span className="mt-0.5 block text-[11px] text-slate-500">
+                Keep my content
+              </span>
+            </button>
+
+            <button
+              onClick={() => {
+                const t = pendingTemplate;
+                setPendingTemplate(null);
+                onPatch({
+                  html: t.html,
+                  title: draft?.title || (t.name === 'Blank' ? '' : t.name),
+                });
+              }}
+              className="rounded-xl border border-white/15 bg-white px-4 py-4 text-center transition hover:bg-white/90"
+            >
+              <span className="block text-sm font-bold text-slate-950">Replace</span>
+              <span className="mt-0.5 block text-[11px] text-slate-600">
+                Apply {pendingTemplate.name}
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   );
 }
