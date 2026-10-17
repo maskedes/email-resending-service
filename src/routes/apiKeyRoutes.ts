@@ -1,9 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { createApiKey, getAllApiKeys, getApiKeysByUserId, deactivateApiKey, deleteApiKey } from '../services/apiKeyService';
+import { authMiddleware, requireAdmin, isAdminKey } from '../middleware/auth';
+import type { AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
-router.post('/', async (req: Request, res: Response): Promise<void> => {
+router.post('/', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   const { name, email } = req.body;
   const userId = req.headers['x-dashboard-user-id'] as string | undefined;
 
@@ -40,8 +42,18 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
   });
 });
 
-router.get('/', async (req: Request, res: Response): Promise<void> => {
+router.get('/', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   const userId = req.headers['x-dashboard-user-id'] as string | undefined;
+  // Only admin keys can list all keys; non-admin keys can only list their own
+  if (!userId && !isAdminKey(req as AuthRequest)) {
+    res.status(403).json({
+      error: {
+        type: 'forbidden',
+        message: 'Admin rights required to list all API keys.',
+      },
+    });
+    return;
+  }
   const keys = userId ? await getApiKeysByUserId(userId) : await getAllApiKeys();
 
   res.json({
@@ -53,11 +65,15 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       total_emails_sent: k.total_emails_sent,
       created_at: k.created_at,
       last_used_at: k.last_used_at,
+      allow_sms: k.allow_sms,
+      allow_incoming_email: k.allow_incoming_email,
+      forward_to: k.forward_to,
+      is_admin: k.is_admin === true,
     })),
   });
 });
 
-router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
+router.delete('/:id', authMiddleware, requireAdmin, async (req: Request, res: Response): Promise<void> => {
   const success = await deactivateApiKey(req.params.id);
 
   if (!success) {

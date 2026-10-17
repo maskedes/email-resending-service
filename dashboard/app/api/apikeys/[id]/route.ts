@@ -41,6 +41,9 @@ export async function PATCH(
   if (typeof body?.allow_incoming_email === 'boolean') {
     update.allow_incoming_email = body.allow_incoming_email;
   }
+  if (body?.is_admin !== undefined) {
+    update.is_admin = body.is_admin;
+  }
   if (body?.forward_to !== undefined) {
     const forward = String(body.forward_to ?? '').trim();
     if (forward && !EMAIL_RE.test(forward)) {

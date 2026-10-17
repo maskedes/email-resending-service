@@ -13,6 +13,8 @@ interface ApiKey {
   allow_sms?: boolean;
   allow_incoming_email?: boolean;
   forward_to?: string | null;
+  /** Admin rights for testing/live production. Admin keys get elevated privileges. */
+  is_admin?: boolean;
 }
 
 interface ApiKeyMember {
@@ -215,7 +217,7 @@ export default function ApiKeysPage() {
 
   // Optimistically flip a setting, then persist it to the backend.
   async function updateSetting(
-    patch: Partial<Pick<ApiKey, 'allow_sms' | 'allow_incoming_email' | 'forward_to'>>
+    patch: Partial<Pick<ApiKey, 'allow_sms' | 'allow_incoming_email' | 'forward_to' | 'is_admin'>>
   ) {
     if (!settingsKey) return;
     const id = settingsKey.id;
@@ -622,6 +624,21 @@ export default function ApiKeysPage() {
                     updateSetting({ allow_incoming_email: !settingsKey.allow_incoming_email })
                   }
                   ariaLabel="Toggle incoming email for this API key"
+                />
+              </div>
+
+              <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4">
+                <div>
+                  <p className="font-medium text-white">Admin rights</p>
+                  <p className="text-sm text-slate-400">
+                    Admin keys get elevated privileges for testing and live production
+                  </p>
+                </div>
+                <ToggleSwitch
+                  checked={!!settingsKey.is_admin}
+                  disabled={settingsSaving}
+                  onToggle={() => updateSetting({ is_admin: !settingsKey.is_admin })}
+                  ariaLabel="Toggle admin rights for this API key"
                 />
               </div>
 

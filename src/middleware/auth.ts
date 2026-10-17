@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { validateApiKey } from '../services/apiKeyService';
 import { config } from '../config';
+import { getPool } from '../database/db';
 
 export interface AuthRequest extends Request {
   apiKey?: {
@@ -10,6 +11,7 @@ export interface AuthRequest extends Request {
     allow_sms: boolean;
     allow_incoming_email: boolean;
     forward_to: string | null;
+    is_admin: boolean;
   };
 }
 
@@ -67,7 +69,28 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
       allow_sms: validKey.allow_sms === true,
       allow_incoming_email: validKey.allow_incoming_email === true,
       forward_to: validKey.forward_to ?? null,
+      is_admin: validKey.is_admin === true,
     };
+
+    // Check if the requesting dashboard user is an admin member of this key.
+    // When a user email is added as "admin" to an API key's members, they get
+    // elevated admin rights for testing and live production. Without admin
+    // membership, they only have standard key privileges.
+    const userId = req.headers['x-dashboard-user-id'] as string | undefined;
+    if (userId && !req.apiKey.is_admin) {
+      try {
+        const { rows } = await getPool().query(
+          `SELECT role FROM api_key_members
+           WHERE api_key_id = $1 AND email = $2 AND role = 'admin'`,
+          [validKey.id, userId]
+        );
+        if (rows.length > 0) {
+          req.apiKey.is_admin = true;
+        }
+      } catch {
+        // Ignore member-check errors — fall back to key-level is_admin flag.
+      }
+    }
 
     next();
   } catch (err) {
@@ -83,4 +106,40 @@ export function errorHandler(err: Error, _req: Request, res: Response, _next: Ne
       message: 'An unexpected error occurred. Please try again later.',
     },
   });
+}
+
+/**
+ * Check if the authenticated API key has admin rights.
+ * Admin keys get elevated privileges for testing and live production.
+ * Non-admin keys are restricted to standard privileges.
+ */
+export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction): void {
+  if (!req.apiKey) {
+    res.status(401).json({
+      error: {
+        type: 'authentication_required',
+        message: 'Authentication required.',
+      },
+    });
+    return;
+  }
+
+  if (!req.apiKey.is_admin) {
+    res.status(403).json({
+      error: {
+        type: 'forbidden',
+        message: 'Admin rights required. This API key does not have admin privileges.',
+      },
+    });
+    return;
+  }
+
+  next();
+}
+
+/**
+ * Returns true if the request has an admin API key.
+ */
+export function isAdminKey(req: AuthRequest): boolean {
+  return Boolean(req.apiKey?.is_admin);
 }

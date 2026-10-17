@@ -18,6 +18,8 @@ export interface ApiKey {
   allow_incoming_email: boolean;
   /** Address inbound email for this key is forwarded to, when set. */
   forward_to: string | null;
+  /** When true, this key has elevated privileges for testing/admin purposes. */
+  is_admin: boolean;
 }
 
 export interface CreateApiKeyInput {
@@ -48,7 +50,7 @@ export async function createApiKey(input: CreateApiKeyInput): Promise<{ apiKey: 
 
   const { data, error: fetchErr } = await sb.from('api_keys').select('*').eq('id', id).single();
   if (fetchErr) throw fetchErr;
-  return { apiKey: data as ApiKey, rawKey };
+  return { apiKey: { ...data, is_admin: false } as ApiKey, rawKey };
 }
 
 export async function validateApiKey(rawKey: string): Promise<ApiKey | null> {

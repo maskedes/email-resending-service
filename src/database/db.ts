@@ -54,7 +54,11 @@ async function runMigrations(pool: Pool): Promise<void> {
       created_at TIMESTAMPTZ DEFAULT now(),
       is_active BOOLEAN DEFAULT TRUE,
       total_emails_sent INTEGER DEFAULT 0,
-      last_used_at TIMESTAMPTZ
+      last_used_at TIMESTAMPTZ,
+      allow_sms BOOLEAN DEFAULT FALSE,
+      allow_incoming_email BOOLEAN DEFAULT FALSE,
+      forward_to TEXT,
+      is_admin BOOLEAN DEFAULT FALSE
     );
 
     CREATE TABLE IF NOT EXISTS emails (
@@ -149,6 +153,18 @@ async function runMigrations(pool: Pool): Promise<void> {
   // ── api_keys user ownership (links to Supabase auth.users) ──
   await pool.query(`
     ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS user_id UUID;
+  `);
+  await pool.query(`
+    ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
+  `);
+  await pool.query(`
+    ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS allow_sms BOOLEAN DEFAULT FALSE;
+  `);
+  await pool.query(`
+    ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS allow_incoming_email BOOLEAN DEFAULT FALSE;
+  `);
+  await pool.query(`
+    ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS forward_to TEXT;
   `);
   await pool.query(`
     CREATE INDEX IF NOT EXISTS idx_api_keys_user_id ON api_keys(user_id);
