@@ -4,6 +4,8 @@
 [![GitHub forks](https://img.shields.io/github/forks/maskedes/email-resending-service?style=for-the-badge)](https://github.com/maskedes/email-resending-service/network)
 [![GitHub issues](https://img.shields.io/github/issues/maskedes/email-resending-service?style=for-the-badge)](https://github.com/maskedes/email-resending-service/issues)
 [![Sponsor](https://img.shields.io/badge/Sponsor-GitHub_Sponsors-FF69B4?style=for-the-badge&logo=github)](https://github.com/sponsors/maskedes)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Donate-29ABE0?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/maskedes)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-☕-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/maskedes)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
 A **free, self-hosted email sending service** — your own Resend-like email API provider.
@@ -213,6 +215,8 @@ Visit `http://localhost:3000` to access the dashboard where you can:
 If you find this project useful, please consider supporting it:
 
 - 💖 **Sponsor this project** — [github.com/sponsors/maskedes](https://github.com/sponsors/maskedes)
+- ☕ **Buy me a coffee** — [buymeacoffee.com/maskedes](https://www.buymeacoffee.com/maskedes)
+- ☕ **Ko-fi** — [ko-fi.com/maskedes](https://ko-fi.com/maskedes)
 - ⭐ **Star this repository** — [github.com/maskedes/email-resending-service](https://github.com/maskedes/email-resending-service)
 - 🍴 **Fork it** and submit improvements via pull requests
 - 🐛 **Report bugs** or request features in [Issues](https://github.com/maskedes/email-resending-service/issues)
