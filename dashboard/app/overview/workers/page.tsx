@@ -30,7 +30,7 @@ export default function WorkersPage() {
     setError('');
     setMessage('');
     try {
-      const res = await fetch('/api/workers/status');
+      const res = await fetch('/api/workers');
       const data = await res.json();
       if (data.worker) {
         setWorker(data.worker);

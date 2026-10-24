@@ -15,12 +15,24 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
   icons: { icon: '/logo-icon.svg' },
   // ─── Search-engine webmaster verification ───────────────────────────────
+  // Bing/Google codes come from env (set them in .env.local or the host
+  // panel). They are omitted entirely when unset — never shipped as a
+  // placeholder string.
   verification: {
     yandex: 'cb958d22a2a5e391',
-    other: {
-      'msvalidate.01': '<BING_WEBMASTER_CODE>',
-      'google-site-verification': '<GOOGLE_SEARCH_CONSOLE_CODE>',
-    },
+    ...(process.env.NEXT_PUBLIC_BING_WEBMASTER_CODE ||
+    process.env.NEXT_PUBLIC_GOOGLE_SEARCH_CONSOLE_CODE
+      ? {
+          other: {
+            ...(process.env.NEXT_PUBLIC_BING_WEBMASTER_CODE
+              ? { 'msvalidate.01': process.env.NEXT_PUBLIC_BING_WEBMASTER_CODE }
+              : {}),
+            ...(process.env.NEXT_PUBLIC_GOOGLE_SEARCH_CONSOLE_CODE
+              ? { 'google-site-verification': process.env.NEXT_PUBLIC_GOOGLE_SEARCH_CONSOLE_CODE }
+              : {}),
+          },
+        }
+      : {}),
   },
   // ─── Open Graph (Facebook, LinkedIn, TikTok, WhatsApp, iMessage) ────────
   openGraph: {

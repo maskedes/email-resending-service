@@ -58,6 +58,27 @@ export default function SettingsPage() {
   // Delete account
   const [deleteConfirm, setDeleteConfirm] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  async function handleDeleteAccount() {
+    if (deleteConfirm !== 'DELETE' || deleting) return;
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      const res = await fetch('/api/account/delete', { method: 'POST' });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        setDeleteError(body?.error?.message || 'Account deletion failed. Please try again or contact support.');
+        setDeleting(false);
+        return;
+      }
+      // Account + auth user are gone — hard-redirect clears session state.
+      window.location.href = '/';
+    } catch {
+      setDeleteError('Account deletion failed. Please try again or contact support.');
+      setDeleting(false);
+    }
+  }
 
   // Account editing
   const [editOpen, setEditOpen] = useState(false);
@@ -536,12 +557,19 @@ export default function SettingsPage() {
               />
             </div>
             <button
+              onClick={handleDeleteAccount}
               disabled={deleteConfirm !== 'DELETE' || deleting}
               className="bg-red-500/80 px-6 py-2.5 font-medium text-white transition-colors hover:bg-red-500 disabled:opacity-30 disabled:cursor-not-allowed whitespace-nowrap"
             >
               {deleting ? 'Deleting…' : 'Delete My Account'}
             </button>
           </div>
+
+          {deleteError && (
+            <div className="border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+              {deleteError}
+            </div>
+          )}
         </div>
       </section>
 

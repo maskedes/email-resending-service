@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { AuthRequest, authMiddleware } from '../middleware/auth';
-import { createSite, listSites, getSite, updateSite, deleteSite, createLink, listLinks, getLinkByDomainSlug, incrementLinkClick, deleteLink, resolveSite } from '../services/siteLinkService.js';
+import { createSite, listSites, getSite, updateSite, deleteSite, createLink, listLinks, getLinkByDomainSlug, incrementLinkClick, dispatchClickTriggers, deleteLink, resolveSite } from '../services/siteLinkService.js';
 import { getPool } from '../database/db';
 
 const router = Router();
@@ -64,6 +64,7 @@ publicSiteLinkRouter.get('/s/:domain/:slug', async (req: Request, res: Response)
   const link = await getLinkByDomainSlug(req.params.domain, req.params.slug);
   if (!link || !link.is_active) { res.status(404).send('Not found'); return; }
   incrementLinkClick(link.id).catch(() => {});
+  dispatchClickTriggers(link).catch(() => {});
   res.redirect(302, link.target_url);
 });
 publicSiteLinkRouter.get('/site/:domain/:subdomain?', async (req: Request, res: Response): Promise<void> => {

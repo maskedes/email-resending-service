@@ -122,14 +122,6 @@ export async function recordEmailFailure(emailId: string, errorMessage: string):
   await addEmailEvent(emailId, 'failed', errorMessage);
 }
 
-export async function incrementEmailCount(apiKeyId: string): Promise<void> {
-  const sb = getSupabase();
-  const { data } = await sb.from('api_keys').select('total_emails_sent').eq('id', apiKeyId).single();
-  if (data) {
-    await sb.from('api_keys').update({ total_emails_sent: (data.total_emails_sent || 0) + 1 }).eq('id', apiKeyId);
-  }
-}
-
 export async function getEmailById(id: string): Promise<EmailRecord | null> {
   const sb = getSupabase();
   const { data, error } = await sb.from('emails').select('*').eq('id', id).single();

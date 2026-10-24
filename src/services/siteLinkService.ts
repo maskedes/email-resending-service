@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { getPool } from '../database/db';
 import { getSupabase } from '../database/supabase';
 
 export interface SiteRow { id: string; api_key_id: string; domain: string; subdomain: string | null; title: string | null; html: string; is_published: boolean; created_at: string; updated_at: string }
@@ -63,6 +64,33 @@ export async function getLinkByDomainSlug(domain: string, slug: string): Promise
 export async function incrementLinkClick(id: string): Promise<void> {
   const sb = getSupabase(); const { data } = await sb.from('links').select('clicks').eq('id', id).single();
   if (data) await sb.from('links').update({ clicks: (data as { clicks: number }).clicks + 1 }).eq('id', id);
+}
+
+/**
+ * Fire all active `click` triggers for a link (fire-and-forget caller).
+ *
+ * The route previously only counted clicks — triggers registered via
+ * POST /api/sites-links/triggers with event `click` were never dispatched.
+ * Triggers with a NULL link_id apply to every link of the same API key;
+ * triggers bound to a specific link fire only for that link.
+ */
+export async function dispatchClickTriggers(link: LinkRow): Promise<void> {
+  const pool = getPool();
+  const { rows } = await pool.query(
+    'SELECT event, target_url FROM link_triggers WHERE api_key_id=$1 AND is_active AND (link_id IS NULL OR link_id=$2)',
+    [link.api_key_id, link.id],
+  );
+  const payload = JSON.stringify({
+    event: 'link.clicked',
+    link: { id: link.id, domain: link.domain, slug: link.slug, target_url: link.target_url, clicks: link.clicks + 1 },
+  });
+  for (const t of rows as { event: string; target_url: string }[]) {
+    try {
+      await fetch(t.target_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload });
+    } catch {
+      // Trigger delivery is best-effort; never fail the redirect.
+    }
+  }
 }
 export async function deleteLink(id: string): Promise<void> { const sb = getSupabase(); await sb.from('links').delete().eq('id', id); }
 export async function resolveSite(domain: string, subdomain?: string | null): Promise<SiteRow | null> {

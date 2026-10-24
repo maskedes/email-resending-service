@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
 import { getSupabase } from '../database/supabase';
@@ -53,15 +54,48 @@ export async function createApiKey(input: CreateApiKeyInput): Promise<{ apiKey: 
   return { apiKey: { ...data, is_admin: false } as ApiKey, rawKey };
 }
 
+/**
+ * In-memory validation cache.
+ *
+ * The previous implementation bcrypt-compared the presented key against
+ * EVERY active key in the database on every request (~100 ms per compare,
+ * O(n) per request). Now the first validation for a given raw key is
+ * memoized (keyed by SHA-256 of the raw key, never the key itself) and
+ * reused until the TTL expires or the key changes server-side.
+ */
+const VALIDATION_TTL_MS = 5 * 60 * 1000;
+const validationCache = new Map<string, { apiKey: ApiKey; expiresAt: number }>();
+
+function sha256(input: string): string {
+  return crypto.createHash('sha256').update(input).digest('hex');
+}
+
+/** Drop a cached validation (e.g. after delete/revoke) so revocation is prompt. */
+export function invalidateApiKeyCacheById(apiKeyId: string): void {
+  for (const [hash, entry] of validationCache) {
+    if (entry.apiKey.id === apiKeyId) validationCache.delete(hash);
+  }
+}
+
 export async function validateApiKey(rawKey: string): Promise<ApiKey | null> {
+  const cacheHash = sha256(rawKey);
+
+  const cached = validationCache.get(cacheHash);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.apiKey;
+  }
+  if (cached) validationCache.delete(cacheHash);
+
   const sb = getSupabase();
   const { data: keys, error } = await sb.from('api_keys').select('*').eq('is_active', true);
   if (error || !keys) return null;
 
   for (const storedKey of keys) {
     if (await bcrypt.compare(rawKey, storedKey.key)) {
-      await sb.from('api_keys').update({ last_used_at: new Date().toISOString() }).eq('id', storedKey.id);
-      return storedKey as ApiKey;
+      const apiKey = storedKey as ApiKey;
+      validationCache.set(cacheHash, { apiKey, expiresAt: Date.now() + VALIDATION_TTL_MS });
+      await sb.from('api_keys').update({ last_used_at: new Date().toISOString() }).eq('id', apiKey.id);
+      return apiKey;
     }
   }
   return null;
@@ -85,6 +119,7 @@ export async function getApiKeysByUserId(userId: string): Promise<ApiKey[]> {
 export async function deactivateApiKey(id: string): Promise<boolean> {
   const sb = getSupabase();
   const { error } = await sb.from('api_keys').update({ is_active: false }).eq('id', id);
+  invalidateApiKeyCacheById(id);
   return !error;
 }
 
@@ -129,6 +164,7 @@ export async function deleteApiKey(id: string): Promise<boolean> {
   await sb.from('webhooks').delete().eq('api_key_id', id);
   await sb.from('domains').delete().eq('api_key_id', id);
   await sb.from('templates').delete().eq('api_key_id', id);
+  invalidateApiKeyCacheById(id);
   const { error } = await sb.from('api_keys').delete().eq('id', id);
   return !error;
 }
