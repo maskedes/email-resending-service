@@ -23,7 +23,7 @@
  */
 
 /** Default API host. Overridable per-client via `host`, or globally via the `ENVOY_HOST` env var. */
-const DEFAULT_HOST = process.env.ENVOY_HOST || 'http://78.154.103.19:12083';
+const DEFAULT_HOST = process.env.ENVOY_HOST || 'https://api.mailenvoy.qd.je';
 
 export interface ENovoyOptions {
   /** Your API key, prefixed with `fms_`. */

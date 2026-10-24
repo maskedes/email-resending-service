@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { API_URL } from '@/lib/api';
 
 /* ─── Language definitions ─── */
 const LANGUAGES = [
@@ -198,7 +199,7 @@ function ElixirIcon() {
 type LangId = (typeof LANGUAGES)[number]['id'];
 
 const SNIPPETS: Record<LangId, string> = {
-  cli: `curl -X POST http://78.154.103.19:12083/api/emails/send \\
+  cli: `curl -X POST ${API_URL}/api/emails/send \\
   -H "Content-Type: application/json" \\
   -H "x-api-key: $ENVOY_API_KEY" \\
   -d '{
@@ -293,7 +294,7 @@ result = client.emails.send(
 
 puts result.id # queued message id`,
 
-  javascript: `const response = await fetch("http://78.154.103.19:12083/api/emails/send", {
+  javascript: `const response = await fetch("${API_URL}/api/emails/send", {
   method: "POST",
   headers: {
     "x-api-key": process.env.ENVOY_API_KEY,
@@ -310,7 +311,7 @@ puts result.id # queued message id`,
 const result = await response.json();
 console.log(result.id);`,
 
-  typescript: `const response = await fetch("http://78.154.103.19:12083/api/emails/send", {
+  typescript: `const response = await fetch("${API_URL}/api/emails/send", {
   method: "POST",
   headers: {
     "x-api-key": process.env.ENVOY_API_KEY,
@@ -343,7 +344,7 @@ String body = """
 
 HttpClient client = HttpClient.newHttpClient();
 HttpRequest request = HttpRequest.newBuilder()
-    .uri(URI.create("http://78.154.103.19:12083/api/emails/send"))
+    .uri(URI.create("${API_URL}/api/emails/send"))
     .header("x-api-key", System.getenv("ENVOY_API_KEY"))
     .header("Content-Type", "application/json")
     .POST(HttpRequest.BodyPublishers.ofString(body))
@@ -358,7 +359,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 
 val client = HttpClient()
-val response: HttpResponse = client.post("http://78.154.103.19:12083/api/emails/send") {
+val response: HttpResponse = client.post("${API_URL}/api/emails/send") {
     header("x-api-key", System.getenv("ENVOY_API_KEY"))
     header("Content-Type", "application/json")
     setBody("""
@@ -380,7 +381,7 @@ using System.Threading.Tasks;
 var client = new HttpClient();
 var json = @"{""from"":""hello@mail.yourdomain.com"",""to"":[""user@example.com""],""subject"":""Welcome aboard!"",""html"":""<h1>Hello!</h1><p>Your account is ready.</p>""}";
 
-var request = new HttpRequestMessage(HttpMethod.Post, "http://78.154.103.19:12083/api/emails/send");
+var request = new HttpRequestMessage(HttpMethod.Post, "${API_URL}/api/emails/send");
 request.Headers.Add("x-api-key", Environment.GetEnvironmentVariable("ENVOY_API_KEY"));
 request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
@@ -395,7 +396,7 @@ use std::env;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = Client::new();
     let res = client
-        .post("http://78.154.103.19:12083/api/emails/send")
+        .post("${API_URL}/api/emails/send")
         .header("x-api-key", env::var("ENVOY_API_KEY")?)
         .json(&json!({
             "from": "hello@mail.yourdomain.com",
@@ -412,7 +413,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   swift: `import Foundation
 
-let url = URL(string: "http://78.154.103.19:12083/api/emails/send")!
+let url = URL(string: "${API_URL}/api/emails/send")!
 var request = URLRequest(url: url)
 request.httpMethod = "POST"
 request.setValue(ProcessInfo.processInfo.environment["ENVOY_API_KEY"] ?? "", forHTTPHeaderField: "x-api-key")
@@ -437,7 +438,7 @@ import 'package:http/http.dart' as http;
 
 void main() async {
   final response = await http.post(
-    Uri.parse('http://78.154.103.19:12083/api/emails/send'),
+    Uri.parse('${API_URL}/api/emails/send'),
     headers: {
       'x-api-key': Platform.environment['ENVOY_API_KEY'] ?? '',
       'Content-Type': 'application/json',
@@ -465,7 +466,7 @@ int main() {
         headers = curl_slist_append(headers, auth.c_str());
         headers = curl_slist_append(headers, "Content-Type: application/json");
 
-        curl_easy_setopt(curl, CURLOPT_URL, "http://78.154.103.19:12083/api/emails/send");
+        curl_easy_setopt(curl, CURLOPT_URL, "${API_URL}/api/emails/send");
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS,
@@ -488,7 +489,7 @@ body = %{
 }
 
 Req.post!(
-  "http://78.154.103.19:12083/api/emails/send",
+  "${API_URL}/api/emails/send",
   headers: [{"x-api-key", System.get_env("ENVOY_API_KEY")}],
   json: body
 )`,

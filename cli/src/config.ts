@@ -10,7 +10,7 @@ const store = new Conf<Config>({
   projectName: 'envoy-cli',
   defaults: {
     apiKey: '',
-    host: 'http://78.154.103.19:12083',
+    host: 'https://api.mailenvoy.qd.je',
     edgeProxySecret: '',
   },
 });
@@ -23,7 +23,7 @@ export const config = {
     store.set('apiKey', key);
   },
   get host(): string {
-    return process.env.ENVOY_HOST || store.get('host', 'http://78.154.103.19:12083');
+    return process.env.ENVOY_HOST || store.get('host', 'https://api.mailenvoy.qd.je');
   },
   set host(url: string) {
     const cleaned = (url || '').trim().replace(/\/$/, '');

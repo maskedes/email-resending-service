@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Navbar from '../components/Navbar';
 import { RestApiIcon } from '../components/FeatureIcons';
+import { API_URL } from '@/lib/api';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -15,7 +16,7 @@ const highlights = [
   'Webhooks for delivery, open, and bounce events',
 ];
 
-const example = `curl -X POST http://78.154.103.19:12083/api/emails/send \\
+const example = `curl -X POST ${API_URL}/api/emails/send \\
   -H "x-api-key: fms_abc123..." \\
   -d '{"from":"you@domain.com","to":["user@example.com"],"subject":"Hi"}'`;
 

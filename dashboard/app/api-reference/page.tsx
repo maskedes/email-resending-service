@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Navbar from '../components/Navbar';
+import { API_URL } from '@/lib/api';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -15,7 +16,7 @@ const endpoints = [
   { method: 'GET', path: '/v1/stats', desc: 'Aggregated delivery, open, and bounce stats.' },
 ];
 
-const sendExample = `curl -X POST http://78.154.103.19:12083/api/emails/send -H "x-api-key: fms_abc123..." -H "Content-Type: application/json" -d '{"from":"hello@yourdomain.com","to":["user@example.com"],"subject":"Welcome aboard!","html":"<h1>Hello!</h1>"}'`;
+const sendExample = `curl -X POST ${API_URL}/api/emails/send -H "x-api-key: fms_abc123..." -H "Content-Type: application/json" -d '{"from":"hello@yourdomain.com","to":["user@example.com"],"subject":"Welcome aboard!","html":"<h1>Hello!</h1>"}'`;
 
 export default function ApiReferencePage() {
   return (

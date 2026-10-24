@@ -1,9 +1,13 @@
 // Server-side helper to talk to the Express FreeMailSend API.
 // All calls happen on the server so the session cookie is forwarded
 // and never exposed to the browser.
-
+//
+// Defaults to the branded production API host (api.mailenvoy.qd.je).
+// Override with NEXT_PUBLIC_API_URL (or API_URL) when needed.
 export const API_URL =
-  process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+  process.env.API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  'https://api.mailenvoy.qd.je';
 
 const SESSION_COOKIE = 'fms_dashboard';
 

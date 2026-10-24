@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Navbar from './components/Navbar';
 import HeroLanguageTabs from './components/HeroLanguageTabs';
+import { API_URL } from '@/lib/api';
 import {
   RestApiIcon,
   SmtpIcon,
@@ -11,7 +12,7 @@ import {
 } from './components/FeatureIcons';
 
 /* ─── Code snippet ─── */
-const codeSnippet = `curl -X POST http://78.154.103.19:12083/api/emails/send \\
+const codeSnippet = `curl -X POST ${API_URL}/api/emails/send \\
   -H "x-api-key: fms_abc123..." \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -142,7 +143,7 @@ export default function Home() {
                           <span className="text-emerald-400">curl</span>
                           <span className="text-slate-300"> -X </span>
                           <span className="text-yellow-400">POST</span>
-                          <span className="text-blue-400"> http://78.154.103.19:12083/api/emails/send</span>
+                          <span className="text-blue-400"> {`${API_URL}/api/emails/send`}</span>
                           <span className="text-slate-500"> \\</span>
                         </>
                       ) : line.includes('-H') ? (
