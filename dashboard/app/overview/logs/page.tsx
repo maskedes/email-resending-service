@@ -196,9 +196,15 @@ export default function LogsPage() {
           <p className="py-8 text-center text-red-400">{error}</p>
         ) : filtered.length === 0 ? (
           <div className="py-12 text-center">
-            <p className="text-slate-500 text-lg">No emails yet.</p>
+            <p className="text-slate-500 text-lg">
+              {statusFilter === 'all'
+                ? 'No emails yet.'
+                : `No ${statusFilter} emails yet.`}
+            </p>
             <p className="text-slate-600 text-sm mt-2">
-              Send an email and watch it appear here live.
+              {statusFilter === 'all'
+                ? 'Send an email and watch it appear here live.'
+                : 'Try another status or clear the search.'}
             </p>
           </div>
         ) : (
