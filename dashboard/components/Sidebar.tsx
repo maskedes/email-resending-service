@@ -102,8 +102,8 @@ export default function Sidebar({ className = '' }: { className?: string }) {
         </Link>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-6 space-y-1 overflow-hidden">
+      {/* Navigation — scrolls independently when the viewport is too short */}
+      <nav className="flex-1 min-h-0 px-3 py-6 space-y-1 overflow-y-auto">
         {navigation.map((item) => {
           // Overview is the default landing page; it should only be carded when
           // we're exactly on it, not on its sub-pages. Other items are carded
