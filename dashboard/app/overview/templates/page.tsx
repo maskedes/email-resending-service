@@ -305,7 +305,7 @@ export default function TemplatesPage() {
                       className={`flex-1 rounded-lg border px-4 py-3 text-left text-sm transition ${
                         active
                           ? 'border-brand/60 bg-brand/10 text-white'
-                          : 'border-canvas-border text-slate-300 hover:border-brand/60 hover:bg-brand/5'
+                          : 'border-brand/30 bg-brand/5 text-slate-300 hover:border-brand/60 hover:bg-brand/10'
                       }`}
                     >
                       <span className="font-medium">{t.name}</span>
@@ -313,7 +313,7 @@ export default function TemplatesPage() {
                     <button
                       type="button"
                       onClick={() => useTemplate({ subject: t.subject, html: null, text: t.body })}
-                      className="shrink-0 rounded-lg border border-canvas-border px-3 py-3 text-xs font-medium text-brand transition hover:border-brand/60 hover:bg-brand/5"
+                      className="shrink-0 rounded-lg bg-brand px-3 py-3 text-xs font-medium text-black transition hover:bg-brand/90"
                       title="Use this template"
                     >
                       Use
