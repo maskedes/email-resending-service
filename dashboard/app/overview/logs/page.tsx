@@ -150,9 +150,8 @@ export default function LogsPage() {
         </span>
       </div>
 
-      <section className="border border-canvas-border bg-canvas-raised p-4">
-        {/* Status categories — scrollable chip row */}
-        <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+      {/* Status categories — scrollable chip row */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
           {STATUS_CATEGORIES.map((cat) => {
             const active = statusFilter === cat.id;
             const count = cat.id === 'all' ? emails.length : emails.filter((e) => e.status === cat.id).length;
@@ -288,7 +287,6 @@ export default function LogsPage() {
             </table>
           </div>
         )}
-      </section>
     </div>
   );
 }
