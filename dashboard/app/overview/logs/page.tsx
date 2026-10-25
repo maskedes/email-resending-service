@@ -18,12 +18,12 @@ interface EmailRow {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  queued: 'bg-yellow-500/15 text-yellow-400',
-  sending: 'bg-blue-500/15 text-blue-400',
-  sent: 'bg-emerald-500/15 text-emerald-400',
-  delivered: 'bg-emerald-500/15 text-emerald-400',
-  failed: 'bg-red-500/15 text-red-400',
-  bounced: 'bg-red-500/15 text-red-400',
+  queued: 'bg-amber-500 text-[#ffffff]',
+  sending: 'bg-blue-600 text-[#ffffff]',
+  sent: 'bg-emerald-600 text-[#ffffff]',
+  delivered: 'bg-emerald-700 text-[#ffffff]',
+  failed: 'bg-red-600 text-[#ffffff]',
+  bounced: 'bg-rose-700 text-[#ffffff]',
 };
 
 // Filter categories shown as a scrollable chip row above the log table.
@@ -135,15 +135,13 @@ export default function LogsPage() {
           </p>
         </div>
         <span
-          className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${
-            live
-              ? 'bg-emerald-500/15 text-emerald-400'
-              : 'bg-yellow-500/15 text-yellow-400'
+          className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold ${
+            live ? 'bg-emerald-600 text-[#ffffff]' : 'bg-amber-500 text-[#ffffff]'
           }`}
         >
           <span
             className={`h-2 w-2 rounded-full ${
-              live ? 'bg-emerald-400 animate-pulse' : 'bg-yellow-400'
+              live ? 'bg-white animate-pulse' : 'bg-white/80'
             }`}
           />
           {live ? 'LIVE' : 'POLLING'}
@@ -169,8 +167,10 @@ export default function LogsPage() {
                 {cat.label}
                 {emails.length > 0 && (
                   <span
-                    className={`rounded-full px-1.5 py-0.5 text-xs ${
-                      active ? 'bg-black/10 text-black' : 'bg-canvas-raised text-slate-500'
+                    className={`rounded-full px-1.5 py-0.5 text-xs font-semibold leading-none ${
+                      active
+                        ? 'bg-white text-[#0f172a] shadow-sm'
+                        : 'bg-canvas-raised text-slate-500'
                     }`}
                   >
                     {count}
@@ -247,7 +247,7 @@ export default function LogsPage() {
                         <span
                           className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
                             STATUS_STYLES[e.status] ||
-                            'bg-slate-500/15 text-slate-400'
+                            'bg-slate-600 text-white'
                           }`}
                         >
                           {e.status}
