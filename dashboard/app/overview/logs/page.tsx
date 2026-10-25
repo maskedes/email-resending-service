@@ -131,7 +131,7 @@ export default function LogsPage() {
         <div>
           <h1 className="text-3xl font-bold text-white">Email Logs</h1>
           <p className="mt-1 text-slate-400">
-            Every send on your keys, updating live — like Brevo logs.
+            Every send on your keys, updating live.
           </p>
         </div>
         <span
