@@ -26,6 +26,16 @@ const STATUS_STYLES: Record<string, string> = {
   bounced: 'bg-red-500/15 text-red-400',
 };
 
+// Filter categories shown as a scrollable chip row above the log table.
+const STATUS_CATEGORIES: { id: string; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'queued', label: 'Queued' },
+  { id: 'sent', label: 'Sent' },
+  { id: 'delivered', label: 'Delivered' },
+  { id: 'failed', label: 'Failed' },
+  { id: 'bounced', label: 'Bounced' },
+];
+
 function fmtTime(iso: string) {
   try {
     return new Date(iso).toLocaleString();
@@ -141,24 +151,43 @@ export default function LogsPage() {
       </div>
 
       <section className="border border-canvas-border bg-canvas-raised p-4">
-        <div className="mb-4 flex flex-wrap gap-3">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded bg-canvas px-3 py-2 text-sm text-white border border-canvas-border"
-          >
-            <option value="all">All statuses</option>
-            <option value="queued">Queued</option>
-            <option value="sent">Sent</option>
-            <option value="delivered">Delivered</option>
-            <option value="failed">Failed</option>
-            <option value="bounced">Bounced</option>
-          </select>
+        {/* Status categories — scrollable chip row */}
+        <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+          {STATUS_CATEGORIES.map((cat) => {
+            const active = statusFilter === cat.id;
+            const count = cat.id === 'all' ? emails.length : emails.filter((e) => e.status === cat.id).length;
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setStatusFilter(cat.id)}
+                className={`shrink-0 whitespace-nowrap rounded-full border px-4 py-1.5 text-sm font-medium transition ${
+                  active
+                    ? 'border-brand bg-brand text-black'
+                    : 'border-canvas-border bg-canvas text-slate-400 hover:border-brand/40 hover:text-white'
+                }`}
+              >
+                {cat.label}
+                {emails.length > 0 && (
+                  <span
+                    className={`ml-2 rounded-full px-1.5 py-0.5 text-xs ${
+                      active ? 'bg-black/10 text-black' : 'bg-canvas-raised text-slate-500'
+                    }`}
+                  >
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mb-4">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search to or subject…"
-            className="flex-1 min-w-[200px] rounded bg-canvas px-3 py-2 text-sm text-white border border-canvas-border placeholder:text-slate-600"
+            className="w-full rounded bg-canvas px-3 py-2 text-sm text-white border border-canvas-border placeholder:text-slate-600"
           />
         </div>
 
