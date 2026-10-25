@@ -268,7 +268,7 @@ export default function TemplatesPage() {
 
   return (
     <div>
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-6 flex flex-col gap-4">
         <div>
           <h1 className="text-3xl font-bold text-white">Templates</h1>
           <p className="mt-1 text-slate-400">
@@ -277,7 +277,7 @@ export default function TemplatesPage() {
         </div>
 
         {/* Mode toggle */}
-        <div className="inline-flex shrink-0 rounded-lg border border-canvas-border bg-canvas p-1">
+        <div className="inline-flex self-start rounded-lg border border-canvas-border bg-canvas p-1">
           <button type="button" onClick={() => setMode('library')} className={tabBtn('library', 'Template Library')}>
             Template Library
           </button>
