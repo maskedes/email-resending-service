@@ -59,7 +59,7 @@ export default function CookieConsent() {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-4 sm:px-6">
-      <div className="w-full max-w-4xl rounded-2xl border border-white/10 bg-[#0b0d10] p-5 shadow-2xl shadow-black/30">
+      <div className="cookie-dark w-full max-w-4xl rounded-2xl border border-white/10 bg-[#0b0d10] p-5 shadow-2xl shadow-black/30">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-300">Privacy & cookies</p>
