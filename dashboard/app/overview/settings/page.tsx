@@ -16,7 +16,20 @@ interface UserProfile {
   avatar_url: string | null;
 }
 
+type SettingsTab = 'account' | 'preferences' | 'security' | 'resources' | 'danger';
+
+const TAB_DEFS: { id: SettingsTab; label: string }[] = [
+  { id: 'account', label: 'Account Settings' },
+  { id: 'preferences', label: 'Preferences' },
+  { id: 'security', label: 'Security' },
+  { id: 'resources', label: 'Resources' },
+  { id: 'danger', label: 'Danger Zone' },
+];
+
 export default function SettingsPage() {
+  // Active settings tab
+  const [activeTab, setActiveTab] = useState<SettingsTab>('account');
+
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,33 +40,6 @@ export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(true);
   const [prefsLoading, setPrefsLoading] = useState(true);
   const [prefsSaving, setPrefsSaving] = useState(false);
-
-  const ToggleSwitch = ({
-    checked,
-    onToggle,
-    ariaLabel,
-  }: {
-    checked: boolean;
-    onToggle: () => void;
-    ariaLabel: string;
-  }) => (
-    <button
-      type="button"
-      role="switch"
-      aria-label={ariaLabel}
-      aria-checked={checked}
-      onClick={onToggle}
-      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors ${
-          checked ? 'border-white bg-white/5' : 'border-slate-600 bg-canvas/30'
-        }`}
-    >
-      <span
-          className={`inline-block h-5 w-5 transform rounded-full shadow-sm transition-transform ${
-            checked ? 'translate-x-5 bg-emerald-400' : 'translate-x-0.5 bg-white'
-          }`}
-      />
-    </button>
-  );
 
   // Delete account
   const [deleteConfirm, setDeleteConfirm] = useState('');
@@ -134,8 +120,14 @@ export default function SettingsPage() {
       }
     }
 
+    async function loadProviders() {
+      const { providers, error } = await getConnectedProviders();
+      if (!error) setConnectedProviders(providers);
+    }
+
     loadUser();
     loadPreferences();
+    loadProviders();
   }, []);
 
   // Persist a single preference toggle to the backend (optimistic update).
@@ -177,22 +169,11 @@ export default function SettingsPage() {
   }
 
   // Open the account editing screen, seeded with current values.
-  async function openEdit() {
+  function openEdit() {
     setDraftName(user?.full_name ?? '');
     setDraftAvatar(user?.avatar_url ?? '');
     setProfileError('');
-    setEmailMsg(null);
-    setPwMsg(null);
-    setSocialMsg(null);
-    setNewEmail('');
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
     setEditOpen(true);
-
-    // Load linked social providers for the Connected Accounts section.
-    const { providers, error } = await getConnectedProviders();
-    if (!error) setConnectedProviders(providers);
   }
 
   // Persist edited account fields to the backend.
@@ -248,8 +229,9 @@ export default function SettingsPage() {
       setPwMsg({ type: 'err', text: 'New passwords do not match.' });
       return;
     }
+    if (!user) return;
     setPwLoading(true);
-    const err = await changePassword(user?.email ?? '', currentPassword, newPassword);
+    const err = await changePassword(user.email, currentPassword, newPassword);
     setPwLoading(false);
     if (err) {
       setPwMsg({ type: 'err', text: err });
@@ -316,367 +298,163 @@ export default function SettingsPage() {
       {/* Page Header */}
       <div>
         <h1 className="text-3xl font-bold text-white">Settings</h1>
-        <p className="mt-1 text-slate-400">Manage your account, preferences, and more.</p>
+        <p className="mt-1 text-slate-400">Manage your account settings, preferences, security, and more.</p>
       </div>
 
-      {/* Account Section */}
-      <section className="border border-canvas-border bg-canvas-raised p-6">
-        <div className="mb-5 flex items-start justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold text-white">Account</h2>
-            <p className="text-sm text-slate-400">Your account information</p>
-          </div>
+      {/* Settings Tabs */}
+      <div className="flex flex-wrap gap-1 border-b border-canvas-border" role="tablist" aria-label="Settings sections">
+        {TAB_DEFS.map(({ id, label }) => (
           <button
+            key={id}
+            role="tab"
+            aria-selected={activeTab === id}
             type="button"
-            onClick={openEdit}
-            aria-label="Edit account"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-canvas-border bg-canvas px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:border-brand/60 hover:text-white"
+            onClick={() => setActiveTab(id)}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === id
+                ? 'border-brand text-white'
+                : id === 'danger'
+                  ? 'border-transparent text-red-400/70 hover:text-red-400'
+                  : 'border-transparent text-slate-400 hover:text-white'
+            }`}
           >
-            <EditIcon />
-            Edit
+            {label}
           </button>
-        </div>
+        ))}
+      </div>
 
-        <div className="space-y-4">
-          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between border border-canvas-border bg-canvas/30 p-4">
+      {/* ================= Account Settings Tab ================= */}
+      {activeTab === 'account' && (
+        <section className="border border-canvas-border bg-canvas-raised p-6">
+          <div className="mb-5 flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm text-slate-400">Display Name</p>
-              <p className="text-white font-medium">
-                {loading ? 'Loading…' : user?.full_name || '—'}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between border border-canvas-border bg-canvas/30 p-4">
-            <div>
-              <p className="text-sm text-slate-400">Email</p>
-              <p className="text-white font-medium">
-                {loading ? 'Loading…' : user?.email || '—'}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between border border-canvas-border bg-canvas/30 p-4">
-            <div>
-              <p className="text-sm text-slate-400">User ID</p>
-              <p className="text-white font-mono text-sm break-all">
-                {loading ? 'Loading…' : user?.id || '—'}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between border border-canvas-border bg-canvas/30 p-4">
-            <div>
-              <p className="text-sm text-slate-400">Member since</p>
-              <p className="text-white font-medium">
-                {loading ? 'Loading…' : user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Preferences Section */}
-      <section className="border border-canvas-border bg-canvas-raised p-6">
-        <div className="mb-5">
-          <h2 className="text-lg font-semibold text-white">
-            Preferences{prefsSaving && <span className="ml-2 text-xs font-normal text-slate-500">Saving…</span>}
-          </h2>
-          <p className="text-sm text-slate-400">Customize your experience</p>
-        </div>
-
-        <div className="space-y-3">
-          {/* Email Notifications */}
-          <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4">
-            <div>
-              <p className="text-white font-medium">Email Notifications</p>
-              <p className="text-sm text-slate-400">Receive email alerts for delivery failures</p>
-            </div>
-            <ToggleSwitch
-              checked={prefsLoading ? false : emailNotifications}
-              onToggle={() => updatePreference('emailNotifications', !emailNotifications)}
-              ariaLabel="Toggle email notifications"
-            />
-          </div>
-
-          {/* DNS Auto-Check */}
-          <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4">
-            <div>
-              <p className="text-white font-medium">Auto DNS Verification</p>
-              <p className="text-sm text-slate-400">Automatically check DNS records on page load</p>
-            </div>
-            <ToggleSwitch
-              checked={prefsLoading ? false : dnsAutoCheck}
-              onToggle={() => updatePreference('dnsAutoCheck', !dnsAutoCheck)}
-              ariaLabel="Toggle DNS auto verification"
-            />
-          </div>
-
-          {/* Dark Mode */}
-          <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4">
-            <div>
-              <p className="text-white font-medium">Dark Mode</p>
-              <p className="text-sm text-slate-400">Always use dark theme</p>
-            </div>
-            <ToggleSwitch
-              checked={prefsLoading ? false : darkMode}
-              onToggle={() => updatePreference('darkMode', !darkMode)}
-              ariaLabel="Toggle dark mode"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* More Section */}
-      <section className="border border-canvas-border bg-canvas-raised p-6">
-        <div className="mb-5">
-          <h2 className="text-lg font-semibold text-white">More</h2>
-          <p className="text-sm text-slate-400">Additional resources and information</p>
-        </div>
-
-        <div className="space-y-3">
-          <a
-            href="https://docs.mailenvoy.qd.je"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
-          >
-            <div>
-              <p className="text-white font-medium">Documentation</p>
-              <p className="text-sm text-slate-400">Read the API docs and guides</p>
-            </div>
-            <MoreIcon />
-          </a>
-
-          <a
-            href="https://github.com/maskedes233/email-resending-service"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
-          >
-            <div>
-              <p className="text-white font-medium">Open Source</p>
-              <p className="text-sm text-slate-400">View source code on GitHub</p>
-            </div>
-            <MoreIcon />
-          </a>
-
-          <div className="border border-canvas-border bg-canvas/30 p-4">
-            <div>
-              <p className="text-white font-medium">Version</p>
-              <p className="text-sm text-slate-400">E-NVOY v1.0.0 — Open Source Email Service</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Follow Us Section */}
-      <section className="border border-canvas-border bg-canvas-raised p-6">
-        <div className="mb-5">
-          <h2 className="text-lg font-semibold text-white">Follow Us</h2>
-          <p className="text-sm text-slate-400">Stay connected with E-NVOY</p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <a
-            href="https://github.com/maskedes233"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
-          >
-            <div>
-              <p className="text-white font-medium text-sm">GitHub</p>
-              <p className="text-xs text-slate-500">@maskedes233</p>
-            </div>
-            <MoreIcon />
-          </a>
-
-          <a
-            href="https://twitter.com/mailenvoy"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
-          >
-            <div>
-              <p className="text-white font-medium text-sm">X (Twitter)</p>
-              <p className="text-xs text-slate-500">@mailenvoy</p>
-            </div>
-            <MoreIcon />
-          </a>
-
-          <a
-            href="mailto:support@mailenvoy.qd.je"
-            className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
-          >
-            <div>
-              <p className="text-white font-medium text-sm">Email</p>
-              <p className="text-xs text-slate-500">support@mailenvoy.qd.je</p>
-            </div>
-            <MoreIcon />
-          </a>
-        </div>
-      </section>
-
-      {/* Delete Account Section */}
-      <section className="border border-red-500/30 bg-red-500/5 p-6">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10">
-            <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-red-400">Delete Account</h2>
-            <p className="text-sm text-slate-400">Permanently delete your account and all data</p>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div className="border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-300/80">
-            <p className="font-medium text-red-400 mb-2">⚠️ This action is irreversible</p>
-            <ul className="list-disc list-inside space-y-1 text-slate-400">
-              <li>All your API keys will be revoked</li>
-              <li>All domains will be removed</li>
-              <li>All email history and logs will be deleted</li>
-              <li>Your account cannot be recovered</li>
-            </ul>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-            <div className="flex-1">
-              <label className="mb-1.5 block text-sm text-slate-400">
-                Type <span className="text-red-400 font-mono">DELETE</span> to confirm
-              </label>
-              <input
-                type="text"
-                value={deleteConfirm}
-                onChange={(e) => setDeleteConfirm(e.target.value)}
-                placeholder="DELETE"
-                disabled={deleting}
-                className="w-full border border-red-500/30 bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none focus:border-red-500 disabled:opacity-50"
-              />
+              <h2 className="text-lg font-semibold text-white">Account</h2>
+              <p className="text-sm text-slate-400">Your account information</p>
             </div>
             <button
-              onClick={handleDeleteAccount}
-              disabled={deleteConfirm !== 'DELETE' || deleting}
-              className="bg-red-500/80 px-6 py-2.5 font-medium text-white transition-colors hover:bg-red-500 disabled:opacity-30 disabled:cursor-not-allowed whitespace-nowrap"
+              type="button"
+              onClick={openEdit}
+              aria-label="Edit account"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-canvas-border bg-canvas px-3 py-1.5 text-sm font-medium text-slate-300 transition hover:border-brand/60 hover:text-white"
             >
-              {deleting ? 'Deleting…' : 'Delete My Account'}
+              <EditIcon />
+              Edit
             </button>
           </div>
 
-          {deleteError && (
-            <div className="border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
-              {deleteError}
+          <div className="space-y-4">
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between border border-canvas-border bg-canvas/30 p-4">
+              <div>
+                <p className="text-sm text-slate-400">Display Name</p>
+                <p className="text-white font-medium">
+                  {loading ? 'Loading…' : user?.full_name || '—'}
+                </p>
+              </div>
             </div>
-          )}
-        </div>
-      </section>
 
-      {/* Account editing screen (modal) */}
-      {editOpen && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4"
-          onClick={() => !savingProfile && setEditOpen(false)}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Edit account"
-            className="w-full max-w-md border border-canvas-border bg-canvas-raised p-6 shadow-2xl shadow-black/40 max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-lg font-semibold text-white">Edit Account</h3>
-            <p className="mb-5 text-sm text-slate-400">Update your profile, email, password, and linked accounts.</p>
-
-            <div className="space-y-6">
-              {/* Profile */}
-              <div className="space-y-4">
-                <div>
-                  <label className="mb-1.5 block text-sm text-slate-400">Display Name</label>
-                  <input
-                    type="text"
-                    value={draftName}
-                    onChange={(e) => setDraftName(e.target.value)}
-                    placeholder="Your name"
-                    disabled={savingProfile}
-                    className="w-full border border-canvas-border bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none focus:border-brand disabled:opacity-50"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-1.5 block text-sm text-slate-400">Avatar URL</label>
-                  <input
-                    type="url"
-                    value={draftAvatar}
-                    onChange={(e) => setDraftAvatar(e.target.value)}
-                    placeholder="https://…"
-                    disabled={savingProfile}
-                    className="w-full border border-canvas-border bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none focus:border-brand disabled:opacity-50"
-                  />
-                </div>
-
-                {profileError && (
-                  <p className="text-sm text-red-300">{profileError}</p>
-                )}
-
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    onClick={saveProfile}
-                    disabled={savingProfile}
-                    className="rounded-lg bg-brand px-5 py-2 text-sm font-medium text-black transition-colors hover:bg-brand/90 disabled:opacity-50"
-                  >
-                    {savingProfile ? 'Saving…' : 'Save Profile'}
-                  </button>
-                </div>
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between border border-canvas-border bg-canvas/30 p-4">
+              <div>
+                <p className="text-sm text-slate-400">Email</p>
+                <p className="text-white font-medium">
+                  {loading ? 'Loading…' : user?.email || '—'}
+                </p>
               </div>
+            </div>
 
-              <div className="border-t border-canvas-border" />
-
-              {/* Change Email */}
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm font-medium text-white">Change Email</p>
-                  <p className="text-xs text-slate-400">
-                    Current: <span className="text-slate-300">{user?.email || '—'}</span>
-                  </p>
-                </div>
-                <input
-                  type="email"
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                  placeholder="new@email.com"
-                  disabled={emailLoading}
-                  className="w-full border border-canvas-border bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none focus:border-brand disabled:opacity-50"
-                />
-                {emailMsg && (
-                  <p className={`text-sm ${emailMsg.type === 'ok' ? 'text-emerald-400' : 'text-red-300'}`}>
-                    {emailMsg.text}
-                  </p>
-                )}
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    onClick={handleChangeEmail}
-                    disabled={emailLoading || !newEmail.trim()}
-                    className="rounded-lg border border-canvas-border bg-canvas px-4 py-2 text-sm font-medium text-slate-200 transition hover:text-white disabled:opacity-50"
-                  >
-                    {emailLoading ? 'Sending…' : 'Send Confirmation'}
-                  </button>
-                </div>
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between border border-canvas-border bg-canvas/30 p-4">
+              <div>
+                <p className="text-sm text-slate-400">User ID</p>
+                <p className="text-white font-mono text-sm break-all">
+                  {loading ? 'Loading…' : user?.id || '—'}
+                </p>
               </div>
+            </div>
 
-              <div className="border-t border-canvas-border" />
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between border border-canvas-border bg-canvas/30 p-4">
+              <div>
+                <p className="text-sm text-slate-400">Member since</p>
+                <p className="text-white font-medium">
+                  {loading ? 'Loading…' : user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
-              {/* Change Password */}
-              <div className="space-y-3">
-                <p className="text-sm font-medium text-white">Change Password</p>
+      {/* ================= Preferences Tab ================= */}
+      {activeTab === 'preferences' && (
+        <section className="border border-canvas-border bg-canvas-raised p-6">
+          <div className="mb-5">
+            <h2 className="text-lg font-semibold text-white">
+              Preferences{prefsSaving && <span className="ml-2 text-xs font-normal text-slate-500">Saving…</span>}
+            </h2>
+            <p className="text-sm text-slate-400">Customize your experience — saved to your account automatically</p>
+          </div>
+
+          <div className="space-y-3">
+            {/* Email Notifications */}
+            <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4">
+              <div>
+                <p className="text-white font-medium">Email Notifications</p>
+                <p className="text-sm text-slate-400">Receive email alerts for delivery failures</p>
+              </div>
+              <ToggleSwitch
+                checked={prefsLoading ? false : emailNotifications}
+                onToggle={() => updatePreference('emailNotifications', !emailNotifications)}
+                ariaLabel="Toggle email notifications"
+              />
+            </div>
+
+            {/* DNS Auto-Check */}
+            <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4">
+              <div>
+                <p className="text-white font-medium">Auto DNS Verification</p>
+                <p className="text-sm text-slate-400">Automatically check DNS records on page load</p>
+              </div>
+              <ToggleSwitch
+                checked={prefsLoading ? false : dnsAutoCheck}
+                onToggle={() => updatePreference('dnsAutoCheck', !dnsAutoCheck)}
+                ariaLabel="Toggle DNS auto verification"
+              />
+            </div>
+
+            {/* Dark Mode */}
+            <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4">
+              <div>
+                <p className="text-white font-medium">Dark Mode</p>
+                <p className="text-sm text-slate-400">Always use dark theme</p>
+              </div>
+              <ToggleSwitch
+                checked={prefsLoading ? false : darkMode}
+                onToggle={() => updatePreference('darkMode', !darkMode)}
+                ariaLabel="Toggle dark mode"
+              />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ================= Security Tab ================= */}
+      {activeTab === 'security' && (
+        <section className="border border-canvas-border bg-canvas-raised p-6">
+          <div className="mb-5">
+            <h2 className="text-lg font-semibold text-white">Security</h2>
+            <p className="text-sm text-slate-400">Email, password, and sign-in methods</p>
+          </div>
+
+          <div className="space-y-6">
+            {/* Password */}
+            <div className="border border-canvas-border bg-canvas/30 p-4">
+              <div className="mb-3">
+                <p className="text-white font-medium">Change Password</p>
                 {!connectedProviders.includes('email') && (
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-400 mt-1">
                     You signed in with a social account. Set a password to enable email/password sign in.
                   </p>
                 )}
+              </div>
+              <div className="space-y-3 max-w-md">
                 <input
                   type="password"
                   value={currentPassword}
@@ -717,72 +495,343 @@ export default function SettingsPage() {
                   </button>
                 </div>
               </div>
-
-              <div className="border-t border-canvas-border" />
-
-              {/* Connected Accounts */}
-              <div className="space-y-3">
-                <p className="text-sm font-medium text-white">Connected Accounts</p>
-                <p className="text-xs text-slate-400">Link a social account to sign in without a password.</p>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-3">
-                    <span className="text-sm text-white">Google</span>
-                    {connectedProviders.includes('google') ? (
-                            <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
-                              Connected
-                            </span>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleLinkProvider('google')}
-                              disabled={socialLoading}
-                              className="rounded-lg border border-canvas-border bg-canvas px-3 py-1 text-xs font-medium text-slate-200 transition hover:text-white disabled:opacity-50"
-                            >
-                              Connect
-                            </button>
-                          )}
-                  </div>
-
-                  <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-3">
-                    <span className="text-sm text-white">GitHub</span>
-                    {connectedProviders.includes('github') ? (
-                            <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
-                              Connected
-                            </span>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleLinkProvider('github')}
-                              disabled={socialLoading}
-                              className="rounded-lg border border-canvas-border bg-canvas px-3 py-1 text-xs font-medium text-slate-200 transition hover:text-white disabled:opacity-50"
-                            >
-                              Connect
-                            </button>
-                          )}
-                  </div>
-                </div>
-
-                    {socialMsg && (
-                      <p className={`text-sm ${socialMsg.type === 'ok' ? 'text-emerald-400' : 'text-red-300'}`}>
-                        {socialMsg.text}
-                      </p>
-                    )}
-                  </div>
             </div>
 
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setEditOpen(false)}
-                className="rounded-lg border border-canvas-border bg-canvas px-4 py-2 text-sm font-medium text-slate-300 transition hover:text-white"
+            {/* Email change */}
+            <div className="border border-canvas-border bg-canvas/30 p-4">
+              <div className="mb-3">
+                <p className="text-white font-medium">Change Email</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  Current: <span className="text-slate-300">{user?.email || '—'}</span>
+                </p>
+              </div>
+              <div className="space-y-3 max-w-md">
+                <input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="new@email.com"
+                  disabled={emailLoading}
+                  className="w-full border border-canvas-border bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none focus:border-brand disabled:opacity-50"
+                />
+                {emailMsg && (
+                  <p className={`text-sm ${emailMsg.type === 'ok' ? 'text-emerald-400' : 'text-red-300'}`}>
+                    {emailMsg.text}
+                  </p>
+                )}
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleChangeEmail}
+                    disabled={emailLoading || !newEmail.trim()}
+                    className="rounded-lg border border-canvas-border bg-canvas px-4 py-2 text-sm font-medium text-slate-200 transition hover:text-white disabled:opacity-50"
+                  >
+                    {emailLoading ? 'Sending…' : 'Send Confirmation'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Connected accounts */}
+            <div className="border border-canvas-border bg-canvas/30 p-4">
+              <div className="mb-3">
+                <p className="text-white font-medium">Connected Accounts</p>
+                <p className="text-xs text-slate-400 mt-1">Link a social account to sign in without a password.</p>
+              </div>
+              <div className="space-y-2 max-w-md">
+                <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-3">
+                  <span className="text-sm text-white">Google</span>
+                  {connectedProviders.includes('google') ? (
+                    <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
+                      Connected
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleLinkProvider('google')}
+                      disabled={socialLoading}
+                      className="rounded-lg border border-canvas-border bg-canvas px-3 py-1 text-xs font-medium text-slate-200 transition hover:text-white disabled:opacity-50"
+                    >
+                      Connect
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-3">
+                  <span className="text-sm text-white">GitHub</span>
+                  {connectedProviders.includes('github') ? (
+                    <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
+                      Connected
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleLinkProvider('github')}
+                      disabled={socialLoading}
+                      className="rounded-lg border border-canvas-border bg-canvas px-3 py-1 text-xs font-medium text-slate-200 transition hover:text-white disabled:opacity-50"
+                    >
+                      Connect
+                    </button>
+                  )}
+                </div>
+
+                {socialMsg && (
+                  <p className={`text-sm ${socialMsg.type === 'ok' ? 'text-emerald-400' : 'text-red-300'}`}>
+                    {socialMsg.text}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ================= Resources Tab ================= */}
+      {activeTab === 'resources' && (
+        <>
+          <section className="border border-canvas-border bg-canvas-raised p-6">
+            <div className="mb-5">
+              <h2 className="text-lg font-semibold text-white">More</h2>
+              <p className="text-sm text-slate-400">Additional resources and information</p>
+            </div>
+
+            <div className="space-y-3">
+              <a
+                href="https://docs.mailenvoy.qd.je"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
               >
-                Close
+                <div>
+                  <p className="text-white font-medium">Documentation</p>
+                  <p className="text-sm text-slate-400">Read the API docs and guides</p>
+                </div>
+                <MoreIcon />
+              </a>
+
+              <a
+                href="https://github.com/maskedes233/email-resending-service"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
+              >
+                <div>
+                  <p className="text-white font-medium">Open Source</p>
+                  <p className="text-sm text-slate-400">View source code on GitHub</p>
+                </div>
+                <MoreIcon />
+              </a>
+
+              <div className="border border-canvas-border bg-canvas/30 p-4">
+                <div>
+                  <p className="text-white font-medium">Version</p>
+                  <p className="text-sm text-slate-400">E-NVOY v1.0.0 — Open Source Email Service</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="border border-canvas-border bg-canvas-raised p-6">
+            <div className="mb-5">
+              <h2 className="text-lg font-semibold text-white">Follow Us</h2>
+              <p className="text-sm text-slate-400">Stay connected with E-NVOY</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <a
+                href="https://github.com/maskedes233"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
+              >
+                <div>
+                  <p className="text-white font-medium text-sm">GitHub</p>
+                  <p className="text-xs text-slate-500">@maskedes233</p>
+                </div>
+                <MoreIcon />
+              </a>
+
+              <a
+                href="https://twitter.com/mailenvoy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
+              >
+                <div>
+                  <p className="text-white font-medium text-sm">X (Twitter)</p>
+                  <p className="text-xs text-slate-500">@mailenvoy</p>
+                </div>
+                <MoreIcon />
+              </a>
+
+              <a
+                href="mailto:support@mailenvoy.qd.je"
+                className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
+              >
+                <div>
+                  <p className="text-white font-medium text-sm">Email</p>
+                  <p className="text-xs text-slate-500">support@mailenvoy.qd.je</p>
+                </div>
+                <MoreIcon />
+              </a>
+            </div>
+          </section>
+        </>
+      )}
+
+      {/* ================= Danger Zone Tab ================= */}
+      {activeTab === 'danger' && (
+        <section className="border border-red-500/30 bg-red-500/5 p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10">
+              <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-red-400">Delete Account</h2>
+              <p className="text-sm text-slate-400">Permanently delete your account and all data</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-300/80">
+              <p className="font-medium text-red-400 mb-2">⚠️ This action is irreversible</p>
+              <ul className="list-disc list-inside space-y-1 text-slate-400">
+                <li>All your API keys will be revoked</li>
+                <li>All domains will be removed</li>
+                <li>All email history and logs will be deleted</li>
+                <li>Your account cannot be recovered</li>
+              </ul>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="flex-1">
+                <label className="mb-1.5 block text-sm text-slate-400">
+                  Type <span className="text-red-400 font-mono">DELETE</span> to confirm
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirm}
+                  onChange={(e) => setDeleteConfirm(e.target.value)}
+                  placeholder="DELETE"
+                  disabled={deleting}
+                  className="w-full border border-red-500/30 bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none focus:border-red-500 disabled:opacity-50"
+                />
+              </div>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirm !== 'DELETE' || deleting}
+                className="bg-red-500/80 px-6 py-2.5 font-medium text-white transition-colors hover:bg-red-500 disabled:opacity-30 disabled:cursor-not-allowed whitespace-nowrap"
+              >
+                {deleting ? 'Deleting…' : 'Delete My Account'}
               </button>
+            </div>
+
+            {deleteError && (
+              <div className="border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+                {deleteError}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Edit account modal (profile fields only) */}
+      {editOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4"
+          onClick={() => !savingProfile && setEditOpen(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Edit account"
+            className="w-full max-w-md border border-canvas-border bg-canvas-raised p-6 shadow-2xl shadow-black/40 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-white">Edit Account</h3>
+            <p className="mb-5 text-sm text-slate-400">Update your display name and avatar.</p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1.5 block text-sm text-slate-400">Display Name</label>
+                <input
+                  type="text"
+                  value={draftName}
+                  onChange={(e) => setDraftName(e.target.value)}
+                  placeholder="Your name"
+                  disabled={savingProfile}
+                  className="w-full border border-canvas-border bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none focus:border-brand disabled:opacity-50"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm text-slate-400">Avatar URL</label>
+                <input
+                  type="url"
+                  value={draftAvatar}
+                  onChange={(e) => setDraftAvatar(e.target.value)}
+                  placeholder="https://…"
+                  disabled={savingProfile}
+                  className="w-full border border-canvas-border bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none focus:border-brand disabled:opacity-50"
+                />
+              </div>
+
+              {profileError && (
+                <p className="text-sm text-red-300">{profileError}</p>
+              )}
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEditOpen(false)}
+                  className="rounded-lg border border-canvas-border bg-canvas px-4 py-2 text-sm font-medium text-slate-300 transition hover:text-white"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={saveProfile}
+                  disabled={savingProfile}
+                  className="rounded-lg bg-brand px-5 py-2 text-sm font-medium text-black transition-colors hover:bg-brand/90 disabled:opacity-50"
+                >
+                  {savingProfile ? 'Saving…' : 'Save Profile'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+function ToggleSwitch({
+  checked,
+  onToggle,
+  ariaLabel,
+}: {
+  checked: boolean;
+  onToggle: () => void;
+  ariaLabel: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-label={ariaLabel}
+      aria-checked={checked}
+      onClick={onToggle}
+      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors ${
+        checked ? 'border-white bg-white/5' : 'border-slate-600 bg-canvas/30'
+      }`}
+    >
+      <span
+        className={`inline-block h-5 w-5 transform rounded-full shadow-sm transition-transform ${
+          checked ? 'translate-x-5 bg-emerald-400' : 'translate-x-0.5 bg-white'
+        }`}
+      />
+    </button>
   );
 }
