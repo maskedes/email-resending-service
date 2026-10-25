@@ -161,7 +161,7 @@ export default function LogsPage() {
                 key={cat.id}
                 type="button"
                 onClick={() => setStatusFilter(cat.id)}
-                className={`shrink-0 whitespace-nowrap rounded-full border px-4 py-1.5 text-sm font-medium transition ${
+                className={`inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap w-28 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
                   active
                     ? 'border-brand bg-brand text-black'
                     : 'border-canvas-border bg-canvas text-slate-400 hover:border-brand/40 hover:text-white'
@@ -170,7 +170,7 @@ export default function LogsPage() {
                 {cat.label}
                 {emails.length > 0 && (
                   <span
-                    className={`ml-2 rounded-full px-1.5 py-0.5 text-xs ${
+                    className={`rounded-full px-1.5 py-0.5 text-xs ${
                       active ? 'bg-black/10 text-black' : 'bg-canvas-raised text-slate-500'
                     }`}
                   >
