@@ -389,7 +389,7 @@ export default function TemplatesPage() {
           </div>
 
           {apiKeys.length === 0 && (
-            <p className="mb-4 text-sm text-amber-300">
+            <p className="mb-4 py-10 text-center text-sm text-slate-400">
               You need at least one API key before you can save a template.
             </p>
           )}

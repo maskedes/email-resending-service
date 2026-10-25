@@ -429,4 +429,458 @@ Kind regards,
 [Phone Number]
 [Email Address]`,
   },
+
+  // ─── Transactional & authentication templates ({{variable}} placeholders) ───
+  {
+    id: 'welcome-email',
+    name: 'Welcome Email',
+    subject: 'Welcome to {{company_name}}!',
+    body: `Hi {{first_name}},
+
+Welcome to {{company_name}}! 🎉
+
+We're excited to have you here. Your account has been successfully created, and you're ready to get started.
+
+Here's what you can do next:
+- Explore our features.
+- Customize your profile.
+- Discover everything we have to offer.
+
+Ready to begin? Get started here: {{start_url}}
+
+If you need help, our support team is here for you.
+
+Best regards,
+The {{company_name}} Team`,
+  },
+  {
+    id: 'email-verification',
+    name: 'Email Verification',
+    subject: 'Verify your email address',
+    body: `Hi {{first_name}},
+
+Please verify your email address to complete your registration with {{company_name}}.
+
+Click the button below to confirm that this email address belongs to you.
+
+Verify email address: {{verification_url}}
+
+This verification link expires in {{expiry_time}}.
+
+If you didn't create an account with us, you can safely ignore this email.
+
+Thanks,
+The {{company_name}} Team`,
+  },
+  {
+    id: 'password-reset',
+    name: 'Password Reset',
+    subject: 'Reset your password',
+    body: `Hi {{first_name}},
+
+We received a request to reset the password for your {{company_name}} account.
+
+Click below to choose a new password.
+
+Reset password: {{reset_url}}
+
+For your security, this link expires in {{expiry_time}}.
+
+If you didn't request a password reset, you can ignore this email. Your password will remain unchanged.
+
+Regards,
+The {{company_name}} Security Team`,
+  },
+  {
+    id: 'password-changed',
+    name: 'Password Changed Notification',
+    subject: 'Your password has been changed',
+    body: `Hi {{first_name}},
+
+The password for your {{company_name}} account was successfully changed on {{change_date}} at {{change_time}}.
+
+If you made this change, no further action is required.
+
+If you didn't change your password, secure your account immediately: {{security_url}}
+
+Thank you,
+The {{company_name}} Security Team`,
+  },
+  {
+    id: 'two-factor-code',
+    name: 'Two-Factor Authentication Code',
+    subject: 'Your verification code is {{otp_code}}',
+    body: `Hi {{first_name}},
+
+Use the verification code below to complete your sign-in to {{company_name}}.
+
+{{otp_code}}
+
+This code expires in {{expiry_minutes}} minutes.
+
+Never share this code with anyone. Our team will never ask you to disclose it.
+
+If you didn't attempt to sign in, consider securing your account.
+
+The {{company_name}} Security Team`,
+  },
+  {
+    id: 'login-alert',
+    name: 'Login Alert',
+    subject: 'New sign-in to your account',
+    body: `Hi {{first_name}},
+
+We detected a new sign-in to your {{company_name}} account.
+
+Sign-in details:
+- Date: {{login_date}}
+- Device: {{device_name}}
+- Browser: {{browser_name}}
+- Approximate location: {{location}}
+
+If this was you, no action is needed.
+
+If you don't recognize this activity, secure your account immediately.
+
+Review account activity: {{activity_url}}
+
+The {{company_name}} Security Team`,
+  },
+  {
+    id: 'order-confirmation',
+    name: 'Order Confirmation',
+    subject: 'Order {{order_number}} confirmed!',
+    body: `Hi {{first_name}},
+
+Thank you for your order!
+
+We've received your order and are preparing it for processing.
+
+Order details:
+- Order number: {{order_number}}
+- Order date: {{order_date}}
+- Total: {{currency}} {{order_total}}
+- Payment status: {{payment_status}}
+
+Items ordered:
+{{order_items}}
+
+View your order: {{order_url}}
+
+We'll notify you when your order status changes.
+
+Thank you for shopping with {{company_name}}!
+
+Customer Support Team`,
+  },
+  {
+    id: 'payment-receipt',
+    name: 'Payment Receipt',
+    subject: 'Payment receipt — {{transaction_id}}',
+    body: `Hi {{first_name}},
+
+Your payment was successfully received.
+
+Payment details:
+- Transaction ID: {{transaction_id}}
+- Amount paid: {{currency}} {{amount}}
+- Payment method: {{payment_method}}
+- Payment date: {{payment_date}}
+- Description: {{payment_description}}
+
+You can view your transaction details below.
+
+View receipt: {{receipt_url}}
+
+Thank you for choosing {{company_name}}.
+
+Finance Team`,
+  },
+  {
+    id: 'failed-payment',
+    name: 'Failed Payment',
+    subject: 'Action required: Your payment could not be completed',
+    body: `Hi {{first_name}},
+
+We couldn't complete your recent payment to {{company_name}}.
+
+Payment details:
+- Amount: {{currency}} {{amount}}
+- Transaction reference: {{transaction_id}}
+- Date: {{payment_date}}
+
+Please check your payment details or try another payment method.
+
+Retry payment: {{retry_url}}
+
+If you've already completed this payment, please contact our support team before trying again.
+
+Regards,
+The {{company_name}} Billing Team`,
+  },
+  {
+    id: 'shipping-confirmation',
+    name: 'Shipping Confirmation',
+    subject: 'Your order is on its way!',
+    body: `Hi {{first_name}},
+
+Good news! Your order {{order_number}} has been shipped.
+
+Delivery details:
+- Carrier: {{shipping_carrier}}
+- Tracking number: {{tracking_number}}
+- Estimated delivery: {{estimated_delivery}}
+
+Track your package: {{tracking_url}}
+
+We'll keep you updated as your package makes its way to you.
+
+Thank you for shopping with {{company_name}}.
+
+Delivery Team`,
+  },
+  {
+    id: 'delivery-confirmation',
+    name: 'Delivery Confirmation',
+    subject: 'Your order has been delivered',
+    body: `Hi {{first_name}},
+
+Your order {{order_number}} has been marked as delivered.
+
+Delivery details:
+- Delivered on: {{delivery_date}}
+- Delivery location: {{delivery_location}}
+
+We hope you enjoy your purchase!
+
+View order: {{order_url}}
+
+If you haven't received your package, please contact our support team.
+
+Thank you for choosing {{company_name}}.`,
+  },
+  {
+    id: 'appointment-confirmation',
+    name: 'Appointment Confirmation',
+    subject: 'Your appointment is confirmed',
+    body: `Hi {{first_name}},
+
+Your appointment with {{company_name}} has been confirmed.
+
+Appointment details:
+- Service: {{service_name}}
+- Date: {{appointment_date}}
+- Time: {{appointment_time}}
+- Location: {{appointment_location}}
+- Reference: {{appointment_id}}
+
+View appointment: {{appointment_url}}
+
+If you need to make changes, please use the appointment link above.
+
+We look forward to seeing you!
+
+The {{company_name}} Team`,
+  },
+  {
+    id: 'meeting-invitation',
+    name: 'Meeting Invitation',
+    subject: 'Invitation: {{meeting_title}}',
+    body: `Hi {{first_name}},
+
+You're invited to attend the following meeting.
+
+Meeting details:
+- Title: {{meeting_title}}
+- Date: {{meeting_date}}
+- Time: {{meeting_time}}
+- Organizer: {{organizer_name}}
+- Location: {{meeting_location}}
+- Meeting link: {{meeting_url}}
+
+Please confirm your attendance.
+
+Accept invitation: {{rsvp_url}}
+
+We look forward to meeting with you.
+
+Best regards,
+{{organizer_name}}`,
+  },
+  {
+    id: 'contact-form-notification',
+    name: 'Contact Form Notification',
+    subject: 'New inquiry from {{sender_name}}',
+    body: `Hello {{recipient_name}},
+
+A new inquiry has been submitted through your website.
+
+Inquiry details:
+- Name: {{sender_name}}
+- Email: {{sender_email}}
+- Subject: {{message_subject}}
+
+Message:
+
+{{message_body}}
+
+Received on: {{submission_date}}
+
+View inquiry: {{inquiry_url}}
+
+Please respond to the sender when convenient.
+
+{{company_name}} Notifications`,
+  },
+  {
+    id: 'support-ticket',
+    name: 'Customer Support Ticket',
+    subject: 'Support request received — #{{ticket_id}}',
+    body: `Hi {{first_name}},
+
+We've received your support request and created a ticket.
+
+Ticket details:
+- Ticket number: {{ticket_id}}
+- Subject: {{ticket_subject}}
+- Priority: {{ticket_priority}}
+- Submitted: {{submission_date}}
+
+Your message:
+
+{{ticket_message}}
+
+You can check your ticket status or add more information below.
+
+View support ticket: {{ticket_url}}
+
+Our support team will respond as soon as possible.
+
+The {{company_name}} Support Team`,
+  },
+  {
+    id: 'newsletter',
+    name: 'Newsletter',
+    subject: 'The latest from {{company_name}}',
+    body: `Hi {{first_name}},
+
+Here's what's new at {{company_name}}.
+
+Featured update:
+
+{{featured_title}}
+
+{{featured_description}}
+
+Read more: {{featured_url}}
+
+More updates:
+- {{article_1_title}}
+- {{article_2_title}}
+- {{article_3_title}}
+
+Thanks for being part of our community.
+
+Best regards,
+The {{company_name}} Team
+
+You're receiving this email because you subscribed to our updates.
+
+Unsubscribe: {{unsubscribe_url}}`,
+  },
+  {
+    id: 'promotional-offer',
+    name: 'Promotional Offer',
+    subject: 'Special offer: Save {{discount_percentage}}% today!',
+    body: `Hi {{first_name}},
+
+We've got something special for you!
+
+Enjoy {{discount_percentage}}% off {{product_or_service}} for a limited time.
+
+Your offer:
+- Discount: {{discount_percentage}}%
+- Promo code: {{promo_code}}
+- Valid until: {{offer_expiry}}
+
+Use your code at checkout to claim your discount.
+
+Shop now: {{shop_url}}
+
+Don't miss out!
+
+The {{company_name}} Team
+
+Offer terms and conditions apply.
+
+Unsubscribe: {{unsubscribe_url}}`,
+  },
+  {
+    id: 'subscription-renewal',
+    name: 'Subscription Renewal Reminder',
+    subject: 'Your {{company_name}} subscription renews soon',
+    body: `Hi {{first_name}},
+
+This is a reminder that your {{plan_name}} subscription is scheduled to renew soon.
+
+Subscription details:
+- Plan: {{plan_name}}
+- Renewal date: {{renewal_date}}
+- Renewal amount: {{currency}} {{renewal_amount}}
+- Payment method: {{payment_method}}
+
+Manage subscription: {{subscription_url}}
+
+If you want to change or cancel your subscription, please review your subscription settings before the renewal date.
+
+Thank you for being a customer.
+
+The {{company_name}} Billing Team`,
+  },
+  {
+    id: 'feedback-request',
+    name: 'Feedback Request',
+    subject: 'How was your experience with {{company_name}}?',
+    body: `Hi {{first_name}},
+
+Thank you for choosing {{company_name}}!
+
+We'd love to hear about your experience. Your feedback helps us improve our products and services.
+
+How would you rate your experience?
+
+⭐ 1 Star: {{rating_1_url}}
+⭐⭐ 2 Stars: {{rating_2_url}}
+⭐⭐⭐ 3 Stars: {{rating_3_url}}
+⭐⭐⭐⭐ 4 Stars: {{rating_4_url}}
+⭐⭐⭐⭐⭐ 5 Stars: {{rating_5_url}}
+
+Your feedback is appreciated and will help us serve you better.
+
+Thank you,
+The {{company_name}} Team`,
+  },
+  {
+    id: 'account-deletion',
+    name: 'Account Deletion Confirmation',
+    subject: 'Your {{company_name}} account has been deleted',
+    body: `Hi {{first_name}},
+
+This email confirms that your {{company_name}} account was deleted on {{deletion_date}}.
+
+We're sorry to see you go.
+
+Account details:
+- Account email: {{email_address}}
+- Deletion date: {{deletion_date}}
+- Reference: {{deletion_reference}}
+
+If you didn't request this deletion, contact our support team immediately.
+
+You may be able to restore your account within {{recovery_period}}. Contact support for details.
+
+Thank you for being part of {{company_name}}.
+
+The {{company_name}} Team`,
+  },
 ];
