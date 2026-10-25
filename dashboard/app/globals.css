@@ -171,6 +171,8 @@ svg {
 :root.light .bg-yellow-500\/60 { background-color: #eab308 !important; }
 :root.light .bg-green-500\/60 { background-color: #22c55e !important; }
 :root.light .bg-red-500\/60 { background-color: #ef4444 !important; }
+:root.light .bg-red-600 { background-color: #dc2626 !important; }
+:root.light .bg-red-600.text-white { color: #ffffff !important; }
 
 /* White-based utilities (buttons, dividers, borders) */
 :root.light .bg-white { background-color: #ffffff !important; }

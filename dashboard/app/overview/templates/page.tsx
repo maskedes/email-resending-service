@@ -80,6 +80,7 @@ export default function TemplatesPage() {
   // entered once, stored locally on the device, and used invisibly afterwards.
   const [senderKeyId, setSenderKeyId] = useState('');
   const [senderUnlocked, setSenderUnlocked] = useState(false);
+  const [keyEntryOpen, setKeyEntryOpen] = useState(false);
 
   const SENDER_KEY_PREFIX = 'envoy-sender-key-';
 
@@ -293,6 +294,7 @@ export default function TemplatesPage() {
       try {
         localStorage.setItem(SENDER_KEY_PREFIX + senderKeyId, apiKey);
         setSenderUnlocked(true);
+        setKeyEntryOpen(false);
       } catch {
         // storage unavailable — key stays in memory for this session only
       }
@@ -601,54 +603,56 @@ export default function TemplatesPage() {
               {/* Sending identity — managed in the background */}
               {apiKeys.length === 0 ? (
                 <div className="rounded-lg border border-canvas-border bg-canvas p-6 text-center">
-                  <p className="text-sm font-medium text-white">No sender set up yet</p>
+                  <p className="text-sm font-medium text-white">No sender yet</p>
                   <p className="mx-auto mt-1 max-w-md text-sm text-slate-400">
-                    Email sending uses an API key as its sender identity. Create your first key —
-                    it takes less than a minute.
+                    Create an API key to start sending.
                   </p>
                   <a
                     href="/overview/api-keys"
                     className="mt-4 inline-block rounded-lg bg-brand px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-brand/90"
                   >
-                    Create your first API key
+                    Create API Key
                   </a>
                 </div>
-              ) : senderUnlocked ? (
-                <div className="flex flex-col gap-2 border border-canvas-border bg-canvas p-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="text-sm">
-                    <span className="text-emerald-300">✓ Sender ready</span>
-                    <p className="mt-0.5 text-xs text-slate-500">
-                      Verified key stored on this device — never displayed again.
-                    </p>
-                  </div>
-                  <select
-                    value={senderKeyId}
-                    onChange={(e) => activateSender(e.target.value)}
-                    className="border border-canvas-border bg-canvas px-2 py-1.5 text-sm text-white outline-none"
-                  >
-                    {apiKeys.map((k) => (
-                      <option key={k.id} value={k.id}>
-                        {k.name} — {k.email}
-                      </option>
-                    ))}
-                  </select>
-                </div>
               ) : (
-                <div className="rounded-lg border border-brand/30 bg-brand/5 p-4">
-                  <label className={labelCls}>
-                    One-time sender verification
-                  </label>
-                  <input
-                    type="password"
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="Paste your API key once — it stays hidden from now on"
-                    className={inputCls}
-                  />
-                  <p className="mt-1.5 text-xs text-slate-500">
-                    Your key is never shown again. It is stored only on this device and sent
-                    directly to the email service for authentication.
-                  </p>
+                <div className="rounded-lg border border-canvas-border bg-canvas p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className={`text-sm ${senderUnlocked ? 'text-emerald-300' : 'text-amber-300'}`}>
+                      {senderUnlocked ? '✓ Sender ready' : '• Sender not verified'}
+                      {apiKey && <span className="ml-2 text-xs text-slate-500">saved on this device</span>}
+                    </span>
+                    <select
+                      value={senderKeyId}
+                      onChange={(e) => activateSender(e.target.value)}
+                      className="border border-canvas-border bg-canvas px-2 py-1.5 text-sm text-white outline-none"
+                    >
+                      {apiKeys.map((k) => (
+                        <option key={k.id} value={k.id}>
+                          {k.name} — {k.email}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {!senderUnlocked && !keyEntryOpen && apiKey === '' && (
+                    <button
+                      type="button"
+                      onClick={() => setKeyEntryOpen(true)}
+                      className="mt-2 text-xs text-brand underline underline-offset-2"
+                    >
+                      Add sender key
+                    </button>
+                  )}
+
+                  {keyEntryOpen && (
+                    <input
+                      type="password"
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                      placeholder="Paste key once — saved on this device, never shown"
+                      className={`${inputCls} mt-2`}
+                    />
+                  )}
                 </div>
               )}
 

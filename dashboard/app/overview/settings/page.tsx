@@ -695,14 +695,11 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-4">
-            <div className="border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-300/80">
-              <p className="font-medium text-red-400 mb-2">⚠️ This action is irreversible</p>
-              <ul className="list-disc list-inside space-y-1 text-slate-400">
-                <li>All your API keys will be revoked</li>
-                <li>All domains will be removed</li>
-                <li>All email history and logs will be deleted</li>
-                <li>Your account cannot be recovered</li>
-              </ul>
+            <div className="border border-red-500/20 bg-red-500/5 p-4 text-sm">
+              <p className="font-medium mb-1">⚠️ This action is irreversible</p>
+              <p className="text-slate-400">
+                All API keys, domains, and email history are permanently deleted.
+              </p>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -722,9 +719,9 @@ export default function SettingsPage() {
               <button
                 onClick={handleDeleteAccount}
                 disabled={deleteConfirm !== 'DELETE' || deleting}
-                className="bg-red-500/80 px-6 py-2.5 font-medium text-white transition-colors hover:bg-red-500 disabled:opacity-30 disabled:cursor-not-allowed whitespace-nowrap"
+                className="bg-red-600 px-6 py-2.5 font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-30 disabled:cursor-not-allowed whitespace-nowrap"
               >
-                {deleting ? 'Deleting…' : 'Delete My Account'}
+                {deleting ? 'Deleting…' : 'Delete Account'}
               </button>
             </div>
 
