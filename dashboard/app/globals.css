@@ -43,9 +43,9 @@
 }
 
 :root.light {
-  --bg: #f1f5f9;             /* slate-100 */
+  --bg: #ffffff;             /* pure white */
   --fg: #0f172a;             /* slate-900 */
-  --canvas: #f1f5f9;
+  --canvas: #ffffff;
   --canvas-raised: #ffffff;
   --canvas-border: #e2e8f0;  /* slate-200 */
   --muted: #475569;          /* slate-600 */
