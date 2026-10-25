@@ -86,47 +86,146 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
   {
     id: 'landing',
     name: 'Landing page',
-    description: 'Hero, feature grid and footer.',
+    description: 'Envoy homepage: hero, features, developer docs, pricing and footer.',
     accent: '#22d3ee',
     html: `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Landing</title>
+<title>E-NVOY — Free Open Source Email Sending Service</title>
 <style>
   *{box-sizing:border-box}
-  body{margin:0;background:#0b0d12;color:#e6e8ee;font-family:${FONT};line-height:1.6}
+  body{margin:0;background:#07080d;color:#e6e8ee;font-family:${FONT};line-height:1.6}
   .wrap{max-width:64rem;margin:0 auto;padding:0 1.5rem}
-  header{padding:1.2rem 0;display:flex;align-items:center;justify-content:space-between}
-  .logo{font-weight:800;letter-spacing:-.02em}
+  header{padding:1.2rem 0;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+  .logo{font-weight:800;letter-spacing:-.02em;display:flex;align-items:center;gap:.5rem}
+  .logo span{font-size:1.05rem}
+  nav a{color:#9aa3b2;text-decoration:none;font-size:.92rem;margin-left:1.2rem}
+  nav a:hover{color:#e6e8ee}
   a.btn{text-decoration:none}
-  .hero{padding:5rem 0 3rem;text-align:center}
-  .hero h1{font-size:clamp(2.2rem,6vw,3.6rem);line-height:1.05;margin:0 0 1rem;letter-spacing:-.02em}
-  .hero p{color:#9aa3b2;max-width:38rem;margin:0 auto 2rem}
+  .ghost{border:1px solid #2a3141;border-radius:10px;padding:.55rem 1.05rem;color:#c8cedb;font-weight:600}
+  .ghost:hover{border-color:#3b82f6;color:#fff}
   .cta{display:inline-block;padding:.85rem 1.5rem;border-radius:12px;background:linear-gradient(135deg,#22d3ee,#3b82f6);color:#04121a;font-weight:800}
-  .grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));padding:2rem 0 5rem}
+  .cta.ghosted{background:none;border:1px solid #2a3141;color:#c8cedb;font-weight:600}
+  .cta.ghosted:hover{border-color:#3b82f6}
+  .hero{padding:5rem 0 3rem;text-align:center}
+  .eyebrow{font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:#7ee7f5;border:1px solid #123b4a;border-radius:999px;padding:.35rem .9rem;display:inline-block}
+  .hero h1{font-size:clamp(2.2rem,6vw,3.6rem);line-height:1.05;margin:1.2rem 0 1rem;letter-spacing:-.02em}
+  .hero h1 em{font-style:normal;background:linear-gradient(135deg,#22d3ee,#818cf8);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{color:#9aa3b2;max-width:40rem;margin:0 auto 2rem}
+  .buttons{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap}
+  .pane{border:1px solid #1e2331;background:#0c0f16;border-radius:14px;max-width:36rem;margin:2.5rem auto 0;padding:1.1rem 1.2rem;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.85rem;color:#9aa3b2;text-align:left}
+  .pane .g{color:#34d399}
+  .pane .c{color:#22d3ee}
+  h2{font-size:1.7rem;letter-spacing:-.02em;margin:0 0 .4rem}
+  .sub{color:#8b93a7;margin:0 0 2rem}
+  .grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));padding:.5rem 0 4rem}
   .card{border:1px solid #1e2331;background:#10131b;border-radius:16px;padding:1.4rem}
-  .card h3{margin:.2rem 0 .5rem;font-size:1.05rem}
+  .card h3{margin:.8rem 0 .5rem;font-size:1.05rem}
   .card p{color:#8b93a7;margin:0;font-size:.92rem}
-  .dot{width:2rem;height:2rem;border-radius:9px;background:linear-gradient(135deg,#22d3ee,#3b82f6);display:grid;place-items:center;color:#04121a;font-weight:900}
-  footer{border-top:1px solid #1a1f2b;color:#6b7280;font-size:.85rem;padding:1.5rem 0}
+  .dot{width:2.2rem;height:2.2rem;border-radius:10px;background:linear-gradient(135deg,#22d3ee,#3b82f6);display:grid;place-items:center;color:#04121a;font-weight:900;font-size:1rem}
+  .dev{border:1px solid #1e2331;background:#10131b;border-radius:16px;padding:1.6rem;display:grid;gap:1.4rem;margin-bottom:4rem}
+  @media(min-width:760px){.dev{grid-template-columns:1fr 1fr;align-items:center}}
+  .dev ul{color:#8b93a7;padding-left:1.1rem;margin:.8rem 0 0}
+  .dev li{margin:.3rem 0}
+  .price{border:1px solid #1e3a4a;background:linear-gradient(180deg,#0d1420,#10131b);border-radius:16px;padding:1.8rem;max-width:26rem;margin:0 auto 4rem;text-align:center}
+  .price .amount{font-size:2.4rem;font-weight:900;letter-spacing:-.03em}
+  .price .per{color:#6b7280;font-size:.9rem}
+  .price ul{list-style:none;padding:0;margin:1.2rem 0 1.6rem;color:#9aa3b2;font-size:.95rem}
+  .price li{margin:.45rem 0}
+  .price .free{display:inline-block;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:#34d399;border:1px solid #14532d;border-radius:999px;padding:.3rem .8rem;margin-bottom:.8rem}
+  footer{border-top:1px solid #1a1f2b;padding:2rem 0;color:#6b7280;font-size:.85rem}
+  .cols{display:flex;justify-content:space-between;gap:1.5rem;flex-wrap:wrap}
+  footer a{color:#8b93a7;text-decoration:none;margin-left:.1rem}
+  footer a:hover{color:#22d3ee}
+  .links{display:flex;gap:1.2rem;flex-wrap:wrap}
 </style>
 </head>
 <body>
   <div class="wrap">
-    <header><span class="logo">YourBrand</span><a class="btn" href="#">Sign in</a></header>
+    <header>
+      <span class="logo">&#9993;&#65039; <span>E-NVOY</span></span>
+      <nav><a href="#features">Features</a><a href="#developers">Developers</a><a href="#pricing">Pricing</a></nav>
+      <a class="btn ghost" href="https://mailenvoy.qd.je/login">Sign in</a>
+    </header>
+
     <section class="hero">
-      <h1>Build something people love.</h1>
-      <p>A fast, modern starting point for your product. Replace this copy with your own and ship in minutes.</p>
-      <a class="cta" href="#">Get started free</a>
+      <span class="eyebrow">Open source &middot; Free forever</span>
+      <h1>Envoy &mdash; <em>email infrastructure</em> for&nbsp;developers.</h1>
+      <p>Send transactional emails, marketing campaigns and templated notifications with a single API &mdash; then track every send, delivery and bounce in real time.</p>
+      <div class="buttons">
+        <a class="cta" href="https://mailenvoy.qd.je/signup">Get Started</a>
+        <a class="cta ghosted" href="https://mailenvoy.qd.je/documentation">View Documentation</a>
+      </div>
+      <div class="pane">
+        curl -X POST https://api.mailenvoy.qd.je/emails/send<br>
+        &nbsp;&nbsp;-H <span class="c">"x-api-key: YOUR_API_KEY"</span> \\<br>
+        &nbsp;&nbsp;-d <span class="g">'{"to":"user@example.com","subject":"Hello","text":"Welcome!"}'</span>
+      </div>
     </section>
-    <section class="grid">
-      <div class="card"><div class="dot">1</div><h3>Fast</h3><p>Optimized for speed out of the box.</p></div>
-      <div class="card"><div class="dot">2</div><h3>Simple</h3><p>No build tools. Just edit and publish.</p></div>
-      <div class="card"><div class="dot">3</div><h3>Yours</h3><p>Own your domain and your content.</p></div>
+
+    <section id="features">
+      <h2>Everything email, one platform.</h2>
+      <p class="sub">Built for makers who ship.</p>
+      <div class="grid">
+        <div class="card"><div class="dot">&#128640;</div><h3>Transactional Emails</h3><p>Welcome, verification, password resets and receipts &mdash; delivered with one reliable send API.</p></div>
+        <div class="card"><div class="dot">&#128200;</div><h3>Marketing Campaigns</h3><p>Newsletters and promotional templates with placeholders for personalization at scale.</p></div>
+        <div class="card"><div class="dot">&#128196;</div><h3>Templates</h3><p>30+ production-ready templates with &#123;&#123;variables&#125;&#125; &mdash; reuse them instantly or create your own.</p></div>
+        <div class="card"><div class="dot">&#128225;</div><h3>Delivery Tracking</h3><p>Live logs with queued, sent, delivered, failed and bounced states on every single send.</p></div>
+      </div>
     </section>
-    <footer>&copy; 2026 YourBrand. All rights reserved.</footer>
+
+    <section id="developers" class="dev">
+      <div>
+        <h2>Made for developers.</h2>
+        <p style="color:#8b93a7;margin:.4rem 0 0">A clean REST API with keys you control &mdash; roll, revoke and scope them freely.</p>
+        <ul>
+          <li>REST API with well-documented endpoints</li>
+          <li>Per-key rate limits and device-gateway SMS</li>
+          <li>Webhooks for delivery events</li>
+          <li>Self-hosted image &mdash; your infra, your data</li>
+        </ul>
+        <p style="margin-top:1.2rem"><a class="btn" href="https://mailenvoy.qd.je/documentation" style="color:#22d3ee;font-weight:700">Read the API docs &rarr;</a></p>
+      </div>
+      <div class="pane" style="margin:0">
+        <span class="g">import</span> requests<br><br>
+        r = requests.post(<span class="c">"https://api.mailenvoy.qd.je/emails/send"</span>,<br>
+        &nbsp;&nbsp;json={<span class="c">"to"</span>: <span class="c">"user@example.com"</span>,<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="c">"subject"</span>: <span class="c">"Hello"</span>,
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="c">"text"</span>: <span class="c">"Welcome!"</span>},<br>
+        &nbsp;&nbsp;headers={<span class="c">"x-api-key"</span>: KEY})<br><br>
+        <span style="color:#6b7280"># 200 OK &mdash; queued in ms</span>
+      </div>
+    </section>
+
+    <section id="pricing">
+      <h2>Pricing that respects builders.</h2>
+      <p class="sub">No billing, no tiers, no meters.</p>
+      <div class="price">
+        <span class="free">Free forever</span>
+        <div class="amount">$0</div>
+        <span class="per">no credit card required</span>
+        <ul>
+          <li>&#10003; Unlimited templates</li>
+          <li>&#10003; Full API access</li>
+          <li>&#10003; Delivery tracking &amp; logs</li>
+          <li>&#10003; Domains, webhooks &amp; SMS gateway</li>
+        </ul>
+        <a class="cta" href="https://mailenvoy.qd.je/signup">Start Free</a>
+      </div>
+    </section>
+
+    <footer>
+      <div class="cols">
+        <div>&copy; 2026 E-NVOY. Free, open-source email sending.</div>
+        <div class="links">
+          <a href="mailto:support@mailenvoy.qd.je">support@mailenvoy.qd.je</a>
+          <a href="https://mailenvoy.qd.je/privacy">Privacy Policy</a>
+          <a href="https://mailenvoy.qd.je/privacy">Terms</a>
+        </div>
+      </div>
+    </footer>
   </div>
 </body>
 </html>`,
