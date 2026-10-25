@@ -76,6 +76,29 @@ export default function TemplatesPage() {
   const [variables, setVariables] = useState<string[]>([]);
   const [variableValues, setVariableValues] = useState<Record<string, string>>({});
 
+  // Sending identity — the API key itself is never displayed in the UI. It is
+  // entered once, stored locally on the device, and used invisibly afterwards.
+  const [senderKeyId, setSenderKeyId] = useState('');
+  const [senderUnlocked, setSenderUnlocked] = useState(false);
+
+  const SENDER_KEY_PREFIX = 'envoy-sender-key-';
+
+  // Pick up a previously verified sender key for this API key (once per device).
+  function activateSender(id: string) {
+    setSenderKeyId(id);
+    try {
+      const saved = localStorage.getItem(SENDER_KEY_PREFIX + id);
+      if (saved) {
+        setApiKey(saved);
+        setSenderUnlocked(true);
+        return;
+      }
+    } catch {
+      // storage unavailable — fall through to manual verification
+    }
+    setSenderUnlocked(false);
+  }
+
   const selected: EmailTemplate | undefined = EMAIL_TEMPLATES.find((t) => t.id === selectedId);
 
   function copy(text: string, which: 'subject' | 'body') {
@@ -96,7 +119,10 @@ export default function TemplatesPage() {
       const tJson = await tRes.json().catch(() => ({}));
       const kJson = await kRes.json().catch(() => ({}));
       setMyTemplates(tJson.data || []);
-      setApiKeys(kJson.data || []);
+      const keys = kJson.data || [];
+      setApiKeys(keys);
+      // Auto-select the first sender and restore its key if verified before.
+      if (keys.length > 0) activateSender(keys[0].id);
       setMineLoaded(true);
     } catch {
       setMineError('Failed to load your templates.');
@@ -106,7 +132,9 @@ export default function TemplatesPage() {
   }, []);
 
   useEffect(() => {
-    if (mode === 'mine' && !mineLoaded && !mineLoading) {
+    // Keys are needed in both "My Templates" (own/save) and "Custom Email"
+    // (sender identity), so load them for either mode.
+    if ((mode === 'mine' || mode === 'custom') && !mineLoaded && !mineLoading) {
       loadMine();
     }
   }, [mode, mineLoaded, mineLoading, loadMine]);
@@ -222,10 +250,21 @@ export default function TemplatesPage() {
     const renderedHtml = renderTemplate(html, variableValues);
     const renderedText = renderTemplate(text, variableValues);
 
-    if (!apiKey || !to || !renderedSubject || (!renderedHtml && !renderedText)) {
+    if (apiKeys.length === 0 || !apiKey) {
       setResult({
         ok: false,
-        message: 'API key, To, Subject and content (HTML or Text) are required.',
+        message:
+          apiKeys.length === 0
+            ? 'Create an API key on the API Keys page to unlock sending.'
+            : 'Verify your sender key once to start sending.',
+      });
+      return;
+    }
+
+    if (!to || !renderedSubject || (!renderedHtml && !renderedText)) {
+      setResult({
+        ok: false,
+        message: 'To, Subject and content (HTML or Text) are required.',
       });
       return;
     }
@@ -248,6 +287,14 @@ export default function TemplatesPage() {
       if (!res.ok) {
         setResult({ ok: false, message: data?.error?.message || 'Failed to send email.' });
         return;
+      }
+      // Send succeeded — remember the sender key on this device so it is never
+      // asked for again (and never displayed).
+      try {
+        localStorage.setItem(SENDER_KEY_PREFIX + senderKeyId, apiKey);
+        setSenderUnlocked(true);
+      } catch {
+        // storage unavailable — key stays in memory for this session only
       }
       setResult({ ok: true, message: `Email queued successfully (ID: ${data?.id || 'n/a'}).` });
     } catch {
@@ -551,20 +598,59 @@ export default function TemplatesPage() {
           <section className="border border-canvas-border bg-canvas-raised p-6">
             <h2 className="mb-5 text-lg font-semibold text-white">Compose Your Email</h2>
             <div className="space-y-4">
-              <div>
-                <label className={labelCls}>API Key</label>
-                <input
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="fms_..."
-                  className={inputCls}
-                />
-                <p className="mt-1.5 text-xs text-slate-500">
-                  Your API key from the API Keys page. It is sent only to the email service to
-                  authenticate the send.
-                </p>
-              </div>
+              {/* Sending identity — managed in the background */}
+              {apiKeys.length === 0 ? (
+                <div className="rounded-lg border border-canvas-border bg-canvas p-6 text-center">
+                  <p className="text-sm font-medium text-white">No sender set up yet</p>
+                  <p className="mx-auto mt-1 max-w-md text-sm text-slate-400">
+                    Email sending uses an API key as its sender identity. Create your first key —
+                    it takes less than a minute.
+                  </p>
+                  <a
+                    href="/overview/api-keys"
+                    className="mt-4 inline-block rounded-lg bg-brand px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-brand/90"
+                  >
+                    Create your first API key
+                  </a>
+                </div>
+              ) : senderUnlocked ? (
+                <div className="flex flex-col gap-2 border border-canvas-border bg-canvas p-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="text-sm">
+                    <span className="text-emerald-300">✓ Sender ready</span>
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      Verified key stored on this device — never displayed again.
+                    </p>
+                  </div>
+                  <select
+                    value={senderKeyId}
+                    onChange={(e) => activateSender(e.target.value)}
+                    className="border border-canvas-border bg-canvas px-2 py-1.5 text-sm text-white outline-none"
+                  >
+                    {apiKeys.map((k) => (
+                      <option key={k.id} value={k.id}>
+                        {k.name} — {k.email}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-brand/30 bg-brand/5 p-4">
+                  <label className={labelCls}>
+                    One-time sender verification
+                  </label>
+                  <input
+                    type="password"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    placeholder="Paste your API key once — it stays hidden from now on"
+                    className={inputCls}
+                  />
+                  <p className="mt-1.5 text-xs text-slate-500">
+                    Your key is never shown again. It is stored only on this device and sent
+                    directly to the email service for authentication.
+                  </p>
+                </div>
+              )}
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
