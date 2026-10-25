@@ -93,6 +93,15 @@ svg {
 :root.light .border-canvas-border { border-color: var(--canvas-border) !important; }
 :root.light .border-canvas-border\/60 { border-color: rgba(15, 23, 42, 0.12) !important; }
 
+/* `bg-canvas-border` used as a surface (chips, icon tiles, secondary buttons).
+   Dark theme paints it slate; light theme must flip it to the light gray rail,
+   otherwise text stays dark-on-dark. */
+:root.light .bg-canvas-border { background-color: var(--canvas-border) !important; }
+:root.light .bg-canvas-border\/50 { background-color: rgba(148, 163, 184, 0.25) !important; }
+:root.light .hover\:bg-canvas-border:hover { background-color: var(--canvas-border) !important; }
+:root.light .hover\:text-white:hover { color: var(--fg) !important; }
+:root.light .text-indigo-300 { color: #4338ca !important; }
+
 /* Brand / accent */
 :root.light .text-brand { color: var(--brand) !important; }
 :root.light .bg-brand { background-color: var(--brand) !important; }
