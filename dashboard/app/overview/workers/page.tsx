@@ -56,7 +56,7 @@ export default function WorkersPage() {
       </div>
 
       {/* Status / Info */}
-      <section className="border border-canvas-border bg-canvas-raised p-6">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-white">Email API Edge Worker</h2>
@@ -114,7 +114,7 @@ export default function WorkersPage() {
 
         {/* Deploy steps */}
         <div className="mt-6 space-y-4">
-          <div className="border border-canvas-border bg-canvas/60 p-4">
+          <div className="rounded-2xl border border-canvas-border bg-canvas/60 p-4">
             <p className="text-xs uppercase tracking-wider text-slate-500 mb-2">1. Install & configure</p>
             <code className="text-sm text-slate-200 font-mono">
               cd workers/email-api-worker && npm install
@@ -123,11 +123,11 @@ export default function WorkersPage() {
               Then paste your Cloudflare API token into <code className="font-mono">.env</code>.
             </p>
           </div>
-          <div className="border border-canvas-border bg-canvas/60 p-4">
+          <div className="rounded-2xl border border-canvas-border bg-canvas/60 p-4">
             <p className="text-xs uppercase tracking-wider text-slate-500 mb-2">2. Local dev</p>
             <code className="text-sm text-slate-200 font-mono">{workerConfig.devCommand}</code>
           </div>
-          <div className="border border-canvas-border bg-canvas/60 p-4">
+          <div className="rounded-2xl border border-canvas-border bg-canvas/60 p-4">
             <p className="text-xs uppercase tracking-wider text-slate-500 mb-2">3. Deploy to Cloudflare</p>
             <code className="text-sm text-slate-200 font-mono">{workerConfig.deployCommand}</code>
           </div>
@@ -135,28 +135,28 @@ export default function WorkersPage() {
       </section>
 
       {/* What the worker does */}
-      <section className="border border-canvas-border bg-canvas-raised p-6">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
         <h2 className="mb-4 text-lg font-semibold text-white">What this Worker does</h2>
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="border border-canvas-border bg-canvas/60 p-4">
+          <div className="rounded-2xl border border-canvas-border bg-canvas/60 p-4">
             <p className="font-medium text-white">⚡ Edge rate limiting</p>
             <p className="mt-1 text-sm text-slate-400">
               Sliding-window limits per IP before traffic reaches your origin, so abuse is stopped at the edge.
             </p>
           </div>
-          <div className="border border-canvas-border bg-canvas/60 p-4">
+          <div className="rounded-2xl border border-canvas-border bg-canvas/60 p-4">
             <p className="font-medium text-white">🔀 Proxies POST /api/emails/send</p>
             <p className="mt-1 text-sm text-slate-400">
               Forwards requests to your Express API, passing through the <code className="font-mono">x-api-key</code> header for auth.
             </p>
           </div>
-          <div className="border border-canvas-border bg-canvas/60 p-4">
+          <div className="rounded-2xl border border-canvas-border bg-canvas/60 p-4">
             <p className="font-medium text-white">🔐 Optional shared secret</p>
             <p className="mt-1 text-sm text-slate-400">
               Sends <code className="font-mono">x-edge-proxy-secret</code> so your backend only accepts proxied traffic.
             </p>
           </div>
-          <div className="border border-canvas-border bg-canvas/60 p-4">
+          <div className="rounded-2xl border border-canvas-border bg-canvas/60 p-4">
             <p className="font-medium text-white">🌍 CORS + preflight</p>
             <p className="mt-1 text-sm text-slate-400">
               Handles cross-origin requests and OPTIONS preflight automatically from the edge.
@@ -166,7 +166,7 @@ export default function WorkersPage() {
       </section>
 
       {/* Code location */}
-      <section className="border border-canvas-border bg-canvas-raised p-6">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
         <h2 className="mb-4 text-lg font-semibold text-white">Project Files</h2>
         <div className="space-y-2 text-sm">
           <div className="border border-canvas-border bg-canvas p-3 font-mono text-slate-300">

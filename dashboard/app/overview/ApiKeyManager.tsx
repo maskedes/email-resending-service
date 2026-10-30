@@ -73,7 +73,7 @@ export default function ApiKeyManager({ initialKeys }: { initialKeys: ApiKey[] }
   }
 
   return (
-    <section className="mb-10 border border-canvas-border bg-canvas-raised p-6">
+    <section className="mb-10 rounded-2xl border border-canvas-border bg-canvas-raised p-6">
       <h2 className="mb-5 text-lg font-semibold text-white">🔑 Generate Token</h2>
 
       <form onSubmit={generateToken} className="mb-5 flex flex-col gap-4 md:flex-row md:items-end">

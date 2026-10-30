@@ -21,6 +21,10 @@ const app = express();
 // Middleware
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
+// Attachments (images) ride in the JSON body as base64 — give the send endpoint
+// a dedicated parser BEFORE the global one; every other endpoint keeps the
+// small default budget.
+app.use('/api/emails/send', express.json({ limit: '14mb' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

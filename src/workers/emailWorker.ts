@@ -13,11 +13,21 @@ import { incrementEmailCount as incrementKeyCount } from '../services/apiKeyServ
  * Newer rows use `{ _reply_to, tags }`; legacy rows stored a flat tags object
  * directly. Both shapes are handled so old emails keep working.
  */
-function readMetadata(metadata: unknown): { replyTo?: string; tags?: Record<string, string> } {
+function readMetadata(metadata: unknown): {
+  replyTo?: string;
+  tags?: Record<string, string>;
+  attachments?: Array<{ name: string; content: string }>;
+} {
   if (!metadata || typeof metadata !== 'object') return {};
   const m = metadata as Record<string, unknown>;
 
   const replyTo = typeof m._reply_to === 'string' && m._reply_to ? m._reply_to : undefined;
+
+  const attachments = Array.isArray(m.attachments)
+    ? (m.attachments
+        .filter((a: any) => a && typeof a.name === 'string' && typeof a.content === 'string')
+        .map((a: any) => ({ name: a.name, content: a.content })) as Array<{ name: string; content: string }>)
+    : undefined;
 
   let tags: Record<string, string> | undefined;
   if (m.tags && typeof m.tags === 'object' && !Array.isArray(m.tags)) {
@@ -32,7 +42,7 @@ function readMetadata(metadata: unknown): { replyTo?: string; tags?: Record<stri
     if (Object.keys(rest).length > 0) tags = rest;
   }
 
-  return { replyTo, tags };
+  return { replyTo, tags, attachments };
 }
 
 /**
@@ -50,7 +60,7 @@ export async function processEmailJob(data: EmailJobData): Promise<void> {
     ? `"${email.from_name}" <${email.from_email}>`
     : email.from_email;
 
-  const { replyTo, tags } = readMetadata(email.metadata);
+  const { replyTo, tags, attachments } = readMetadata(email.metadata);
 
   try {
     const info = await sendViaBrevo({
@@ -61,6 +71,7 @@ export async function processEmailJob(data: EmailJobData): Promise<void> {
       text: email.text || undefined,
       replyTo,
       tags: tags ? Object.entries(tags).map(([k, v]) => `${k}:${v}`) : undefined,
+      attachments,
     });
 
     await recordEmailSuccess(data.emailId, info.messageId || 'unknown');

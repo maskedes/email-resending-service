@@ -132,7 +132,7 @@ export default function AutomationPage() {
       </div>
 
       {/* Create Automation */}
-      <section className="border border-canvas-border bg-canvas-raised p-6">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
         <h2 className="mb-4 text-lg font-semibold text-white">Create Automation</h2>
         <p className="mb-4 text-sm text-slate-400">
           When any of the selected events occur, E-NVOY POSTs a JSON payload to your URL.
@@ -146,7 +146,7 @@ export default function AutomationPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Notify Slack on bounces"
-              className="w-full border border-canvas-border bg-canvas px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-brand focus:outline-none"
+              className="w-full rounded-xl border border-canvas-border bg-canvas px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-brand focus:outline-none"
             />
           </div>
           <div>
@@ -156,7 +156,7 @@ export default function AutomationPage() {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://example.com/hooks/en-voy"
-              className="w-full border border-canvas-border bg-canvas px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-brand focus:outline-none"
+              className="w-full rounded-xl border border-canvas-border bg-canvas px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-brand focus:outline-none"
             />
           </div>
         </div>
@@ -171,7 +171,7 @@ export default function AutomationPage() {
                   key={opt.value}
                   type="button"
                   onClick={() => toggleEvent(opt.value)}
-                  className={`border px-3 py-1.5 text-xs transition-colors ${
+                  className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
                     active
                       ? 'border-brand/60 bg-brand/10 text-brand'
                       : 'border-canvas-border bg-canvas text-slate-400 hover:border-slate-500'
@@ -187,7 +187,7 @@ export default function AutomationPage() {
         <button
           onClick={createAutomation}
           disabled={!name.trim() || !url.trim() || selectedEvents.length === 0 || creating}
-          className="mt-5 bg-brand px-4 py-2 text-sm font-semibold text-black hover:bg-brand/90 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="mt-5 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-black hover:bg-brand/90 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {creating ? 'Creating…' : 'Create'}
         </button>
@@ -195,7 +195,7 @@ export default function AutomationPage() {
 
       {(error || message) && (
         <div
-          className={`border p-4 text-sm ${
+          className={`rounded-2xl border p-4 text-sm ${
             error
               ? 'border-red-500/30 bg-red-500/10 text-red-300'
               : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
@@ -206,7 +206,7 @@ export default function AutomationPage() {
       )}
 
       {/* Automations List */}
-      <section className="border border-canvas-border bg-canvas-raised p-6">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
         <h2 className="mb-4 text-lg font-semibold text-white">Your Automations</h2>
 
         {loading ? (
@@ -280,7 +280,7 @@ export default function AutomationPage() {
       </section>
 
       {/* Payload reference */}
-      <section className="border border-canvas-border bg-canvas-raised p-6">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
         <h2 className="mb-3 text-lg font-semibold text-white">What your endpoint receives</h2>
         <pre className="overflow-x-auto border border-canvas-border bg-canvas p-4 text-xs leading-relaxed text-slate-300">
 {`POST <your-url>

@@ -20,7 +20,7 @@ export default function StatsCards({ stats }: { stats: Stats }) {
       {cards.map((card) => (
         <div
           key={card.label}
-          className="border border-canvas-border bg-canvas-raised p-6 shadow-glow"
+          className="rounded-2xl border border-canvas-border bg-canvas-raised p-6 shadow-glow"
         >
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
             {card.label}

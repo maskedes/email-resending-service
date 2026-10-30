@@ -37,7 +37,7 @@ export default function Home() {
 
         <div className="relative mx-auto max-w-4xl px-6 text-center">
           {/* Badge */}
-          <div className="mb-8 inline-flex items-center gap-2 border border-canvas-border bg-canvas-raised px-4 py-1.5 text-xs text-slate-400">
+          <div className="mb-8 inline-flex items-center gap-2 rounded-2xl border border-canvas-border bg-canvas-raised px-4 py-1.5 text-xs text-slate-400">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
             Open source &middot; Self-hosted &middot; Free forever
           </div>
@@ -69,7 +69,7 @@ export default function Home() {
               href="https://github.com/maskedes/email-resending-service"
               target="_blank"
               rel="noopener"
-              className="border border-canvas-border bg-canvas-raised px-6 py-3 text-sm font-semibold text-slate-300 transition hover:border-brand/60 hover:text-white"
+              className="rounded-2xl border border-canvas-border bg-canvas-raised px-6 py-3 text-sm font-semibold text-slate-300 transition hover:border-brand/60 hover:text-white"
             >
               View on GitHub
             </a>
@@ -252,7 +252,7 @@ export default function Home() {
               </ul>
               <button
                 disabled
-                className="mt-8 flex w-full items-center justify-center border border-canvas-border bg-canvas-raised py-3 text-sm font-semibold text-slate-600 cursor-not-allowed"
+                className="mt-8 flex w-full items-center justify-center rounded-2xl border border-canvas-border bg-canvas-raised py-3 text-sm font-semibold text-slate-600 cursor-not-allowed"
               >
                 Coming soon
               </button>

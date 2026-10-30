@@ -199,7 +199,7 @@ function Dropdown({ label, items, dd }: {
       </button>
 
       <div
-        className={`absolute left-1/2 top-full z-50 mt-1 w-[340px] -translate-x-1/2 border border-canvas-border bg-canvas-raised p-2 shadow-2xl shadow-black/40 transition-all duration-200 ease-out
+        className={`absolute left-1/2 top-full z-50 mt-1 w-[340px] -translate-x-1/2 rounded-2xl border border-canvas-border bg-canvas-raised p-2 shadow-2xl shadow-black/40 transition-all duration-200 ease-out
           ${dd.open ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-1 pointer-events-none'}`}
       >
           {items.map((item) =>

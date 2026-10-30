@@ -480,23 +480,23 @@ export default function DomainDetailPage() {
           <section className="border border-canvas-border bg-canvas-raised p-6">
             <h2 className="mb-5 text-lg font-semibold text-white">Details</h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="border border-canvas-border bg-canvas/60 p-4">
+              <div className="rounded-2xl border border-canvas-border bg-canvas/60 p-4">
                 <p className="text-xs uppercase tracking-wider text-slate-500">Created</p>
                 <p className="mt-1 text-sm text-slate-200">{new Date(domain.created_at).toLocaleString()}</p>
               </div>
-              <div className="border border-canvas-border bg-canvas/60 p-4">
+              <div className="rounded-2xl border border-canvas-border bg-canvas/60 p-4">
                 <p className="text-xs uppercase tracking-wider text-slate-500">Verified</p>
                 <p className="mt-1 text-sm text-slate-200">
                   {domain.verified_at ? new Date(domain.verified_at).toLocaleString() : 'Not verified yet'}
                 </p>
               </div>
-              <div className="border border-canvas-border bg-canvas/60 p-4">
+              <div className="rounded-2xl border border-canvas-border bg-canvas/60 p-4">
                 <p className="text-xs uppercase tracking-wider text-slate-500">Last checked</p>
                 <p className="mt-1 text-sm text-slate-200">
                   {domain.last_checked_at ? new Date(domain.last_checked_at).toLocaleString() : 'Never'}
                 </p>
               </div>
-              <div className="border border-canvas-border bg-canvas/60 p-4">
+              <div className="rounded-2xl border border-canvas-border bg-canvas/60 p-4">
                 <p className="text-xs uppercase tracking-wider text-slate-500">Domain ID</p>
                 <p className="mt-1 break-all font-mono text-sm text-slate-200">{domain.id}</p>
               </div>

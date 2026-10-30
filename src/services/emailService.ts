@@ -4,6 +4,98 @@ import { getSupabase } from '../database/supabase';
 import { enqueueEmail } from '../queue/emailQueue';
 import { dispatchWebhooks } from './webhookService';
 
+export interface AttachmentInput {
+  /** Display name, e.g. "banner.png". */
+  name?: string;
+  /** Resend-compatible alias for `name`. */
+  filename?: string;
+  /** Base64-encoded file content (no data: URI prefix). */
+  content: string;
+  /** Ignored by validation — the MIME type is detected from magic bytes. */
+  content_type?: string;
+}
+
+export interface NormalizedAttachment {
+  name: string;
+  /** Base64 content, decoded-length-tracked. */
+  content: string;
+  mimeType: string;
+  bytes: number;
+}
+
+const IMAGE_MIME_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/bmp',
+  'image/svg+xml',
+];
+
+function detectImageMime(bytes: Buffer): string | null {
+  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'image/jpeg';
+  if (bytes.length >= 4 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return 'image/png';
+  if (bytes.length >= 4 && bytes.toString('ascii', 0, 4) === 'GIF8') return 'image/gif';
+  if (bytes.length >= 12 && bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP') return 'image/webp';
+  if (bytes.length >= 2 && bytes.toString('ascii', 0, 2) === 'BM') return 'image/bmp';
+  const head = bytes.toString('utf8', 0, Math.min(bytes.length, 100)).trimStart();
+  if (head.startsWith('<svg') || head.startsWith('<?xml') || head.startsWith('\uFEFF<svg')) return 'image/svg+xml';
+  return null;
+}
+
+/**
+ * Validates an attachments array for inline media on outgoing emails.
+ * Images only (magic-byte sniffed, not the declared content_type), capped so a
+ * single request can't bloat the emails table or the Brevo payload.
+ */
+export function normalizeAttachments(input: unknown): NormalizedAttachment[] | undefined {
+  if (input === undefined || input === null) return undefined;
+  if (!Array.isArray(input) || input.length === 0) {
+    throw new Error('attachments must be an array of { name, content } objects');
+  }
+  if (input.length > 5) {
+    throw new Error('Too many attachments (max 5).');
+  }
+
+  let totalBytes = 0;
+  const out: NormalizedAttachment[] = [];
+  for (const item of input) {
+    if (!item || typeof item !== 'object') {
+      throw new Error('Each attachment must be an object with a base64 "content".');
+    }
+    const a = item as AttachmentInput;
+    const name = (a.name || a.filename || '').toString().trim();
+    if (!name) throw new Error('Each attachment needs a "name" (or "filename").');
+    if (typeof a.content !== 'string' || !a.content.trim()) {
+      throw new Error(`Attachment "${name}" is missing base64 "content".`);
+    }
+
+    const bytes = Buffer.from(a.content, 'base64');
+    if (bytes.length === 0) throw new Error(`Attachment "${name}" has invalid base64 content.`);
+    if (bytes.length > 2 * 1024 * 1024) {
+      throw new Error(`Attachment "${name}" exceeds the 2 MB per-file limit.`);
+    }
+    totalBytes += bytes.length;
+    if (totalBytes > 8 * 1024 * 1024) {
+      throw new Error('Attachments exceed the 8 MB total limit.');
+    }
+
+    const mime = detectImageMime(bytes);
+    if (!mime) {
+      throw new Error(
+        `Attachment "${name}" is not an accepted image. Allowed: JPEG, PNG, GIF, WebP, BMP, SVG.`,
+      );
+    }
+    if (mime === 'image/svg+xml' && (a.content.includes('<script') || a.content.toLowerCase().includes('onload='))) {
+      // Inline SVG must not carry script hooks (it renders in the mail client).
+      throw new Error(`Attachment "${name}" (SVG) contains script handlers and was rejected.`);
+    }
+
+    out.push({ name, content: a.content.trim(), mimeType: mime, bytes: bytes.length });
+  }
+  return out;
+}
+
 export interface SendEmailInput {
   from?: string;
   to: string;
@@ -12,6 +104,8 @@ export interface SendEmailInput {
   text?: string;
   reply_to?: string;
   tags?: Record<string, string>;
+  /** Optional base64 image attachments (max 5 files, 2 MB each, 8 MB total). */
+  attachments?: AttachmentInput[];
   /** Optional schedule delay in milliseconds (future/scheduled sending). */
   scheduleInMs?: number;
 }
@@ -83,6 +177,8 @@ export async function sendEmail(apiKeyId: string, input: SendEmailInput): Promis
   const metadata: Record<string, unknown> = {};
   if (input.reply_to) metadata._reply_to = String(input.reply_to).trim();
   if (input.tags && typeof input.tags === 'object') metadata.tags = input.tags;
+  const attachments = normalizeAttachments(input.attachments);
+  if (attachments) metadata.attachments = attachments;
   const metadataValue = Object.keys(metadata).length > 0 ? metadata : null;
 
   const sb = getSupabase();

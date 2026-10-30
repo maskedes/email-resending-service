@@ -70,7 +70,7 @@ export default function CeoBioPage() {
 
         <div className="mt-8 space-y-3">
           {values.map((v) => (
-            <div key={v.title} className="border border-canvas-border bg-canvas-raised p-5">
+            <div key={v.title} className="rounded-2xl border border-canvas-border bg-canvas-raised p-5">
               <div className="text-sm font-semibold text-white">{v.title}</div>
               <p className="mt-1 text-sm text-slate-400">{v.desc}</p>
             </div>
@@ -80,7 +80,7 @@ export default function CeoBioPage() {
         <div className="mt-10">
           <Link
             href="/contacts"
-            className="border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white"
+            className="rounded-2xl border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white"
           >
             Get in touch
           </Link>

@@ -72,7 +72,7 @@ export default function DocumentationPage() {
             <Link
               key={s.title}
               href={s.href}
-              className="border border-canvas-border bg-canvas-raised p-5 transition hover:border-brand/40"
+              className="rounded-2xl border border-canvas-border bg-canvas-raised p-5 transition hover:border-brand/40"
             >
               <div className="text-sm font-semibold text-white">{s.title}</div>
               <p className="mt-2 text-sm leading-relaxed text-slate-400">{s.desc}</p>

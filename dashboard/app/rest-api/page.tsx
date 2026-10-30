@@ -45,11 +45,11 @@ export default function RestApiPage() {
           status, and pull aggregated stats with simple authenticated requests.
         </p>
 
-        <pre className="mt-6 overflow-x-auto border border-canvas-border bg-canvas-raised p-5 text-sm text-slate-300"><code>{example}</code></pre>
+        <pre className="mt-6 overflow-x-auto rounded-2xl border border-canvas-border bg-canvas-raised p-5 text-sm text-slate-300"><code>{example}</code></pre>
 
         <div className="mt-8 space-y-3">
           {highlights.map((h) => (
-            <div key={h} className="flex items-start gap-3 border border-canvas-border bg-canvas-raised px-5 py-4">
+            <div key={h} className="flex items-start gap-3 rounded-2xl border border-canvas-border bg-canvas-raised px-5 py-4">
               <span className="mt-1 text-brand">✓</span>
               <span className="text-sm text-slate-300">{h}</span>
             </div>
@@ -57,8 +57,8 @@ export default function RestApiPage() {
         </div>
 
         <div className="mt-10 flex flex-wrap gap-3">
-          <Link href="/api-reference" className="border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white">API Reference</Link>
-          <Link href="/api-key-auth" className="border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white">API Key Auth</Link>
+          <Link href="/api-reference" className="rounded-2xl border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white">API Reference</Link>
+          <Link href="/api-key-auth" className="rounded-2xl border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white">API Key Auth</Link>
         </div>
       </main>
     </div>

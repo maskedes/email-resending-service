@@ -42,7 +42,7 @@ export default function LinksPage() {
         <button onClick={() => setPref('green')} className={`rounded px-3 py-1 text-xs ${pref === 'green' ? 'bg-emerald-500 text-white' : 'border border-canvas-border'}`}>Green</button>
         <button onClick={() => setPref('blue')} className={`rounded px-3 py-1 text-xs ${pref === 'blue' ? 'bg-sky-500 text-white' : 'border border-canvas-border'}`}>Blue</button>
       </div>
-      <div className="border border-canvas-border bg-canvas-raised p-4 space-y-3">
+      <div className="rounded-2xl border border-canvas-border bg-canvas-raised p-4 space-y-3">
         <div className="grid gap-2 sm:grid-cols-3">
           <input value={domain} onChange={e => setDomain(e.target.value)} placeholder="short domain (en.12)" className="border border-canvas-border bg-canvas px-3 py-2 text-sm" />
           <input value={slug} onChange={e => setSlug(e.target.value)} placeholder="slug (auto if empty)" className="border border-canvas-border bg-canvas px-3 py-2 text-sm" />
@@ -57,7 +57,7 @@ export default function LinksPage() {
           const short = `https://${l.domain}/${l.slug}`;
           const isBlue = pref === 'blue';
           return (
-            <div key={l.id} className="border border-canvas-border bg-canvas-raised p-3 text-sm flex justify-between gap-2">
+            <div key={l.id} className="rounded-2xl border border-canvas-border bg-canvas-raised p-3 text-sm flex justify-between gap-2">
               <span>
                 <a href={`/s/${l.domain}/${l.slug}`} target="_blank" rel="noreferrer" className={shortClass}>
                   <span style={{ color: isBlue ? '#38bdf8' : '#34d399', fontWeight: 700 }}>en</span>.12/{l.slug}

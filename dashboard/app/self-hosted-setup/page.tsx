@@ -48,11 +48,11 @@ export default function SelfHostedPage() {
           </div>
         </div>
 
-        <pre className="overflow-x-auto border border-canvas-border bg-canvas-raised p-5 text-sm text-slate-300"><code>{composeExample}</code></pre>
+        <pre className="overflow-x-auto rounded-2xl border border-canvas-border bg-canvas-raised p-5 text-sm text-slate-300"><code>{composeExample}</code></pre>
 
         <div className="mt-8 space-y-3">
           {steps.map((s) => (
-            <div key={s.n} className="flex items-start gap-4 border border-canvas-border bg-canvas-raised px-5 py-4">
+            <div key={s.n} className="flex items-start gap-4 rounded-2xl border border-canvas-border bg-canvas-raised px-5 py-4">
               <span className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-brand/15 text-sm font-semibold text-brand">{s.n}</span>
               <div>
                 <div className="text-sm font-semibold text-white">{s.title}</div>
@@ -63,7 +63,7 @@ export default function SelfHostedPage() {
         </div>
 
         <div className="mt-10">
-          <Link href="/documentation" className="border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white">
+          <Link href="/documentation" className="rounded-2xl border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white">
             Back to documentation
           </Link>
         </div>

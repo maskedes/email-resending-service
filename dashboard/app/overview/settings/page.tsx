@@ -325,7 +325,7 @@ export default function SettingsPage() {
 
       {/* ================= Account Settings Tab ================= */}
       {activeTab === 'account' && (
-        <section className="border border-canvas-border bg-canvas-raised p-6">
+        <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
           <div className="mb-5 flex items-start justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold text-white">Account</h2>
@@ -343,7 +343,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-4">
-            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between border border-canvas-border bg-canvas/30 p-4">
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-canvas-border bg-canvas/30 p-4">
               <div>
                 <p className="text-sm text-slate-400">Display Name</p>
                 <p className="text-white font-medium">
@@ -352,7 +352,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between border border-canvas-border bg-canvas/30 p-4">
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-canvas-border bg-canvas/30 p-4">
               <div>
                 <p className="text-sm text-slate-400">Email</p>
                 <p className="text-white font-medium">
@@ -361,7 +361,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between border border-canvas-border bg-canvas/30 p-4">
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-canvas-border bg-canvas/30 p-4">
               <div>
                 <p className="text-sm text-slate-400">User ID</p>
                 <p className="text-white font-mono text-sm break-all">
@@ -370,7 +370,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between border border-canvas-border bg-canvas/30 p-4">
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-canvas-border bg-canvas/30 p-4">
               <div>
                 <p className="text-sm text-slate-400">Member since</p>
                 <p className="text-white font-medium">
@@ -384,7 +384,7 @@ export default function SettingsPage() {
 
       {/* ================= Preferences Tab ================= */}
       {activeTab === 'preferences' && (
-        <section className="border border-canvas-border bg-canvas-raised p-6">
+        <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
           <div className="mb-5">
             <h2 className="text-lg font-semibold text-white">
               Preferences{prefsSaving && <span className="ml-2 text-xs font-normal text-slate-500">Saving…</span>}
@@ -394,7 +394,7 @@ export default function SettingsPage() {
 
           <div className="space-y-3">
             {/* Email Notifications */}
-            <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4">
+            <div className="flex items-center justify-between rounded-2xl border border-canvas-border bg-canvas/30 p-4">
               <div>
                 <p className="text-white font-medium">Email Notifications</p>
                 <p className="text-sm text-slate-400">Receive email alerts for delivery failures</p>
@@ -407,7 +407,7 @@ export default function SettingsPage() {
             </div>
 
             {/* DNS Auto-Check */}
-            <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4">
+            <div className="flex items-center justify-between rounded-2xl border border-canvas-border bg-canvas/30 p-4">
               <div>
                 <p className="text-white font-medium">Auto DNS Verification</p>
                 <p className="text-sm text-slate-400">Automatically check DNS records on page load</p>
@@ -420,7 +420,7 @@ export default function SettingsPage() {
             </div>
 
             {/* Dark Mode */}
-            <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4">
+            <div className="flex items-center justify-between rounded-2xl border border-canvas-border bg-canvas/30 p-4">
               <div>
                 <p className="text-white font-medium">Dark Mode</p>
                 <p className="text-sm text-slate-400">Always use dark theme</p>
@@ -437,7 +437,7 @@ export default function SettingsPage() {
 
       {/* ================= Security Tab ================= */}
       {activeTab === 'security' && (
-        <section className="border border-canvas-border bg-canvas-raised p-6">
+        <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
           <div className="mb-5">
             <h2 className="text-lg font-semibold text-white">Security</h2>
             <p className="text-sm text-slate-400">Email, password, and sign-in methods</p>
@@ -445,7 +445,7 @@ export default function SettingsPage() {
 
           <div className="space-y-6">
             {/* Password */}
-            <div className="border border-canvas-border bg-canvas/30 p-4">
+            <div className="rounded-2xl border border-canvas-border bg-canvas/30 p-4">
               <div className="mb-3">
                 <p className="text-white font-medium">Change Password</p>
                 {!connectedProviders.includes('email') && (
@@ -498,7 +498,7 @@ export default function SettingsPage() {
             </div>
 
             {/* Email change */}
-            <div className="border border-canvas-border bg-canvas/30 p-4">
+            <div className="rounded-2xl border border-canvas-border bg-canvas/30 p-4">
               <div className="mb-3">
                 <p className="text-white font-medium">Change Email</p>
                 <p className="text-xs text-slate-400 mt-1">
@@ -533,13 +533,13 @@ export default function SettingsPage() {
             </div>
 
             {/* Connected accounts */}
-            <div className="border border-canvas-border bg-canvas/30 p-4">
+            <div className="rounded-2xl border border-canvas-border bg-canvas/30 p-4">
               <div className="mb-3">
                 <p className="text-white font-medium">Connected Accounts</p>
                 <p className="text-xs text-slate-400 mt-1">Link a social account to sign in without a password.</p>
               </div>
               <div className="space-y-2 max-w-md">
-                <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-3">
+                <div className="flex items-center justify-between rounded-2xl border border-canvas-border bg-canvas/30 p-3">
                   <span className="text-sm text-white">Google</span>
                   {connectedProviders.includes('google') ? (
                     <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
@@ -557,7 +557,7 @@ export default function SettingsPage() {
                   )}
                 </div>
 
-                <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-3">
+                <div className="flex items-center justify-between rounded-2xl border border-canvas-border bg-canvas/30 p-3">
                   <span className="text-sm text-white">GitHub</span>
                   {connectedProviders.includes('github') ? (
                     <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
@@ -589,7 +589,7 @@ export default function SettingsPage() {
       {/* ================= Resources Tab ================= */}
       {activeTab === 'resources' && (
         <>
-          <section className="border border-canvas-border bg-canvas-raised p-6">
+          <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-white">More</h2>
               <p className="text-sm text-slate-400">Additional resources and information</p>
@@ -600,7 +600,7 @@ export default function SettingsPage() {
                 href="https://docs.mailenvoy.qd.je"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
+                className="flex items-center justify-between rounded-2xl border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
               >
                 <div>
                   <p className="text-white font-medium">Documentation</p>
@@ -613,7 +613,7 @@ export default function SettingsPage() {
                 href="https://github.com/maskedes233/email-resending-service"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
+                className="flex items-center justify-between rounded-2xl border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
               >
                 <div>
                   <p className="text-white font-medium">Open Source</p>
@@ -622,7 +622,7 @@ export default function SettingsPage() {
                 <MoreIcon />
               </a>
 
-              <div className="border border-canvas-border bg-canvas/30 p-4">
+              <div className="rounded-2xl border border-canvas-border bg-canvas/30 p-4">
                 <div>
                   <p className="text-white font-medium">Version</p>
                   <p className="text-sm text-slate-400">E-NVOY v1.0.0 — Open Source Email Service</p>
@@ -631,7 +631,7 @@ export default function SettingsPage() {
             </div>
           </section>
 
-          <section className="border border-canvas-border bg-canvas-raised p-6">
+          <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
             <div className="mb-5">
               <h2 className="text-lg font-semibold text-white">Follow Us</h2>
               <p className="text-sm text-slate-400">Stay connected with E-NVOY</p>
@@ -642,7 +642,7 @@ export default function SettingsPage() {
                 href="https://github.com/maskedes233"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
+                className="flex items-center justify-between rounded-2xl border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
               >
                 <div>
                   <p className="text-white font-medium text-sm">GitHub</p>
@@ -655,7 +655,7 @@ export default function SettingsPage() {
                 href="https://twitter.com/mailenvoy"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
+                className="flex items-center justify-between rounded-2xl border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
               >
                 <div>
                   <p className="text-white font-medium text-sm">X (Twitter)</p>
@@ -666,7 +666,7 @@ export default function SettingsPage() {
 
               <a
                 href="mailto:support@mailenvoy.qd.je"
-                className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
+                className="flex items-center justify-between rounded-2xl border border-canvas-border bg-canvas/30 p-4 hover:bg-brand/5 transition-colors group"
               >
                 <div>
                   <p className="text-white font-medium text-sm">Email</p>
@@ -744,7 +744,7 @@ export default function SettingsPage() {
             role="dialog"
             aria-modal="true"
             aria-label="Edit account"
-            className="w-full max-w-md border border-canvas-border bg-canvas-raised p-6 shadow-2xl shadow-black/40 max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-md rounded-2xl border border-canvas-border bg-canvas-raised p-6 shadow-2xl shadow-black/40 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-semibold text-white">Edit Account</h3>

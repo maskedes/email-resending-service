@@ -594,7 +594,7 @@ export default function HeroLanguageTabs() {
       </div>
 
       {/* Code block */}
-      <div className={`mt-6 overflow-hidden border border-canvas-border bg-canvas/80 backdrop-blur-sm transition-all duration-700 ease-out delay-150 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+      <div className={`mt-6 overflow-hidden rounded-2xl border border-canvas-border bg-canvas/80 backdrop-blur-sm transition-all duration-700 ease-out delay-150 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
         {/* Window header */}
         <div className="flex items-center justify-between border-b border-canvas-border px-4 py-2.5">
           <div className="flex items-center gap-2">
@@ -608,7 +608,7 @@ export default function HeroLanguageTabs() {
           </div>
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1.5 rounded border border-canvas-border bg-canvas-raised px-2.5 py-1 text-xs text-slate-400 transition hover:border-brand/50 hover:text-white"
+            className="flex items-center gap-1.5 rounded rounded-2xl border border-canvas-border bg-canvas-raised px-2.5 py-1 text-xs text-slate-400 transition hover:border-brand/50 hover:text-white"
           >
             {copied ? (
               <>

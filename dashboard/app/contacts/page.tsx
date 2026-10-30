@@ -67,7 +67,7 @@ export default function ContactsPage() {
               <Link
                 key={c.title}
                 href={c.href}
-                className="block border border-canvas-border bg-canvas-raised p-5 transition hover:border-brand/40"
+                className="block rounded-2xl border border-canvas-border bg-canvas-raised p-5 transition hover:border-brand/40"
               >
                 <div className="text-xs uppercase tracking-wider text-slate-500">{c.title}</div>
                 <div className="mt-1 text-sm font-medium text-white">{c.value}</div>
@@ -79,7 +79,7 @@ export default function ContactsPage() {
                 href={c.href}
                 target="_blank"
                 rel="noopener"
-                className="block border border-canvas-border bg-canvas-raised p-5 transition hover:border-brand/40"
+                className="block rounded-2xl border border-canvas-border bg-canvas-raised p-5 transition hover:border-brand/40"
               >
                 <div className="text-xs uppercase tracking-wider text-slate-500">{c.title}</div>
                 <div className="mt-1 text-sm font-medium text-white">{c.value}</div>

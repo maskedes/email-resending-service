@@ -41,7 +41,7 @@ function sendConcurrencyGuard(req: AuthRequest, res: Response, next: NextFunctio
 
 router.post('/send', authMiddleware, sendConcurrencyGuard, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { from, to, subject, html, text, reply_to, tags, scheduleInMs } = req.body;
+    const { from, to, subject, html, text, reply_to, tags, attachments, scheduleInMs } = req.body;
 
     if (!to || typeof to !== 'string' || !to.trim()) {
       res.status(400).json({
@@ -79,7 +79,7 @@ router.post('/send', authMiddleware, sendConcurrencyGuard, async (req: AuthReque
       return;
     }
 
-    const input: SendEmailInput = { from, to, subject, html, text, reply_to, tags, scheduleInMs };
+    const input: SendEmailInput = { from, to, subject, html, text, reply_to, tags, attachments, scheduleInMs };
     const email = await sendEmail(req.apiKey!.id, input);
 
     res.status(200).json({
@@ -92,6 +92,13 @@ router.post('/send', authMiddleware, sendConcurrencyGuard, async (req: AuthReque
     });
   } catch (error: any) {
     console.error('Error sending email:', error);
+    const msg = error?.message || '';
+    if (/attachment|base64|image/i.test(msg)) {
+      res.status(400).json({
+        error: { type: 'validation_error', message: msg },
+      });
+      return;
+    }
     res.status(500).json({
       error: { type: 'internal_error', message: 'Failed to send email. Please try again.' },
     });

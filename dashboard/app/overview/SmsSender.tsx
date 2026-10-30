@@ -61,7 +61,7 @@ export default function SmsSender({ keyName }: Props) {
   const disabled = status === 'sending';
 
   return (
-    <section className="border border-canvas-border bg-canvas-raised p-6">
+    <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <SmsIcon className="h-5 w-5 shrink-0 text-white" />
@@ -84,7 +84,7 @@ export default function SmsSender({ keyName }: Props) {
               value={to}
               onChange={(e) => setTo(e.target.value)}
               placeholder="+2567… or +1415…"
-              className="w-full border border-canvas-border bg-canvas px-3 py-2.5 text-sm text-white placeholder-slate-600 outline-none focus:border-white/20"
+              className="w-full rounded-xl border border-canvas-border bg-canvas px-3 py-2.5 text-sm text-white placeholder-slate-600 outline-none focus:border-white/20"
             />
           </div>
           <div className="flex items-end">
@@ -93,7 +93,7 @@ export default function SmsSender({ keyName }: Props) {
               onChange={(e) => setBody(e.target.value)}
               placeholder="Message — e.g. Your OTP is 4931. Valid 5 min."
               maxLength={1600}
-              className="w-full border border-canvas-border bg-canvas px-3 py-2.5 text-sm text-white placeholder-slate-600 outline-none focus:border-white/20"
+              className="w-full rounded-xl border border-canvas-border bg-canvas px-3 py-2.5 text-sm text-white placeholder-slate-600 outline-none focus:border-white/20"
             />
           </div>
         </div>
@@ -102,7 +102,7 @@ export default function SmsSender({ keyName }: Props) {
           <button
             type="submit"
             disabled={disabled}
-            className="border border-white/12 bg-white px-5 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-slate-200 disabled:opacity-50"
+            className="rounded-xl border border-white/12 bg-white px-5 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-slate-200 disabled:opacity-50"
           >
             {status === 'sending' ? 'Sending…' : 'Send SMS'}
           </button>
@@ -119,7 +119,7 @@ export default function SmsSender({ keyName }: Props) {
 
       <details className="mt-4 text-xs">
         <summary className="cursor-pointer text-slate-500 hover:text-slate-300">API (like Twilio)</summary>
-        <pre className="mt-2 overflow-auto border border-canvas-border bg-canvas p-3 text-[11px] leading-relaxed text-slate-400">
+        <pre className="mt-2 overflow-auto rounded-xl border border-canvas-border bg-canvas p-3 text-[11px] leading-relaxed text-slate-400">
 {`curl -X POST https://mailenvoy.qd.je/api/sms/send \\
   -H "x-api-key: fms_..." -H "Content-Type: application/json" \\
   -d '{"to":"+256…","body":"Hello"}'

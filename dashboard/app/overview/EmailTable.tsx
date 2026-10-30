@@ -16,7 +16,7 @@ const STATUS_STYLES: Record<string, string> = {
 
 export default function EmailTable({ emails }: { emails: Email[] }) {
   return (
-    <section className="border border-canvas-border bg-canvas-raised p-6">
+    <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
       <h2 className="mb-5 flex items-center gap-2 text-lg font-semibold text-white">
         <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" className="text-xl shrink-0" aria-hidden="true">
           <path d="M0 0h24v24H0z" fill="none" />

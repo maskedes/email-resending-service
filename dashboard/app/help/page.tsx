@@ -59,7 +59,7 @@ export default function HelpPage() {
 
         <div className="space-y-3">
           {faqs.map((f) => (
-            <div key={f.q} className="border border-canvas-border bg-canvas-raised p-5">
+            <div key={f.q} className="rounded-2xl border border-canvas-border bg-canvas-raised p-5">
               <h2 className="text-sm font-semibold text-white">{f.q}</h2>
               <p className="mt-2 text-sm leading-relaxed text-slate-400">{f.a}</p>
             </div>
@@ -69,13 +69,13 @@ export default function HelpPage() {
         <div className="mt-10 flex flex-wrap gap-3">
           <Link
             href="/support"
-            className="border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white"
+            className="rounded-2xl border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white"
           >
             Contact support
           </Link>
           <Link
             href="/contacts"
-            className="border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white"
+            className="rounded-2xl border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white"
           >
             Get in touch
           </Link>

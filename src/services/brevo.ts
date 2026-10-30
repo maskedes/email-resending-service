@@ -12,6 +12,8 @@ export interface MailMessage {
   /** Brevo tags for reporting/filtering in the Brevo dashboard. */
   tags?: string[];
   headers?: Record<string, string>;
+  /** Base64 attachments (Brevo field `attachments: [{name, content}]`). */
+  attachments?: Array<{ name: string; content: string }>;
 }
 
 interface ParsedAddress {
@@ -56,6 +58,9 @@ export async function sendViaBrevo(message: MailMessage): Promise<{ messageId: s
   if (message.text) payload.textContent = message.text;
   if (message.replyTo) payload.replyTo = parseAddress(message.replyTo);
   if (message.headers) payload.headers = message.headers;
+  if (message.attachments && message.attachments.length) {
+    payload.attachments = message.attachments;
+  }
   // Brevo caps tags per email; keep only valid, non-empty strings.
   if (message.tags && message.tags.length) {
     payload.tags = message.tags.filter((t) => typeof t === 'string' && t.trim()).slice(0, 10);

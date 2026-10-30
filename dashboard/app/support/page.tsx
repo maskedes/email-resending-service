@@ -68,7 +68,7 @@ export default function SupportPage() {
               href={c.href}
               target={c.href.startsWith('http') ? '_blank' : undefined}
               rel="noopener"
-              className="border border-canvas-border bg-canvas-raised p-5 transition hover:border-brand/40"
+              className="rounded-2xl border border-canvas-border bg-canvas-raised p-5 transition hover:border-brand/40"
             >
               <div className="text-sm font-semibold text-white">{c.title}</div>
               <p className="mt-2 text-sm leading-relaxed text-slate-400">{c.desc}</p>
@@ -82,7 +82,7 @@ export default function SupportPage() {
           {sla.map((s) => (
             <div
               key={s.plan}
-              className="flex items-center justify-between border border-canvas-border bg-canvas-raised px-5 py-4"
+              className="flex items-center justify-between rounded-2xl border border-canvas-border bg-canvas-raised px-5 py-4"
             >
               <div>
                 <div className="text-sm font-medium text-white">{s.plan}</div>
@@ -96,13 +96,13 @@ export default function SupportPage() {
         <div className="mt-10 flex flex-wrap gap-3">
           <Link
             href="/help"
-            className="border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white"
+            className="rounded-2xl border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white"
           >
             Browse the Help Center
           </Link>
           <Link
             href="/contacts"
-            className="border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white"
+            className="rounded-2xl border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white"
           >
             Other ways to reach us
           </Link>

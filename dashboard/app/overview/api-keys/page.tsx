@@ -303,13 +303,13 @@ export default function ApiKeysPage() {
         {/* Page Header */}
         <div>
           <h1 className="text-3xl font-bold text-white">API Keys</h1>
-          <p className="mt-1 text-slate-400">Manage your API keys for sending emails via REST API or SMTP.</p>
+          <p className="mt-1 text-slate-400">Manage your API keys for sending emails via the REST API.</p>
         </div>
 
       {/* Create Key Form */}
-      <section className="rounded-xl border border-canvas-border bg-canvas-raised p-6 shadow-sm">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6 shadow-sm">
         <h2 className="mb-1 text-lg font-semibold text-white">Create New API Key</h2>
-        <p className="mb-5 text-sm text-slate-400">Generate a key to authenticate API or SMTP requests.</p>
+        <p className="mb-5 text-sm text-slate-400">Generate a key to authenticate API requests.</p>
 
         {newKey && (
           <div className="relative mb-6 overflow-hidden rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 p-5 shadow-lg shadow-emerald-500/5">
@@ -394,7 +394,7 @@ export default function ApiKeysPage() {
       </section>
 
       {/* API Keys List */}
-      <section className="rounded-xl border border-canvas-border bg-canvas-raised p-6 shadow-sm">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6 shadow-sm">
         <h2 className="mb-5 text-lg font-semibold text-white">Your API Keys</h2>
 
         {keys.length === 0 ? (
@@ -482,32 +482,6 @@ export default function ApiKeysPage() {
         )}
       </section>
 
-      {/* SMTP Info */}
-      <section className="rounded-xl border border-canvas-border bg-canvas-raised p-6 shadow-sm">
-        <h2 className="mb-1 text-lg font-semibold text-white">SMTP Configuration</h2>
-        <p className="mb-4 text-sm text-slate-400">
-          Use your API key as the password for SMTP authentication.
-        </p>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="border border-canvas-border bg-canvas/60 p-4">
-            <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">Host</p>
-            <code className="text-slate-200 font-mono">smtp.freemailsend.com</code>
-          </div>
-          <div className="border border-canvas-border bg-canvas/60 p-4">
-            <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">Port</p>
-            <code className="text-slate-200 font-mono">587 (TLS)</code>
-          </div>
-          <div className="border border-canvas-border bg-canvas/60 p-4">
-            <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">Username</p>
-            <code className="text-slate-200 font-mono">your-api-key-id</code>
-          </div>
-          <div className="border border-canvas-border bg-canvas/60 p-4">
-            <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">Password</p>
-            <code className="text-slate-200 font-mono">your-api-key-secret</code>
-          </div>
-        </div>
-      </section>
-
       {/* Confirmation popout card for revoke / delete (dark blue, solid) */}
       {confirmDialog && (
         <div
@@ -568,7 +542,7 @@ export default function ApiKeysPage() {
             role="dialog"
             aria-modal="true"
             aria-label={`General settings for ${settingsKey.name}`}
-            className="w-full max-w-2xl rounded-xl border border-canvas-border bg-canvas-raised p-6 shadow-2xl"
+            className="w-full max-w-2xl rounded-2xl border border-canvas-border bg-canvas-raised p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-6 flex items-start justify-between gap-4">
@@ -599,7 +573,7 @@ export default function ApiKeysPage() {
 
             {/* Feature toggles */}
             <div className="mb-6 space-y-3">
-              <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4">
+              <div className="flex items-center justify-between rounded-2xl border border-canvas-border bg-canvas/30 p-4">
                 <div>
                   <p className="font-medium text-white">Allow SMS</p>
                   <p className="text-sm text-slate-400">Let this API key send SMS messages</p>
@@ -612,7 +586,7 @@ export default function ApiKeysPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4">
+              <div className="flex items-center justify-between rounded-2xl border border-canvas-border bg-canvas/30 p-4">
                 <div>
                   <p className="font-medium text-white">Allow incoming email</p>
                   <p className="text-sm text-slate-400">Accept inbound email delivered to this key</p>
@@ -627,7 +601,7 @@ export default function ApiKeysPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-between border border-canvas-border bg-canvas/30 p-4">
+              <div className="flex items-center justify-between rounded-2xl border border-canvas-border bg-canvas/30 p-4">
                 <div>
                   <p className="font-medium text-white">Admin rights</p>
                   <p className="text-sm text-slate-400">
@@ -642,7 +616,7 @@ export default function ApiKeysPage() {
                 />
               </div>
 
-              <div className="border border-canvas-border bg-canvas/30 p-4">
+              <div className="rounded-2xl border border-canvas-border bg-canvas/30 p-4">
                 <p className="font-medium text-white">Forward incoming email</p>
                 <p className="mb-3 text-sm text-slate-400">
                   Forward mail received by this key to another address

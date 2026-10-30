@@ -44,12 +44,12 @@ export default function ApiReferencePage() {
         </div>
 
         <h2 className="text-xl font-semibold text-white">Send an email</h2>
-        <pre className="mt-3 overflow-x-auto border border-canvas-border bg-canvas-raised p-5 text-sm text-slate-300"><code>{sendExample}</code></pre>
+        <pre className="mt-3 overflow-x-auto rounded-2xl border border-canvas-border bg-canvas-raised p-5 text-sm text-slate-300"><code>{sendExample}</code></pre>
 
         <h2 className="mt-10 text-xl font-semibold text-white">Endpoints</h2>
         <div className="mt-4 space-y-3">
           {endpoints.map((e) => (
-            <div key={e.path} className="flex items-start gap-4 border border-canvas-border bg-canvas-raised px-5 py-4">
+            <div key={e.path} className="flex items-start gap-4 rounded-2xl border border-canvas-border bg-canvas-raised px-5 py-4">
               <span className="mt-0.5 flex-none rounded bg-brand/15 px-2 py-0.5 text-xs font-semibold text-brand">{e.method}</span>
               <div>
                 <div className="font-mono text-sm text-white">{e.path}</div>
@@ -60,10 +60,10 @@ export default function ApiReferencePage() {
         </div>
 
         <div className="mt-10 flex flex-wrap gap-3">
-          <Link href="/documentation" className="border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white">
+          <Link href="/documentation" className="rounded-2xl border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white">
             All documentation
           </Link>
-          <Link href="/self-hosted-setup" className="border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white">
+          <Link href="/self-hosted-setup" className="rounded-2xl border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white">
             Self-hosted setup
           </Link>
         </div>

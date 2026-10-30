@@ -130,7 +130,7 @@ export default function PrivacyPage() {
           ))}
         </div>
 
-        <div className="mt-12 border border-canvas-border bg-canvas-raised p-5">
+        <div className="mt-12 rounded-2xl border border-canvas-border bg-canvas-raised p-5">
           <p className="text-sm leading-relaxed text-slate-400">
             E-NVOY is an open-source email and SMS delivery service. This policy covers the
             hosted service at mailenvoy.qd.je, the dashboard, the REST API, the SMTP relay and
@@ -141,13 +141,13 @@ export default function PrivacyPage() {
         <div className="mt-10 flex flex-wrap gap-3">
           <Link
             href="/support"
-            className="border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white"
+            className="rounded-2xl border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white"
           >
             Contact support
           </Link>
           <Link
             href="/contacts"
-            className="border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white"
+            className="rounded-2xl border border-canvas-border bg-canvas-raised px-4 py-2 text-sm text-slate-300 transition hover:text-white"
           >
             Get in touch
           </Link>

@@ -121,11 +121,11 @@ export default function WebhooksPage() {
       </div>
 
       {/* Create Webhook Form */}
-      <section className="border border-canvas-border bg-canvas-raised p-6">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
         <h2 className="mb-5 text-lg font-semibold text-white">Create Webhook</h2>
 
         {newWebhook && newWebhook.secret && (
-          <div className="mb-5 border border-emerald-500/30 bg-emerald-500/10 p-4">
+          <div className="mb-5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
             <p className="text-sm text-emerald-300 mb-2">Webhook created! Save your signing secret:</p>
             <div className="flex items-center gap-3">
               <code className="flex-1 rounded bg-canvas px-3 py-2 text-sm text-emerald-100 font-mono break-all">
@@ -133,7 +133,7 @@ export default function WebhooksPage() {
               </code>
               <button
                 onClick={() => copyValue(newWebhook.secret!)}
-                className="bg-brand/15 px-4 py-2 text-sm font-medium text-white hover:bg-brand/30 transition-colors"
+                className="rounded-xl bg-brand/15 px-4 py-2 text-sm font-medium text-white hover:bg-brand/30 transition-colors"
               >
                 Copy Secret
               </button>
@@ -145,7 +145,7 @@ export default function WebhooksPage() {
         )}
 
         {error && (
-          <div className="mb-5 border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+          <div className="mb-5 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
             {error}
           </div>
         )}
@@ -161,7 +161,7 @@ export default function WebhooksPage() {
                 placeholder="My App Webhook"
                 required
                 disabled={creating}
-                className="w-full border border-canvas-border bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none focus:border-brand disabled:opacity-50"
+                className="w-full rounded-xl border border-canvas-border bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none focus:border-brand disabled:opacity-50"
               />
             </div>
             <div>
@@ -173,7 +173,7 @@ export default function WebhooksPage() {
                 placeholder="https://your-app.com/webhooks/emails"
                 required
                 disabled={creating}
-                className="w-full border border-canvas-border bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none focus:border-brand disabled:opacity-50"
+                className="w-full rounded-xl border border-canvas-border bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none focus:border-brand disabled:opacity-50"
               />
             </div>
           </div>
@@ -187,7 +187,7 @@ export default function WebhooksPage() {
                   type="button"
                   onClick={() => toggleEvent(event)}
                   disabled={creating}
-                  className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                  className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                     events.includes(event)
                       ? 'bg-brand/20 text-white border border-brand/30'
                       : 'bg-canvas-border text-slate-400 hover:bg-canvas-border hover:text-white'
@@ -202,7 +202,7 @@ export default function WebhooksPage() {
           <button
             type="submit"
             disabled={creating}
-            className="w-full md:w-auto bg-brand px-6 py-2.5 font-medium text-black transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full rounded-xl md:w-auto bg-brand px-6 py-2.5 font-medium text-black transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {creating ? 'Creating…' : 'Create Webhook'}
           </button>
@@ -210,7 +210,7 @@ export default function WebhooksPage() {
       </section>
 
       {/* Webhooks List */}
-      <section className="border border-canvas-border bg-canvas-raised p-6">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
         <h2 className="mb-5 text-lg font-semibold text-white">Your Webhooks</h2>
 
         {webhooks.length === 0 ? (
@@ -222,7 +222,7 @@ export default function WebhooksPage() {
             {webhooks.map((webhook) => (
               <div
                 key={webhook.id}
-                className="border border-canvas-border bg-canvas/50 p-5"
+                className="rounded-2xl border border-canvas-border bg-canvas/50 p-5"
               >
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div className="flex items-center gap-4">
@@ -281,7 +281,7 @@ export default function WebhooksPage() {
       </section>
 
       {/* Webhook Documentation */}
-      <section className="border border-canvas-border bg-canvas-raised p-6">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
         <h2 className="mb-4 text-lg font-semibold text-white">Webhook Payload</h2>
         <p className="mb-4 text-sm text-slate-400">
           Webhooks are sent as POST requests with a JSON body. Verify the signature using the <code className="font-mono text-slate-300">X-Webhook-Signature</code> header.

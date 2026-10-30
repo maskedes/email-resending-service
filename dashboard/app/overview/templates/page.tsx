@@ -353,7 +353,7 @@ export default function TemplatesPage() {
                       onClick={() => setSelectedId(t.id)}
                       className={`flex-1 rounded-lg border px-4 py-3 text-left text-sm transition ${
                         active
-                          ? 'border-brand/60 bg-brand/10 text-white'
+                          ? 'bg-brand/20 text-white'
                           : 'border-brand/30 bg-brand/5 text-slate-300 hover:border-brand/60 hover:bg-brand/10'
                       }`}
                     >
@@ -759,3 +759,4 @@ export default function TemplatesPage() {
     </div>
   );
 }
+

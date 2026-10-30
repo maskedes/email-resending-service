@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { CopyButton } from './CopyButton';
@@ -128,7 +128,7 @@ export default function DomainsPage() {
               });
             }
           } catch {
-            // Silent fail — domains remain in their current state
+            // Silent fail � domains remain in their current state
           } finally {
             setCheckingIds(new Set());
           }
@@ -254,10 +254,10 @@ export default function DomainsPage() {
         : RECORD_PENDING[type];
     const label = live
       ? verified
-        ? `${type} ✓`
-        : `${type} —`
+        ? `${type} ?`
+        : `${type} �`
       : verified
-        ? `${type} ✓`
+        ? `${type} ?`
         : `${type} pending`;
     return (
       <span
@@ -283,22 +283,22 @@ export default function DomainsPage() {
             }`}
           />
           <span className="text-slate-400">
-            {connected ? 'Live — realtime DNS checks' : 'Reconnecting…'}
+            {connected ? 'Live � realtime DNS checks' : 'Reconnecting�'}
           </span>
         </div>
       </div>
 
       {/* Add Domain Form */}
-      <section className="border border-canvas-border bg-canvas-raised p-6">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
         <h2 className="mb-5 text-lg font-semibold text-white">Add Domain</h2>
 
         {newDomain && (
-          <div className="mb-5 border border-emerald-500/30 bg-emerald-500/10 p-4">
+          <div className="mb-5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
             <p className="text-sm text-emerald-300 mb-3">
               Domain added! Add these DNS records to verify ownership:
             </p>
             <div className="space-y-3 text-sm">
-              <div className="border border-canvas-border bg-canvas p-3">
+              <div className="rounded-xl border border-canvas-border bg-canvas p-3">
                 <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">DKIM (TXT)</p>
                 <div className="flex items-center gap-2 flex-wrap">
                   <code className="flex-1 font-mono text-slate-300 break-all">{newDomain.dkim_record_name}</code>
@@ -306,7 +306,7 @@ export default function DomainsPage() {
                 </div>
                 <code className="block mt-1 font-mono text-slate-400 break-all">{newDomain.dkim_record_value}</code>
               </div>
-              <div className="border border-canvas-border bg-canvas p-3">
+              <div className="rounded-xl border border-canvas-border bg-canvas p-3">
                 <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">SPF (TXT)</p>
                 <div className="flex items-center gap-2 flex-wrap">
                   <code className="flex-1 font-mono text-slate-300 break-all">@{newDomain.name}</code>
@@ -314,7 +314,7 @@ export default function DomainsPage() {
                 </div>
                 <code className="block mt-1 font-mono text-slate-400 break-all">{newDomain.spf_record}</code>
               </div>
-              <div className="border border-canvas-border bg-canvas p-3">
+              <div className="rounded-xl border border-canvas-border bg-canvas p-3">
                 <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">DMARC (TXT)</p>
                 <div className="flex items-center gap-2 flex-wrap">
                   <code className="flex-1 font-mono text-slate-300 break-all">_dmarc.{newDomain.name}</code>
@@ -333,7 +333,7 @@ export default function DomainsPage() {
         )}
 
         {error && (
-          <div className="mb-5 border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+          <div className="mb-5 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
             {error}
           </div>
         )}
@@ -348,21 +348,21 @@ export default function DomainsPage() {
               placeholder="example.com"
               required
               disabled={creating}
-              className="w-full border border-canvas-border bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none focus:border-brand disabled:opacity-50"
+              className="w-full rounded-xl border border-canvas-border bg-canvas px-4 py-2.5 text-white placeholder-slate-600 outline-none focus:border-brand disabled:opacity-50"
             />
           </div>
           <button
             type="submit"
             disabled={creating}
-            className="w-full md:w-auto bg-brand px-6 py-2.5 font-medium text-white transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full rounded-xl md:w-auto bg-brand px-6 py-2.5 font-medium text-black transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {creating ? 'Adding…' : 'Add Domain'}
+            {creating ? 'Adding�' : 'Add Domain'}
           </button>
         </form>
       </section>
 
       {/* Domains List */}
-      <section className="border border-canvas-border bg-canvas-raised p-6">
+      <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
         <h2 className="mb-5 text-lg font-semibold text-white">Your Domains</h2>
 
         {domains.length === 0 ? (
@@ -377,9 +377,9 @@ export default function DomainsPage() {
               return (
                 <div
                   key={domain.id}
-                  className="border border-canvas-border bg-canvas/30 overflow-hidden"
+                  className="rounded-2xl border border-canvas-border bg-canvas/30 overflow-hidden"
                 >
-                  {/* Collapsed row — click to expand */}
+                  {/* Collapsed row � click to expand */}
                   <button
                     onClick={() => toggleExpand(domain.id)}
                     className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-brand/5 transition-colors"
@@ -404,7 +404,7 @@ export default function DomainsPage() {
                           </svg>
                         )}
                         {checking
-                          ? 'Checking DNS records…'
+                          ? 'Checking DNS records�'
                           : domain.last_checked_at
                             ? `Last checked ${new Date(domain.last_checked_at).toLocaleString()}`
                             : `Added ${new Date(domain.created_at).toLocaleDateString()}`}
@@ -459,7 +459,7 @@ export default function DomainsPage() {
                                     check.verified ? 'text-emerald-400' : 'text-red-400'
                                   }`}
                                 >
-                                  {check.type} {check.verified ? '✓' : '✗'}
+                                  {check.type} {check.verified ? '?' : '?'}
                                 </span>
                                 <code className="font-mono text-slate-500">{check.hostname}</code>
                               </div>
@@ -507,7 +507,7 @@ export default function DomainsPage() {
                           disabled={checking}
                           className="bg-brand px-4 py-1.5 text-sm font-medium text-black transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-wait"
                         >
-                          {checking ? 'Verifying…' : 'Verify DNS'}
+                          {checking ? 'Verifying�' : 'Verify DNS'}
                         </button>
                         <button
                           onClick={(e) => {

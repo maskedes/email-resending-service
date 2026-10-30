@@ -39,10 +39,19 @@
   --blue: #93c5fd;           /* blue-400 */
   --scrollbar: rgba(148, 163, 184, 0.35);
   --glow: rgba(148, 163, 184, 0.18);
+  --nav-active-bg: rgba(37, 99, 235, 0.30);       /* breathing-room blue glow */
+  --nav-active-fg: #dbeafe;                       /* near-white blue text */
+  --nav-active-border: rgba(96, 165, 250, 0.55);
+  --nav-hover-bg: rgba(37, 99, 235, 0.12);
   color-scheme: dark;
 }
 
 :root.light {
+  /* Pure blue active card on white */
+  --nav-active-bg: rgba(37, 99, 235, 0.90);
+  --nav-active-fg: #ffffff;
+  --nav-active-border: rgba(37, 99, 235, 100%);
+  --nav-hover-bg: rgba(37, 99, 235, 0.10);
   --bg: #ffffff;             /* pure white */
   --fg: #0f172a;             /* slate-900 */
   --canvas: #ffffff;
@@ -80,6 +89,13 @@ svg {
 }
 :root.light svg {
   color: var(--fg);
+}
+
+/* Sidebar nav cards: icons always follow the link's text color (blue when
+   active, slate on hover) — overrides the global svg rules above. */
+.nav-link svg,
+:root.light .nav-link svg {
+  color: currentColor;
 }
 
 /* ─── Light theme overrides ──────────────────────────────────────────────────
