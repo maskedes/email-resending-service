@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SITE_TEMPLATES, DEFAULT_TEMPLATE, type SiteTemplate } from '@/lib/siteTemplates';
 import {
   type Section,
@@ -8,6 +8,8 @@ import {
   type SectionType,
   SECTION_META,
   PALETTE,
+  FORMATTING_HINT,
+  cloneSection,
   newSection,
   parseModel,
   renderModel,
@@ -39,6 +41,49 @@ type Draft = {
 
 type Status = 'idle' | 'saving' | 'saved' | 'error';
 
+/* ─────────────── reusable blocks (Gutenberg-style, localStorage) ────────────── */
+
+/** A section saved "for reuse across sites" — stored in this browser only. */
+type ReusableBlock = { id: string; name: string; section: Section; saved_at: number };
+
+const RB_KEY = 'envoy_reusable_blocks_v1';
+const rbn = () => `r${Math.random().toString(36).slice(2, 9)}`;
+
+function loadReusable(): ReusableBlock[] {
+  try {
+    const arr = JSON.parse(window.localStorage.getItem(RB_KEY) || '[]');
+    if (!Array.isArray(arr)) return [];
+    return arr.filter(
+      (b): b is ReusableBlock =>
+        b && typeof b.id === 'string' && typeof b.name === 'string' && b.section && typeof b.section.type === 'string'
+    );
+  } catch {
+    return [];
+  }
+}
+
+function persistReusable(blocks: ReusableBlock[]) {
+  try {
+    window.localStorage.setItem(RB_KEY, JSON.stringify(blocks));
+  } catch {
+    /* storage full/blocked — the editor still works without reuse */
+  }
+}
+
+/** Guess a human block name from the section's main text (falls back to the type label). */
+function blockName(s: Section): string {
+  const label = SECTION_META[s.type]?.label || s.type;
+  if (s.type === 'text' || s.type === 'hero') {
+    const t = (s as { title?: string }).title?.trim();
+    if (t) return t.length > 32 ? `${t.slice(0, 32)}…` : t;
+  }
+  if (s.type === 'images' || s.type === 'features' || s.type === 'testimonials') {
+    const t = (s as { title?: string }).title?.trim();
+    if (t) return t.length > 32 ? `${t.slice(0, 32)}…` : t;
+  }
+  return label;
+}
+
 const SIG = (d: Draft) =>
   JSON.stringify([d.subdomain.trim().toLowerCase(), d.title, d.html, d.is_published]);
 
@@ -50,6 +95,41 @@ function subProblem(raw: string): string | null {
   if (s.length > 63) return 'Subdomain is too long (max 63 characters).';
   if (!SUB_RE.test(s)) return 'Use lowercase letters, numbers and hyphens only.';
   return null;
+}
+
+/** Read the declared parent page (Page Attributes) out of a site's embedded model. */
+function parentOf(s: Site): string | null {
+  try {
+    return parseModel(s.html).meta?.parent?.trim().toLowerCase() || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Sites ordered for the grid: top-level pages first, then their subpages nested after them. */
+function groupSites(sites: Site[]): { site: Site; parent: string | null }[] {
+  const sub = (s: Site) => (s.subdomain || '').trim().toLowerCase();
+  const subSet = new Set(sites.map(sub));
+  const isChild = (s: Site) => {
+    const p = parentOf(s);
+    return !!p && p !== sub(s) && subSet.has(p);
+  };
+  const roots = sites
+    .filter((s) => !isChild(s))
+    .sort((a, b) => sub(a).localeCompare(sub(b)));
+  const out: { site: Site; parent: string | null }[] = [];
+  for (const root of roots) {
+    out.push({ site: root, parent: null });
+    const children = sites
+      .filter((s) => isChild(s) && parentOf(s) === sub(root))
+      .sort((a, b) => sub(a).localeCompare(sub(b)));
+    for (const c of children) out.push({ site: c, parent: sub(root) });
+  }
+  // Orphans with an unknown parent, just in case
+  for (const s of sites) {
+    if (isChild(s) && !out.some((o) => o.site.id === s.id)) out.push({ site: s, parent: parentOf(s) });
+  }
+  return out;
 }
 
 const toDraft = (s: Site): Draft => ({
@@ -259,6 +339,8 @@ export default function SitesPage() {
     else flash(url);
   };
 
+  const grouped = useMemo(() => groupSites(sites), [sites]);
+
   return (
     <div className="mx-auto max-w-6xl p-6">
       {/* Toolbar â€” no page <h1> by request. */}
@@ -304,10 +386,11 @@ export default function SitesPage() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {sites.map((s) => (
+          {grouped.map(({ site: s, parent }) => (
             <SiteCard
               key={s.id}
               site={s}
+              parent={parent}
               onOpen={() => openEdit(s)}
               onDuplicate={() => duplicate(s)}
               onDelete={() => remove(s)}
@@ -326,6 +409,7 @@ export default function SitesPage() {
       {draft && (
         <SiteEditor
           draft={draft}
+          sites={sites}
           onPatch={patch}
           onClose={close}
           onCreate={create}
@@ -350,12 +434,14 @@ export default function SitesPage() {
 
 function SiteCard({
   site,
+  parent,
   onOpen,
   onDuplicate,
   onDelete,
   onCopy,
 }: {
   site: Site;
+  parent: string | null;
   onOpen: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
@@ -375,6 +461,11 @@ function SiteCard({
             className="pointer-events-none absolute left-0 top-0 origin-top-left"
             style={{ width: '400%', height: '400%', transform: 'scale(0.25)', border: 0 }}
           />
+          {parent && (
+            <span className="absolute left-2 top-2 rounded-full bg-slate-950/70 px-2 py-0.5 text-[10px] font-semibold text-amber-300 backdrop-blur">
+              subpage of {parent}
+            </span>
+          )}
           <span
             className="absolute right-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold backdrop-blur"
             style={{
@@ -445,6 +536,7 @@ function SectionIcon({ name }: { name: string }) {
 
 function SiteEditor({
   draft,
+  sites,
   onPatch,
   onClose,
   onCreate,
@@ -457,6 +549,7 @@ function SiteEditor({
   busy,
 }: {
   draft: Draft;
+  sites: Site[];
   onPatch: (p: Partial<Draft>) => void;
   onClose: () => void;
   onCreate: () => void;
@@ -473,6 +566,7 @@ function SiteEditor({
   const [addOpen, setAddOpen] = useState(false);
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [pendingTemplate, setPendingTemplate] = useState<SiteTemplate | null>(null);
+  const [reusable, setReusable] = useState<ReusableBlock[]>([]);
   const isNew = !draft.id;
 
   // Parse the stored HTML into the section model once per opened site.
@@ -480,6 +574,7 @@ function SiteEditor({
     setModel(parseModel(draft.html));
     setSel(null);
     setAddOpen(false);
+    setReusable(loadReusable());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft?.id]);
 
@@ -524,6 +619,40 @@ function SiteEditor({
     apply({ ...model, sections });
     setSel(s.id);
     setAddOpen(false);
+  };
+
+  /* ── Reusable blocks: save / insert / forget ── */
+
+  const saveReusableBlock = (s: Section) => {
+    if (s.type === 'legacy') return; // imported HTML is site-specific
+    const name = (window.prompt('Name this reusable block:', blockName(s)) || '').trim();
+    if (!name) return;
+    const entry: ReusableBlock = { id: rbn(), name, section: cloneSection(s), saved_at: Date.now() };
+    const next = [...reusable, entry];
+    setReusable(next);
+    persistReusable(next);
+  };
+
+  const insertReusableBlock = (b: ReusableBlock) => {
+    if (!model) return;
+    const sections = [...model.sections];
+    let at = sections.length;
+    if (sel) {
+      const i = sections.findIndex((x) => x.id === sel);
+      if (i >= 0) at = i + 1;
+    } else if (sections.length && sections[sections.length - 1].type === 'footer') {
+      at = sections.length - 1;
+    }
+    const s = cloneSection(b.section); // fresh id → independently editable copy
+    sections.splice(at, 0, s);
+    apply({ ...model, sections });
+    setSel(s.id);
+  };
+
+  const deleteReusableBlock = (id: string) => {
+    const next = reusable.filter((b) => b.id !== id);
+    setReusable(next);
+    persistReusable(next);
   };
 
   if (!model) return null;
@@ -575,7 +704,36 @@ function SiteEditor({
                 <div className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</div>
               )}
 
-              {/* Legacy notice */}
+              {reusable.length > 0 && (
+                <div className="mb-3">
+                  <div className="mb-1 text-[11px] font-semibold tracking-wide text-slate-500">REUSABLE BLOCKS</div>
+                  <p className="mb-2 text-[11px] text-slate-500">Saved blocks you can drop into any of your sites. Click to insert below your selection.</p>
+                  <div className="flex flex-col gap-1.5">
+                    {reusable.map((b) => (
+                      <div
+                        key={b.id}
+                        className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-200"
+                      >
+                        <button
+                          onClick={() => insertReusableBlock(b)}
+                          title="Insert this reusable block"
+                          className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 text-left"
+                        >
+                          <SectionIcon name={SECTION_ICON[b.section.type]} />
+                          <span className="min-w-0 flex-1 truncate">{b.name}</span>
+                        </button>
+                        <button
+                          onClick={() => deleteReusableBlock(b.id)}
+                          title="Forget this reusable block"
+                          className="shrink-0 rounded p-1 text-xs text-slate-500 hover:bg-red-500/10 hover:text-red-400"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               {model.sections.length === 1 && model.sections[0].type === 'legacy' && (
                 <div className="mb-3 rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-300">
                   This site was built with the old editor. Its original content appears below as a Custom HTML block â€” add new sections on top of it, or delete that block to go fully visual.
@@ -650,6 +808,14 @@ function SiteEditor({
                           â†“
                         </button>
                         <button
+                          onClick={() => saveReusableBlock(s)}
+                          disabled={s.type === 'legacy'}
+                          title="Save for reuse (add to my reusable blocks)"
+                          className="rounded p-1 text-slate-400 hover:bg-white/10 hover:text-white disabled:opacity-25"
+                        >
+                          ⧉
+                        </button>
+                        <button
                           onClick={() => {
                             if (!model) return;
                             apply({ ...model, sections: model.sections.filter((x) => x.id !== s.id) });
@@ -711,6 +877,39 @@ function SiteEditor({
                     ))}
                   </div>
                 </div>
+              </div>
+
+              {/* Page attributes (parent page / order) */}
+              <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                <div className="mb-2 text-[11px] font-semibold tracking-wide text-slate-500">PAGE ATTRIBUTES</div>
+                <label className={labelCls}>Parent page</label>
+                <select
+                  value={model.meta?.parent || ''}
+                  onChange={(e) => {
+                    const parent = e.target.value || undefined;
+                    const meta = parent ? { parent } : undefined;
+                    apply({ ...model, ...(meta ? { meta } : { meta: undefined }) });
+                  }}
+                  className={`${inputCls} mb-1`}
+                >
+                  <option value="">None — top-level page</option>
+                  {sites
+                    .filter(
+                      (x) =>
+                        x.id !== draft.id &&
+                        (x.subdomain || '').trim().toLowerCase() !== draft.subdomain.trim().toLowerCase() &&
+                        (x.subdomain || '').trim()
+                    )
+                    .map((x) => (
+                      <option key={x.id} value={(x.subdomain || '').trim().toLowerCase()}>
+                        {(x.title || x.subdomain)} — {(x.subdomain || '').trim().toLowerCase()}.{x.domain}
+                      </option>
+                    ))}
+                </select>
+                <p className="text-[11px] leading-relaxed text-slate-500">
+                  Subpages nest under their parent in the sites list. Section order on the page is set with the ↑ ↓ arrows
+                  on each section.
+                </p>
               </div>
 
               {/* Templates */}
@@ -1020,10 +1219,11 @@ function SectionForm({
         <>
           <TextField label="Heading" value={section.title} onChange={(x) => onChange({ title: x })} />
           <AreaField
-            label="Text (blank line starts a new paragraph)"
+            label={`${FORMATTING_HINT} (blank line starts a new paragraph)`}
             value={section.body}
             onChange={(x) => onChange({ body: x })}
             rows={5}
+            placeholder={`What you do, in plain words.\nWrap **important** words or *phrases* for emphasis.`}
           />
           <CheckField label="Center-align" checked={section.center} onChange={(x) => onChange({ center: x })} />
         </>
@@ -1035,12 +1235,18 @@ function SectionForm({
           <ItemsEditor
             label="Images (empty ones show as placeholders)"
             items={section.images}
-            blank={() => ({ url: '', caption: '' })}
+            blank={() => ({ url: '', caption: '', alt: '' })}
             onChange={(images) => onChange({ images })}
           >
             {(item, set) => (
               <>
                 <input value={item.url} onChange={(e) => set({ url: e.target.value })} placeholder="Image URL (https://â€¦jpg)" className={`${inputCls} mb-1.5`} />
+                <input
+                  value={item.alt || ''}
+                  onChange={(e) => set({ alt: e.target.value })}
+                  placeholder="Alt text (describe the image for screen readers & SEO)"
+                  className={`${inputCls} mb-1.5`}
+                />
                 <input value={item.caption} onChange={(e) => set({ caption: e.target.value })} placeholder="Caption (optional)" className={inputCls} />
               </>
             )}
@@ -1064,7 +1270,13 @@ function SectionForm({
                   <input value={item.icon} onChange={(e) => set({ icon: e.target.value })} placeholder="ðŸ’¡" className={inputCls} />
                   <input value={item.title} onChange={(e) => set({ title: e.target.value })} placeholder="Title" className={inputCls} />
                 </div>
-                <textarea value={item.body} onChange={(e) => set({ body: e.target.value })} rows={2} placeholder="Description" className={`${inputCls} resize-y leading-relaxed`} />
+                <textarea
+                  value={item.body}
+                  onChange={(e) => set({ body: e.target.value })}
+                  rows={2}
+                  placeholder={`Description (${FORMATTING_HINT})`}
+                  className={`${inputCls} resize-y leading-relaxed`}
+                />
               </>
             )}
           </ItemsEditor>

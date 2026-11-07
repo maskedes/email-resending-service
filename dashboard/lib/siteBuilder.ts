@@ -31,7 +31,7 @@ export type Section =
       center: boolean;
     }
   | { id: string; type: 'text'; title: string; body: string; center: boolean }
-  | { id: string; type: 'images'; title: string; images: { url: string; caption: string }[] }
+  | { id: string; type: 'images'; title: string; images: { url: string; caption: string; alt?: string }[] }
   | {
       id: string;
       type: 'features';
@@ -52,6 +52,12 @@ export type SiteTheme = { accent: string; mode: 'dark' | 'light' };
 export type SiteModel = {
   theme: SiteTheme;
   sections: Section[];
+  /**
+   * Page attributes (WordPress-style metadata that travels with the model).
+   * `parent` is the subdomain of the site this page is a child of — used to
+   * build a hierarchy in the dashboard and later for parent/child navigation.
+   */
+  meta?: { parent?: string };
 };
 
 export type SectionMeta = { label: string; hint: string };
@@ -59,8 +65,8 @@ export type SectionMeta = { label: string; hint: string };
 export const SECTION_META: Record<SectionType | 'legacy', SectionMeta> = {
   nav: { label: 'Navigation', hint: 'Brand + menu links' },
   hero: { label: 'Hero section', hint: 'Big headline + buttons' },
-  text: { label: 'Text and headings', hint: 'Paragraph of content' },
-  images: { label: 'Images and gallery', hint: 'Grid of pictures' },
+  text: { label: 'Text and headings', hint: 'Paragraphs with **bold** / *italic*' },
+  images: { label: 'Images and gallery', hint: 'Grid of pictures with alt text' },
   features: { label: 'Features and services', hint: 'Cards with icons' },
   testimonials: { label: 'Testimonials', hint: 'Quotes from customers' },
   contact: { label: 'Contact section', hint: 'Email button' },
@@ -83,6 +89,16 @@ export const PALETTE: SectionType[] = [
 ];
 
 const nid = () => `s${Math.random().toString(36).slice(2, 9)}`;
+
+/**
+ * Deep-clone a section with a fresh id — used when inserting a reusable
+ * block so each placed instance stays independently editable.
+ */
+export function cloneSection(s: Section): Section {
+  const copy = JSON.parse(JSON.stringify(s)) as Section;
+  copy.id = nid();
+  return copy;
+}
 
 /** Blank settings for a brand-new section of the given type. */
 export function newSection(type: SectionType): Section {
@@ -289,6 +305,20 @@ const esc = (v: string) =>
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
+/**
+ * Gutenberg-style inline formatting for body text: `**bold**`, `*italic*`,
+ * `` `code` ``. Content is escaped first, so these can never produce HTML
+ * injection — only <strong>/<em>/<code> tags. Empty result for plain text.
+ */
+export const FORMATTING_HINT = 'Inline formatting: **bold**, *italic*, `code`';
+
+export function richText(v: string): string {
+  return esc(v)
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[\s(])\*([^*\s][^*]*)\*/g, '$1<em>$2</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+
 /** Text color on top of an accent background (accent used for buttons). */
 function onColor(hex: string): string {
   const m = hex.replace('#', '');
@@ -391,7 +421,7 @@ function renderSection(s: Section): string {
       const paras = s.body
         .split(/\n{2,}/)
         .filter((p) => p.trim())
-        .map((p) => `<p>${esc(p)}</p>`)
+        .map((p) => `<p>${richText(p)}</p>`)
         .join('\n');
       return [
         `<section class="${s.center ? 'center' : ''}">`,
@@ -405,7 +435,7 @@ function renderSection(s: Section): string {
     case 'images': {
       const blocks = s.images.map((im) =>
         im.url.trim()
-          ? `<figure style="margin:0"><img src="${esc(im.url)}" alt="${esc(im.caption)}" loading="lazy">${im.caption ? `<figcaption class="cap">${esc(im.caption)}</figcaption>` : ''}</figure>`
+          ? `<figure style="margin:0"><img src="${esc(im.url)}" alt="${esc(im.alt || im.caption)}" loading="lazy">${im.caption ? `<figcaption class="cap">${esc(im.caption)}</figcaption>` : ''}</figure>`
           : `<figure style="margin:0"><div class="ph">🖼️</div>${im.caption ? `<figcaption class="cap">${esc(im.caption)}</figcaption>` : ''}</figure>`
       );
       return [
@@ -423,7 +453,7 @@ function renderSection(s: Section): string {
         `<div class="grid">${s.items
           .map(
             (it) =>
-              `<div class="card"><div class="dot">${esc(it.icon || '•')}</div><h3>${esc(it.title)}</h3><p>${esc(it.body)}</p></div>`
+              `<div class="card"><div class="dot">${esc(it.icon || '•')}</div><h3>${esc(it.title)}</h3><p>${richText(it.body)}</p></div>`
           )
           .join('\n')}${s.items.length === 0 ? '<div class="card"><h3>Add a feature</h3></div>' : ''}</div>`,
         '</section>',
@@ -435,7 +465,7 @@ function renderSection(s: Section): string {
         `<div class="grid">${s.items
           .map(
             (it) =>
-              `<div class="card"><p class="quote">&ldquo;${esc(it.quote)}&rdquo;</p><p class="who"><b>${esc(it.name)}</b>${esc(it.role)}</p></div>`
+              `<div class="card"><p class="quote">&ldquo;${richText(it.quote)}&rdquo;</p><p class="who"><b>${esc(it.name)}</b>${esc(it.role)}</p></div>`
           )
           .join('\n')}${s.items.length === 0 ? '<div class="card"><p>Add a testimonial</p></div>' : ''}</div>`,
         '</section>',
@@ -489,7 +519,15 @@ export function decodeModel(b64: string): SiteModel | null {
   try {
     const raw = JSON.parse(decodeURIComponent(atob(b64)));
     if (!raw || !Array.isArray(raw.sections)) return null;
-    return { theme: raw.theme || { accent: '#22d3ee', mode: 'dark' }, sections: raw.sections as Section[] };
+    const meta =
+      raw.meta && typeof raw.meta === 'object'
+        ? { parent: typeof raw.meta.parent === 'string' ? raw.meta.parent : undefined }
+        : undefined;
+    return {
+      theme: raw.theme || { accent: '#22d3ee', mode: 'dark' },
+      sections: raw.sections as Section[],
+      ...(meta ? { meta } : {}),
+    };
   } catch {
     return null;
   }
