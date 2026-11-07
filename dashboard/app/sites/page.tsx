@@ -350,7 +350,7 @@ export default function SitesPage() {
         </p>
         <button
           onClick={() => openNew()}
-          className="rounded-none border border-white/15 bg-white px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-slate-200"
+          className="rounded-xl border border-white/15 bg-white px-5 py-2.5 text-base font-bold text-slate-950 transition hover:bg-slate-200"
         >
           + New site
         </button>
@@ -363,7 +363,7 @@ export default function SitesPage() {
             key={t.id}
             onClick={() => openNew(t)}
             title={t.description}
-            className="group flex h-8 w-28 items-center justify-center gap-2 whitespace-nowrap rounded-none border border-slate-400/50 bg-slate-300 text-[11px] font-semibold text-slate-900 transition hover:bg-slate-400"
+            className="group flex h-8 w-28 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-slate-400/50 bg-slate-300 text-[13px] font-semibold text-slate-900 transition hover:bg-slate-400"
           >
             <span className="h-2.5 w-2.5 rounded-full bg-slate-600 group-hover:bg-slate-800" />
             {t.name}
@@ -374,12 +374,12 @@ export default function SitesPage() {
       {loading ? (
         <p className="text-sm text-slate-500">Loading…</p>
       ) : sites.length === 0 ? (
-        <div className="rounded-none border border-dashed border-white/15 bg-white/[0.02] p-10 text-center">
+        <div className="rounded-xl border border-dashed border-white/15 bg-white/[0.02] p-10 text-center">
           <p className="text-sm text-slate-300">No sites yet.</p>
-          <p className="mt-1 text-xs text-slate-500">Pick a template above or start from Blank.</p>
+          <p className="mt-1 text-[13px] text-slate-500">Pick a template above or start from Blank.</p>
           <button
             onClick={() => openNew()}
-            className="mt-4 rounded-none border border-white/15 bg-white px-4 py-2 text-sm font-bold text-slate-950 hover:bg-slate-200"
+            className="mt-4 rounded-xl border border-white/15 bg-white px-4 py-2 text-sm font-bold text-slate-950 hover:bg-slate-200"
           >
             Create your first site
           </button>
@@ -450,7 +450,7 @@ function SiteCard({
   const host = site.subdomain ? `${site.subdomain}.${site.domain}` : site.domain;
   const live = `/site/${site.domain}${site.subdomain ? '/' + site.subdomain : ''}`;
   return (
-    <div className="group overflow-hidden rounded-none border border-white/10 bg-white/[0.03] transition hover:border-white/25 hover:bg-white/[0.05]">
+    <div className="group overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] transition hover:border-white/25 hover:bg-white/[0.05]">
       <button onClick={onOpen} className="block w-full text-left" title="Open editor">
         <div className="relative h-40 overflow-hidden border-b border-white/10 bg-slate-950">
           <iframe
@@ -462,12 +462,12 @@ function SiteCard({
             style={{ width: '400%', height: '400%', transform: 'scale(0.25)', border: 0 }}
           />
           {parent && (
-            <span className="absolute left-2 top-2 rounded-full bg-slate-950/70 px-2 py-0.5 text-[10px] font-semibold text-amber-300 backdrop-blur">
+            <span className="absolute left-2 top-2 rounded-full bg-slate-950/70 px-2 py-0.5 text-[13px] font-semibold text-amber-300 backdrop-blur">
               subpage of {parent}
             </span>
           )}
           <span
-            className="absolute right-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold backdrop-blur"
+            className="absolute right-2 top-2 rounded-full px-2 py-0.5 text-[13px] font-semibold backdrop-blur"
             style={{
               background: site.is_published ? 'rgba(16,185,129,.18)' : 'rgba(148,163,184,.18)',
               color: site.is_published ? '#34d399' : '#cbd5e1',
@@ -480,13 +480,13 @@ function SiteCard({
       <div className="flex items-center justify-between gap-2 p-3">
         <div className="min-w-0">
           <div className="truncate text-sm font-semibold text-white">{site.title || host}</div>
-          <div className="truncate text-xs text-slate-400">{host}</div>
+          <div className="truncate text-[13px] text-slate-400">{host}</div>
         </div>
         <div className="flex shrink-0 items-center gap-0.5">
-          <a href={live} target="_blank" rel="noreferrer" className="rounded-none px-2 py-1 text-xs text-slate-300 hover:bg-white/10">Open</a>
-          <button onClick={onCopy} className="rounded-none px-2 py-1 text-xs text-slate-300 hover:bg-white/10">Copy</button>
-          <button onClick={onDuplicate} className="rounded-none px-2 py-1 text-xs text-slate-300 hover:bg-white/10">Dup</button>
-          <button onClick={onDelete} className="rounded-none px-2 py-1 text-xs text-red-400 hover:bg-red-500/10">Del</button>
+          <a href={live} target="_blank" rel="noreferrer" className="rounded-xl px-2 py-1 text-[13px] text-slate-300 hover:bg-white/10">Open</a>
+          <button onClick={onCopy} className="rounded-xl px-2 py-1 text-[13px] text-slate-300 hover:bg-white/10">Copy</button>
+          <button onClick={onDuplicate} className="rounded-xl px-2 py-1 text-[13px] text-slate-300 hover:bg-white/10">Dup</button>
+          <button onClick={onDelete} className="rounded-xl px-2 py-1 text-[13px] text-red-400 hover:bg-red-500/10">Del</button>
         </div>
       </div>
     </div>
@@ -665,14 +665,14 @@ function SiteEditor({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 sm:p-6" onMouseDown={onClose}>
       <div
-        className="flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-none border border-white/12 bg-canvas"
+        className="flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-white/12 bg-canvas"
         onMouseDown={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex flex-wrap items-center gap-3 border-b border-white/10 px-4 py-3">
           <div className="min-w-0">
             <div className="text-sm font-semibold text-white">{isNew ? 'New site' : (draft.title || draft.subdomain + '.' + SITE_DOMAIN)}</div>
-            <div className="truncate text-xs text-slate-400">
+            <div className="truncate text-[13px] text-slate-400">
               {isNew ? `Will publish to https://${host}` : `https://${host}`}
               {status === 'saving' && <span className="ml-2 text-amber-300">· Saving…</span>}
               {status === 'saved' && !isNew && <span className="ml-2 text-emerald-400">· Saved</span>}
@@ -683,14 +683,14 @@ function SiteEditor({
               value={draft.title}
               onChange={(e) => patchTitle(e.target.value)}
               placeholder="Site name"
-              className="w-40 rounded-none border border-white/12 bg-white/[0.03] px-3 py-1.5 text-sm text-white outline-none focus:border-brand sm:w-52"
+              className="w-40 rounded-xl border border-white/12 bg-white/[0.03] px-3 py-1.5 text-sm text-white outline-none focus:border-brand sm:w-52"
             />
             {!isNew && (
-              <a href={live} target="_blank" rel="noreferrer" className="rounded-none border border-white/15 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/10">
+              <a href={live} target="_blank" rel="noreferrer" className="rounded-xl border border-white/15 px-3 py-1.5 text-[13px] text-slate-200 hover:bg-white/10">
                 Open live
               </a>
             )}
-            <button onClick={onClose} className="rounded-none border border-white/15 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/10">
+            <button onClick={onClose} className="rounded-xl border border-white/15 px-3 py-1.5 text-[13px] text-slate-200 hover:bg-white/10">
               Close
             </button>
           </div>
@@ -701,18 +701,18 @@ function SiteEditor({
           <div className="flex min-h-0 flex-col border-white/10 lg:border-r">
             <div className="min-h-0 flex-1 overflow-y-auto p-4">
               {error && (
-                <div className="mb-3 rounded-none border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</div>
+                <div className="mb-3 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</div>
               )}
 
               {reusable.length > 0 && (
                 <div className="mb-3">
-                  <div className="mb-1 text-[11px] font-semibold tracking-wide text-slate-500">REUSABLE BLOCKS</div>
-                  <p className="mb-2 text-[11px] text-slate-500">Saved blocks you can drop into any of your sites. Click to insert below your selection.</p>
+                  <div className="mb-1 text-[13px] font-semibold tracking-wide text-slate-500">REUSABLE BLOCKS</div>
+                  <p className="mb-2 text-[13px] text-slate-500">Saved blocks you can drop into any of your sites. Click to insert below your selection.</p>
                   <div className="flex flex-col gap-1.5">
                     {reusable.map((b) => (
                       <div
                         key={b.id}
-                        className="flex items-center gap-2.5 rounded-none border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-200"
+                        className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-200"
                       >
                         <button
                           onClick={() => insertReusableBlock(b)}
@@ -725,7 +725,7 @@ function SiteEditor({
                         <button
                           onClick={() => deleteReusableBlock(b.id)}
                           title="Forget this reusable block"
-                          className="shrink-0 rounded p-1 text-xs text-slate-500 hover:bg-red-500/10 hover:text-red-400"
+                          className="shrink-0 rounded p-1 text-[13px] text-slate-500 hover:bg-red-500/10 hover:text-red-400"
                         >
                           ✕
                         </button>
@@ -735,20 +735,20 @@ function SiteEditor({
                 </div>
               )}
               {model.sections.length === 1 && model.sections[0].type === 'legacy' && (
-                <div className="mb-3 rounded-none border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-300">
+                <div className="mb-3 rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-[13px] leading-relaxed text-amber-300">
                   This site was built with the old editor. Its original content appears below as a Custom HTML block — add new sections on top of it, or delete that block to go fully visual.
                 </div>
               )}
 
               {/* ADD A SECTION */}
-              <div className="mb-1 text-[11px] font-semibold tracking-wide text-slate-500">ADD A SECTION</div>
+              <div className="mb-1 text-[13px] font-semibold tracking-wide text-slate-500">ADD A SECTION</div>
               <div className="relative mb-3">
                 <div className="flex flex-col gap-1.5">
                   {PALETTE.map((t) => (
                     <button
                       key={t}
                       onClick={() => insertSection(t)}
-                      className="flex items-center gap-2.5 rounded-none border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-200 transition hover:border-white/25 hover:bg-white/[0.07]"
+                      className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-200 transition hover:border-white/25 hover:bg-white/[0.07]"
                     >
                       <SectionIcon name={SECTION_ICON[t]} />
                       {SECTION_META[t].label}
@@ -759,13 +759,13 @@ function SiteEditor({
 
               {(model.sections.length > 1 || model.sections[0]?.type !== 'legacy') && (
                 <>
-                  <div className="mb-1 mt-4 text-[11px] font-semibold tracking-wide text-slate-500">PAGE SECTIONS</div>
-                  <p className="mb-2 text-[11px] text-slate-500">Click a section to edit its settings — preview updates live.</p>
+                  <div className="mb-1 mt-4 text-[13px] font-semibold tracking-wide text-slate-500">PAGE SECTIONS</div>
+                  <p className="mb-2 text-[13px] text-slate-500">Click a section to edit its settings — preview updates live.</p>
                 </>
               )}
               <div className="flex flex-col gap-1.5">
                 {model.sections.map((s, i) => (
-                  <div key={s.id} className="overflow-hidden rounded-none border border-white/10 bg-white/[0.03]">
+                  <div key={s.id} className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]">
                     <div
                       role="button"
                       tabIndex={0}
@@ -854,7 +854,7 @@ function SiteEditor({
                       </div>
                     )}
                     {s.id === sel && s.type === 'legacy' && (
-                      <div className="border-t border-white/10 px-3 py-2 text-xs text-slate-400">
+                      <div className="border-t border-white/10 px-3 py-2 text-[13px] text-slate-400">
                         Original imported page content — it stays exactly as-is on the published site.
                       </div>
                     )}
@@ -863,10 +863,10 @@ function SiteEditor({
               </div>
 
               {/* Theme */}
-              <div className="mt-5 rounded-none border border-white/10 bg-white/[0.03] p-3">
-                <div className="mb-2 text-[11px] font-semibold tracking-wide text-slate-500">APPEARANCE</div>
+              <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                <div className="mb-2 text-[13px] font-semibold tracking-wide text-slate-500">APPEARANCE</div>
                 <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-2 text-xs text-slate-300">
+                  <label className="flex items-center gap-2 text-[13px] text-slate-300">
                     Accent
                     <input
                       type="color"
@@ -875,12 +875,12 @@ function SiteEditor({
                       className="h-7 w-9 cursor-pointer rounded border border-white/15 bg-transparent p-0"
                     />
                   </label>
-                  <div className="ml-auto flex items-center gap-1 rounded-none border border-white/10 p-0.5">
+                  <div className="ml-auto flex items-center gap-1 rounded-xl border border-white/10 p-0.5">
                     {(['dark', 'light'] as const).map((m) => (
                       <button
                         key={m}
                         onClick={() => apply({ ...model, theme: { ...model.theme, mode: m } })}
-                        className={`rounded-none px-2 py-1 text-xs capitalize ${model.theme.mode === m ? 'bg-white/15 text-white' : 'text-slate-400'}`}
+                        className={`rounded-xl px-2 py-1 text-[13px] capitalize ${model.theme.mode === m ? 'bg-white/15 text-white' : 'text-slate-400'}`}
                       >
                         {m}
                       </button>
@@ -890,8 +890,8 @@ function SiteEditor({
               </div>
 
               {/* Page attributes (parent page / order) */}
-              <div className="mt-5 rounded-none border border-white/10 bg-white/[0.03] p-3">
-                <div className="mb-2 text-[11px] font-semibold tracking-wide text-slate-500">PAGE ATTRIBUTES</div>
+              <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                <div className="mb-2 text-[13px] font-semibold tracking-wide text-slate-500">PAGE ATTRIBUTES</div>
                 <label className={labelCls}>Parent page</label>
                 <select
                   value={model.meta?.parent || ''}
@@ -916,7 +916,7 @@ function SiteEditor({
                       </option>
                     ))}
                 </select>
-                <p className="text-[11px] leading-relaxed text-slate-500">
+                <p className="text-[13px] leading-relaxed text-slate-500">
                   Subpages nest under their parent in the sites list. Section order on the page is set with the ↑ ↓ arrows
                   on each section.
                 </p>
@@ -924,7 +924,7 @@ function SiteEditor({
 
               {/* Templates */}
               <div className="mt-5">
-                <div className="mb-2 text-[11px] font-semibold tracking-wide text-slate-500">START FROM A TEMPLATE</div>
+                <div className="mb-2 text-[13px] font-semibold tracking-wide text-slate-500">START FROM A TEMPLATE</div>
                 <div className="flex flex-wrap gap-2">
                   {SITE_TEMPLATES.map((t) => (
                     <button
@@ -934,7 +934,7 @@ function SiteEditor({
                         else applyTemplate(t, model, apply, onPatch, draft.title);
                       }}
                       title={t.description}
-                      className="group flex h-8 w-28 items-center justify-center gap-2 whitespace-nowrap rounded-none border border-slate-400/50 bg-slate-300 text-[11px] font-semibold text-slate-900 transition hover:bg-slate-400"
+                      className="group flex h-8 w-28 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-slate-400/50 bg-slate-300 text-[13px] font-semibold text-slate-900 transition hover:bg-slate-400"
                     >
                       <span className="h-2.5 w-2.5 rounded-full bg-slate-600 group-hover:bg-slate-800" />
                       {t.name}
@@ -953,15 +953,15 @@ function SiteEditor({
                     value={draft.subdomain}
                     onChange={(e) => onPatch({ subdomain: e.target.value.toLowerCase() })}
                     placeholder="your-name"
-                    className="w-full rounded-none border border-white/12 bg-white/[0.03] px-3 py-2 text-sm font-semibold text-white outline-none focus:border-brand"
+                    className="w-full rounded-xl border border-white/12 bg-white/[0.03] px-3 py-2 text-sm font-semibold text-white outline-none focus:border-brand"
                   />
-                  <div className="mt-1 truncate text-[11px] text-slate-500">{host} — your custom website address</div>
+                  <div className="mt-1 truncate text-[13px] text-slate-500">{host} — your custom website address</div>
                 </div>
               </div>
               {subProblem(draft.subdomain) && (
-                <p className="mb-2 text-[11px] text-amber-300">{subProblem(draft.subdomain)}</p>
+                <p className="mb-2 text-[13px] text-amber-300">{subProblem(draft.subdomain)}</p>
               )}
-              <label className="mb-2 flex cursor-pointer items-center gap-2 text-xs text-slate-400">
+              <label className="mb-2 flex cursor-pointer items-center gap-2 text-[13px] text-slate-400">
                 <input
                   type="checkbox"
                   checked={draft.is_published}
@@ -973,12 +973,12 @@ function SiteEditor({
               <button
                 onClick={isNew ? onCreate : onPublishExisting}
                 disabled={busy || Boolean(subProblem(draft.subdomain))}
-                className="w-full rounded-none bg-blue-600 py-2.5 text-sm font-bold text-white shadow-lg ring-1 ring-blue-300/40 transition hover:bg-blue-500 disabled:opacity-40"
+                className="w-full rounded-xl bg-blue-600 py-3 text-base font-extrabold text-white shadow-lg ring-1 ring-blue-300/40 transition hover:bg-blue-500 disabled:opacity-40"
               >
                 {isNew ? (busy ? 'Publishing…' : 'Publish website') : 'Save & publish'}
               </button>
               {!isNew && (
-                <div className="mt-2 flex items-center justify-between text-xs">
+                <div className="mt-2 flex items-center justify-between text-[13px]">
                   <button onClick={onDuplicate} className="text-slate-400 transition hover:text-white">Duplicate</button>
                   <button onClick={onDelete} className="text-red-400 transition hover:text-red-300">Delete site</button>
                 </div>
@@ -989,20 +989,20 @@ function SiteEditor({
           {/* ── Right: live preview ──────────────────────────────────────── */}
           <div className="flex min-h-0 flex-col bg-slate-950/40">
             <div className="flex items-center gap-2 border-b border-canvas-border bg-canvas-raised px-4 py-2">
-              <span className="text-[11px] font-semibold tracking-wide text-slate-200">LIVE WEBSITE PREVIEW</span>
-              <span className="flex items-center gap-1 text-[11px] text-emerald-400">
+              <span className="text-[13px] font-semibold tracking-wide text-slate-200">LIVE WEBSITE PREVIEW</span>
+              <span className="flex items-center gap-1 text-[13px] text-emerald-400">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" /> realtime
               </span>
-              <div className="ml-auto flex items-center gap-1 rounded-none border border-canvas-border bg-white/90 p-0.5 shadow-sm">
+              <div className="ml-auto flex items-center gap-1 rounded-xl border border-canvas-border bg-white/90 p-0.5 shadow-sm">
                 <button
                   onClick={() => setDevice('desktop')}
-                  className={`rounded-none px-3 py-1 text-xs font-semibold transition ${device === 'desktop' ? 'bg-slate-950 text-white' : 'text-slate-500 hover:text-slate-900'}`}
+                  className={`rounded-xl px-3 py-1 text-[13px] font-semibold transition ${device === 'desktop' ? 'bg-slate-950 text-white' : 'text-slate-500 hover:text-slate-900'}`}
                 >
                   Desktop
                 </button>
                 <button
                   onClick={() => setDevice('mobile')}
-                  className={`rounded-none px-3 py-1 text-xs font-semibold transition ${device === 'mobile' ? 'bg-slate-950 text-white' : 'text-slate-500 hover:text-slate-900'}`}
+                  className={`rounded-xl px-3 py-1 text-[13px] font-semibold transition ${device === 'mobile' ? 'bg-slate-950 text-white' : 'text-slate-500 hover:text-slate-900'}`}
                 >
                   Mobile
                 </button>
@@ -1021,7 +1021,7 @@ function SiteEditor({
                 />
               </div>
             </div>
-            <p className="border-t border-canvas-border bg-canvas-raised px-4 py-1.5 text-xs text-slate-300">Preview updates as you edit your sections.</p>
+            <p className="border-t border-canvas-border bg-canvas-raised px-4 py-1.5 text-[13px] text-slate-300">Preview updates as you edit your sections.</p>
           </div>
         </div>
       </div>
@@ -1035,12 +1035,12 @@ function SiteEditor({
           onClick={() => setPendingTemplate(null)}
         >
           <div
-            className="w-full max-w-md overflow-hidden rounded-none border border-white/12 bg-slate-950 shadow-2xl"
+            className="w-full max-w-md overflow-hidden rounded-xl border border-white/12 bg-slate-950 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="border-b border-white/10 px-6 py-5 text-center">
               <div
-                className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-none border border-white/10"
+                className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-white/10"
                 style={{ background: `${pendingTemplate.accent}22` }}
               >
                 <span className="h-3 w-3 rounded-full" style={{ background: pendingTemplate.accent }} />
@@ -1049,17 +1049,17 @@ function SiteEditor({
               <p className="mt-2 text-sm leading-relaxed text-slate-400">{pendingTemplate.description}</p>
             </div>
             <div className="px-6 py-4">
-              <div className="rounded-none border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-center text-xs leading-relaxed text-amber-300">
+              <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-center text-[13px] leading-relaxed text-amber-300">
                 Your current sections will be replaced. This can&rsquo;t be undone.
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3 px-6 pb-6">
               <button
                 onClick={() => setPendingTemplate(null)}
-                className="rounded-none border border-white/15 bg-white/[0.03] px-4 py-4 text-center transition hover:border-white/25 hover:bg-white/[0.07]"
+                className="rounded-xl border border-white/15 bg-white/[0.03] px-4 py-4 text-center transition hover:border-white/25 hover:bg-white/[0.07]"
               >
                 <span className="block text-sm font-semibold text-slate-200">Cancel</span>
-                <span className="mt-0.5 block text-[11px] text-slate-500">Keep my content</span>
+                <span className="mt-0.5 block text-[13px] text-slate-500">Keep my content</span>
               </button>
               <button
                 onClick={() => {
@@ -1067,10 +1067,10 @@ function SiteEditor({
                   setPendingTemplate(null);
                   applyTemplate(t, model, apply, onPatch, draft.title);
                 }}
-                className="rounded-none border border-white/15 bg-white px-4 py-4 text-center transition hover:bg-white/90"
+                className="rounded-xl border border-white/15 bg-white px-4 py-4 text-center transition hover:bg-white/90"
               >
                 <span className="block text-sm font-bold text-slate-950">Replace</span>
-                <span className="mt-0.5 block text-[11px] text-slate-600">Apply {pendingTemplate.name}</span>
+                <span className="mt-0.5 block text-[13px] text-slate-600">Apply {pendingTemplate.name}</span>
               </button>
             </div>
           </div>
@@ -1100,8 +1100,8 @@ function applyTemplate(
 /* ─────────────────────────── section settings forms ────────────────────── */
 
 const inputCls =
-  'w-full rounded-none border border-white/12 bg-white/[0.03] px-2.5 py-1.5 text-sm text-white outline-none focus:border-brand';
-const labelCls = 'block text-[11px] font-medium text-slate-400';
+  'w-full rounded-xl border border-white/12 bg-white/[0.03] px-2.5 py-1.5 text-sm text-white outline-none focus:border-brand';
+const labelCls = 'block text-[13px] font-medium text-slate-400';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -1130,14 +1130,14 @@ function AreaField({ label, value, onChange, rows = 3, placeholder }: { label: s
 
 function CheckField({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-300">
+    <label className="flex cursor-pointer items-center gap-2 text-[13px] text-slate-300">
       <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="h-3.5 w-3.5 accent-emerald-500" />
       {label}
     </label>
   );
 }
 
-const sliderLbl = 'flex items-center justify-between text-[11px] font-medium text-slate-400';
+const sliderLbl = 'flex items-center justify-between text-[13px] font-medium text-slate-400';
 
 /** Slider-driven layout overrides for any section — alignment, spacing, widths, corners, borders. */
 function LayoutSliders({
@@ -1159,11 +1159,11 @@ function LayoutSliders({
   const hasAny = Boolean(section.style && Object.keys(section.style).length);
 
   return (
-    <div className="mb-3 rounded-none border border-white/10 bg-white/[0.03] p-3">
+    <div className="mb-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-[11px] font-semibold tracking-wide text-slate-500">LAYOUT & POSITION</span>
+        <span className="text-[13px] font-semibold tracking-wide text-slate-500">LAYOUT & POSITION</span>
         {hasAny && (
-          <button onClick={() => onChange({ style: undefined })} className="text-[10px] text-slate-500 underline-offset-2 hover:text-slate-200 hover:underline">
+          <button onClick={() => onChange({ style: undefined })} className="text-[13px] text-slate-500 underline-offset-2 hover:text-slate-200 hover:underline">
             Reset
           </button>
         )}
@@ -1181,7 +1181,7 @@ function LayoutSliders({
           className="mt-1 w-full accent-white"
           aria-label="Alignment"
         />
-        <div className="flex justify-between text-[10px] text-slate-600"><span>Left</span><span>Center</span></div>
+        <div className="flex justify-between text-[13px] text-slate-600"><span>Left</span><span>Center</span></div>
       </div>
 
       <div className="mb-2.5">
@@ -1210,7 +1210,7 @@ function LayoutSliders({
           className="mt-1 w-full accent-white"
           aria-label="Paragraph width"
         />
-        <div className="flex justify-between text-[10px] text-slate-600"><span>320px</span><span>Full width</span></div>
+        <div className="flex justify-between text-[13px] text-slate-600"><span>320px</span><span>Full width</span></div>
       </div>
 
       <div className="mb-2.5">
@@ -1228,7 +1228,7 @@ function LayoutSliders({
           className="mt-1 w-full accent-white"
           aria-label="Corner roundness (1=sharp, 100=pill)"
         />
-        <div className="flex justify-between text-[10px] text-slate-600"><span>1 — sharp</span><span>100 — pill</span></div>
+        <div className="flex justify-between text-[13px] text-slate-600"><span>1 — sharp</span><span>100 — pill</span></div>
       </div>
 
       <div>
@@ -1263,25 +1263,25 @@ function ItemsEditor<T>({ items, onChange, blank, label, children }: {
         <span className={labelCls}>{label}</span>
         <button
           onClick={() => onChange([...items, blank()])}
-          className="rounded-none border border-white/10 px-2 py-0.5 text-[11px] text-slate-300 hover:bg-white/10"
+          className="rounded-xl border border-white/10 px-2 py-0.5 text-[13px] text-slate-300 hover:bg-white/10"
         >
           + Add
         </button>
       </div>
       <div className="flex flex-col gap-2">
         {items.map((it, i) => (
-          <div key={i} className="relative rounded-none border border-white/10 bg-white/[0.02] p-2.5 pr-8">
+          <div key={i} className="relative rounded-xl border border-white/10 bg-white/[0.02] p-2.5 pr-8">
             {children(it, (p) => setAt(i, p), i)}
             <button
               onClick={() => onChange(items.filter((_, j) => j !== i))}
               title="Remove"
-              className="absolute right-1.5 top-1.5 rounded p-1 text-xs text-slate-500 hover:bg-red-500/10 hover:text-red-400"
+              className="absolute right-1.5 top-1.5 rounded p-1 text-[13px] text-slate-500 hover:bg-red-500/10 hover:text-red-400"
             >
               ✕
             </button>
           </div>
         ))}
-        {items.length === 0 && <p className="text-[11px] text-slate-500">Nothing yet — press Add.</p>}
+        {items.length === 0 && <p className="text-[13px] text-slate-500">Nothing yet — press Add.</p>}
       </div>
     </div>
   );
