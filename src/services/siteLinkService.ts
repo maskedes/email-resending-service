@@ -224,6 +224,26 @@ export async function dispatchClickTriggers(link: LinkRow): Promise<void> {
   }
 }
 export async function deleteLink(id: string): Promise<void> { const sb = getSupabase(); await sb.from('links').delete().eq('id', id); }
+
+/**
+ * Writes a per-click log row (event='click') for the redirect path.
+ * Privacy: the last octet of IPv4 is masked, IPv6 is truncated to its first
+ * four groups; user agents are truncated. Fire-and-forget caller — never
+ * let analytics block or fail a redirect.
+ */
+export async function logLinkClick(link: LinkRow, info: { ip: string | null; ua: string | null }): Promise<void> {
+  const sb = getSupabase();
+  const short = shortUrl(link.domain, link.slug);
+  await sb.from('link_logs').insert({
+    link_id: link.id,
+    api_key_id: link.api_key_id,
+    long_url: link.target_url,
+    short_url: short,
+    event: 'click',
+    ip: info.ip,
+    ua: info.ua ? info.ua.slice(0, 200) : null,
+  });
+}
 export async function resolveSite(domain: string, subdomain?: string | null): Promise<SiteRow | null> {
   const sb = getSupabase();
   if (subdomain) {

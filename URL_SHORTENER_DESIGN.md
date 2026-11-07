@@ -108,6 +108,19 @@ Current Supabase+PG path handles that fine; cache push is only needed past ~100 
 - **Hot/cold tiering**: intentionally not implemented. Access patterns are
   power-law-shaped but the dataset is tiny; prioritize the hot path (a real
   short domain + healthy 302) before any storage-tier thinking.
+- **ID strategy vs. article taxonomy**: we implemented the article's
+  "random string generation" strategy — cryptographically-secure base62 chars,
+  existence check via PG `UNIQUE(domain, slug)` + collision retry, vanity
+  aliases with reserved-path validation. Snowflake/partially-predictable codes
+  were rejected on guessability grounds; bloom filters are a negative-lookup
+  optimization for enumeration volume we don't face (indexed unique check
+  is O(1) and already required as the arbiter).
+- **Redirect flow**: 302 (analytics-first) — matches the article's guidance
+  for tracking-focused shorteners. Per-click logging is already async
+  fire-and-forget (the article's Kafka-like decoupling, at our scale).
+- **Cache TTL choice (when Step 4 is built)**: mapping is write-once —
+  24h+ TTLs are appropriate with invalidation only when an admin blocks a
+  malicious target.
 
 ## 7. Summary — the tradeoffs we actually made
 Deliberate, defensible choices (not defaults, not interview theater):

@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { AuthRequest, authMiddleware } from '../middleware/auth';
-import { createSite, listSites, getSite, updateSite, deleteSite, createLink, listLinks, getLinkByDomainSlug, incrementLinkClick, dispatchClickTriggers, deleteLink, resolveSite, AliasConflictError, RateLimitedError, ValidationError } from '../services/siteLinkService.js';
+import { createSite, listSites, getSite, updateSite, deleteSite, createLink, listLinks, getLinkByDomainSlug, incrementLinkClick, logLinkClick, dispatchClickTriggers, deleteLink, resolveSite, AliasConflictError, RateLimitedError, ValidationError } from '../services/siteLinkService.js';
+import { sendEmail } from '../services/emailService.js';
+import { sendSms, isValidPhone } from '../services/smsService.js';
 import { getPool } from '../database/db';
 
 const router = Router();
@@ -52,6 +54,61 @@ router.delete('/links/:id', async (req: AuthRequest, res: Response): Promise<voi
   await deleteLink(req.params.id); res.json({ message: 'deleted' });
 });
 
+// ── Test-send a short link via email or SMS (same API key budget) ──
+router.post('/links/:id/test-send', async (req: AuthRequest, res: Response): Promise<void> => {
+  const pool = getPool();
+  const { rows } = await pool.query('SELECT * FROM links WHERE id=$1 LIMIT 1', [req.params.id]);
+  const link = rows.length ? rows[0] : null;
+  if (!link || (link as { api_key_id: string }).api_key_id !== req.apiKey!.id) {
+    res.status(404).json({ error: { type: 'not_found', message: 'Link not found.' } });
+    return;
+  }
+
+  const { channel, to, from } = req.body as { channel?: string; to?: string; from?: string };
+  const lr = link as { id: string; domain: string; slug: string; target_url: string; api_key_id: string };
+  const shortUrl = `https://${lr.domain}/${lr.slug}`;
+  const targetHost = (() => { try { return new URL(lr.target_url).host; } catch { return lr.target_url; } })();
+
+  try {
+    if (channel === 'sms') {
+      if (!to || !isValidPhone(String(to))) {
+        res.status(400).json({ error: { type: 'validation_error', message: 'A valid E.164 phone number is required for SMS test-send (e.g. +15551234567).' } });
+        return;
+      }
+      const sms = await sendSms(req.apiKey!.id, {
+        to: String(to),
+        body: `Your link: ${shortUrl} (goes to ${targetHost})`,
+        from: from ? String(from) : undefined,
+        tags: { kind: 'link-test-send', link_id: lr.id },
+      });
+      res.status(202).json({ message: 'Test SMS queued for delivery.', sms });
+      return;
+    }
+
+    if (channel === 'email') {
+      if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(to))) {
+        res.status(400).json({ error: { type: 'validation_error', message: 'A valid email address is required for the email test-send.' } });
+        return;
+      }
+      const email = await sendEmail(req.apiKey!.id, {
+        to: String(to),
+        from: from ? String(from) : undefined,
+        subject: `Your short link: ${shortUrl}`,
+        text: `Short link: ${shortUrl}\nOpens: ${lr.target_url}\n\nYou are receiving this because a test-send was triggered from the dashboard.`,
+        html: `<p>Your short link is ready:</p><p><a href="${shortUrl}" style="font-size:16px;font-weight:bold">${shortUrl}</a></p><p style="color:#666;font-size:12px">Opens: ${lr.target_url}</p>`,
+        tags: { kind: 'link-test-send', link_id: lr.id },
+      });
+      res.status(202).json({ message: 'Test email queued for delivery.', email });
+      return;
+    }
+
+    res.status(400).json({ error: { type: 'validation_error', message: "channel must be 'email' or 'sms'." } });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Test send failed.';
+    res.status(400).json({ error: { type: 'validation_error', message: msg } });
+  }
+});
+
 // ── Public resolvers (no auth) — mounted separately in index.ts under /s and /* ──
 export const publicSiteLinkRouter = Router();
 router.get('/links/logs', async (req: AuthRequest, res: Response): Promise<void> => {
@@ -75,6 +132,21 @@ publicSiteLinkRouter.get('/s/:domain/:slug', async (req: Request, res: Response)
   const link = await getLinkByDomainSlug(req.params.domain, req.params.slug);
   if (!link || !link.is_active) { res.status(404).send('Not found'); return; }
   incrementLinkClick(link.id).catch(() => {});
+  // Per-click log rows (masked IP + UA) so the dashboard Links screen shows real activity.
+  const xf = req.headers['x-forwarded-for'];
+  const rawIp = (Array.isArray(xf) ? xf[0] : xf)?.split(',')[0].trim() || req.socket.remoteAddress || null;
+  // WispByte sits behind a proxy: honor the forwarded chain, fall back to the socket.
+  const maskIp = (ip: string): string => {
+    if (ip.includes(':')) {
+      const colonCount = (ip.match(/:/g) || []).length;
+      if (colonCount > 4) return `${ip.split(':').slice(0, 4).join(':')}::*`;
+      return ip;
+    }
+    const parts = ip.split('.');
+    return parts.length === 4 ? `${parts[0]}.${parts[1]}.${parts[2]}.x` : ip;
+  };
+  const ip = rawIp ? maskIp(rawIp) : null;
+  logLinkClick(link, { ip, ua: req.headers['user-agent'] || null }).catch(() => {});
   dispatchClickTriggers(link).catch(() => {});
   res.redirect(302, link.target_url);
 });

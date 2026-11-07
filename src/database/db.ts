@@ -264,6 +264,9 @@ async function runMigrations(pool: Pool): Promise<void> {
       api_key_id UUID NOT NULL REFERENCES api_keys(id),
       long_url TEXT NOT NULL,
       short_url TEXT NOT NULL,
+      event TEXT NOT NULL DEFAULT 'create',
+      ip TEXT,
+      ua TEXT,
       created_at TIMESTAMPTZ DEFAULT now()
     );
 
@@ -281,6 +284,7 @@ async function runMigrations(pool: Pool): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_links_api_key ON links(api_key_id);
     CREATE INDEX IF NOT EXISTS idx_links_domain_slug ON links(domain, slug);
     CREATE INDEX IF NOT EXISTS idx_link_logs_api_key ON link_logs(api_key_id);
+    CREATE INDEX IF NOT EXISTS idx_link_logs_link ON link_logs(link_id, created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_link_triggers_api_key ON link_triggers(api_key_id);
   `);
 }
