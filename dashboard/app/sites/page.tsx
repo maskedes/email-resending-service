@@ -1214,17 +1214,21 @@ function LayoutSliders({
       </div>
 
       <div className="mb-2.5">
-        <div className={sliderLbl}><span>Corner radius (cards & images)</span><span>{st.radius ?? 16}px</span></div>
+        <div className={sliderLbl}>
+          <span>Card &amp; image corner roundness</span>
+          <span>{st.radius ?? 16}px</span>
+        </div>
         <input
           type="range"
-          min={0}
-          max={28}
+          min={1}
+          max={100}
           step={1}
           value={st.radius ?? 16}
           onChange={(e) => set({ radius: Number(e.target.value) })}
           className="mt-1 w-full accent-white"
-          aria-label="Corner radius"
+          aria-label="Corner roundness (1=sharp, 100=pill)"
         />
+        <div className="flex justify-between text-[10px] text-slate-600"><span>1 — sharp</span><span>100 — pill</span></div>
       </div>
 
       <div>

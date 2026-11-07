@@ -381,7 +381,7 @@ const BASE_CSS = `
   html{scroll-behavior:smooth}
   body{margin:0;background:var(--bg);color:var(--fg);font-family:${FONT};line-height:1.6}
   .wrap{max-width:64rem;margin:0 auto;padding:0 1.5rem}
-  section{padding:3.5rem 0}
+  section{padding:3.5rem 1.5rem}
   section:last-of-type{padding-bottom:2rem}
   h1,h2{line-height:1.15;letter-spacing:-.02em;margin:0 0 .6rem}
   h1{font-size:clamp(2rem,5.5vw,3.2rem)}
@@ -397,7 +397,7 @@ const BASE_CSS = `
   .sub{color:var(--muted);max-width:38rem}
   .center .sub{margin-inline:auto}
   .eyebrow{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--acc);border:1px solid var(--acc);border-radius:999px;padding:.3rem .85rem;display:inline-block;margin-bottom:1rem}
-  header.nav{padding:1.1rem 0;display:flex;align-items:center;justify-content:space-between;gap:1rem;border-bottom:1px solid var(--bd)}
+  header.nav{padding:1.1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;border-bottom:1px solid var(--bd)}
   header.nav .logo{font-weight:800;letter-spacing:-.02em;font-size:1.02rem}
   header.nav nav{display:flex;gap:1.1rem;flex-wrap:wrap}
   header.nav nav a{color:var(--muted);text-decoration:none;font-size:.92rem}
@@ -409,6 +409,7 @@ const BASE_CSS = `
   .wa-pad>section,.wa-pad>footer,.wa-pad>header{padding-top:0;padding-bottom:0}
   .wa p, .wa .quote{max-width:var(--cw,none)}
   .wa .sub{max-width:var(--cw,38rem)}
+  .card h3,.card p{overflow-wrap:anywhere}
   .card{border:var(--bw,1px) solid var(--bd);background:var(--card);border-radius:var(--radius,16px);padding:1.3rem}
   .card p{margin:0}
   .dot{width:2.2rem;height:2.2rem;border-radius:10px;background:var(--acc);color:var(--accfg);display:grid;place-items:center;font-size:1rem;font-weight:900}
@@ -419,13 +420,13 @@ const BASE_CSS = `
   .quote{font-size:1rem;color:var(--fg)}
   .who{margin-top:.7rem;font-size:.85rem;color:var(--muted)}
   .who b{color:var(--fg);display:block}
-  footer.ft{border-top:1px solid var(--bd);padding:1.6rem 0;color:var(--muted);font-size:.85rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center}
+  footer.ft{border-top:1px solid var(--bd);padding:1.6rem 1.5rem;color:var(--muted);font-size:.85rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center}
   footer.ft nav{display:flex;gap:1rem;flex-wrap:wrap}
   footer.ft a{color:var(--muted);text-decoration:none}
-  .links-page{min-height:100vh;display:grid;place-items:center;text-align:center;padding:3rem 0}
+  .links-page{min-height:100vh;display:grid;place-items:center;text-align:center;padding:3rem 1.5rem}
   .links-page .avatar{width:4.5rem;height:4.5rem;border-radius:999px;background:var(--acc);color:var(--accfg);display:grid;place-items:center;font-weight:900;font-size:1.8rem;margin:0 auto 1rem}
   .links-page .btn{display:block;width:100%;max-width:22rem;margin:0 0 .7rem}
-  @media(max-width:600px){header.nav nav{display:none}section{padding:2.5rem 0}}
+  @media(max-width:600px){header.nav nav{display:none}section{padding:2.5rem 1rem}}
 `;
 
 function renderSection(s: Section): string {
