@@ -11,6 +11,11 @@ const EVENT_OPTIONS = [
   { value: 'clicked', label: 'On link clicked' },
   { value: 'complained', label: 'On spam complaint' },
   { value: 'unsubscribed', label: 'On unsubscribe' },
+  { value: 'queued', label: 'On email queued' },
+  { value: 'sms.queued', label: 'On SMS queued' },
+  { value: 'sms.sent', label: 'On SMS sent' },
+  { value: 'sms.failed', label: 'On SMS failed' },
+  { value: 'sms.delivered', label: 'On SMS delivered' },
 ] as const;
 
 interface Automation {
@@ -282,18 +287,39 @@ export default function AutomationPage() {
       {/* Payload reference */}
       <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
         <h2 className="mb-3 text-lg font-semibold text-white">What your endpoint receives</h2>
+        <p className="mb-2 text-xs text-slate-500">Email payload</p>
         <pre className="overflow-x-auto border border-canvas-border bg-canvas p-4 text-xs leading-relaxed text-slate-300">
 {`POST <your-url>
 X-Webhook-Signature: sha256=<hmac_hex_of_body>
 
 {
+  "id": "<email-id>:delivered:1762506600000",
   "event": "delivered",
-  "email": {
-    "id": "…", "subject": "…", "to": "user@example.com",
-    "from": "hello@your-domain.com", "status": "delivered"
+  "created_at": "2026-11-07T09:30:00.000Z",
+  "data": {
+    "email_id": "…", "api_key_id": "…",
+    "to": "user@example.com",
+    "from": "hello@your-domain.com",
+    "subject": "…", "status": "delivered",
+    "details": "250 OK",
+    "timestamp": "2026-11-07T09:30:00.000Z"
+  }
+}`}
+        </pre>
+        <p className="mb-2 mt-4 text-xs text-slate-500">SMS payload</p>
+        <pre className="overflow-x-auto border border-canvas-border bg-canvas p-4 text-xs leading-relaxed text-slate-300">
+{`POST <your-url>
+X-Webhook-Signature: sha256=<hmac_hex_of_body>
+
+{
+  "event": "sms.delivered",
+  "data": {
+    "sms_id": "…", "to": "+15551234567",
+    "from": "+15557654321", "body": "…",
+    "parts": 1, "status": "delivered",
+    "details": null, "timestamp": "2026-11-07T09:30:00.000Z"
   },
-  "details": "250 OK",
-  "timestamp": "2026-10-24T18:00:00.000Z"
+  "created_at": "2026-11-07T09:30:00.000Z"
 }`}
         </pre>
         <p className="mt-3 text-xs text-slate-500">

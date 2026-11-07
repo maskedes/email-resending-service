@@ -14,6 +14,31 @@ interface Webhook {
   secret?: string;
 }
 
+interface DeliveryRow {
+  id: string;
+  event: string;
+  attempt: number;
+  outcome: 'delivered' | 'pending_retry' | 'dead';
+  http_status: number | null;
+  error: string | null;
+  delivered_at: string | null;
+  created_at: string;
+}
+
+interface DeliverySummary {
+  attempts: number;
+  delivered: number;
+  failed: number;
+  pending_retry: number;
+  success_rate: number;
+  last: DeliveryRow | null;
+}
+
+interface DeliveriesResponse {
+  data: DeliveryRow[];
+  summary: DeliverySummary;
+}
+
 export default function WebhooksPage() {
   const [webhooks, setWebhooks] = useState<Webhook[]>([]);
   const [name, setName] = useState('');
@@ -22,8 +47,10 @@ export default function WebhooksPage() {
   const [newWebhook, setNewWebhook] = useState<Webhook | null>(null);
   const [error, setError] = useState('');
   const [creating, setCreating] = useState(false);
+  const [deliveries, setDeliveries] = useState<Record<string, DeliveriesResponse | null>>({});
+  const [historyLoading, setHistoryLoading] = useState<Record<string, boolean>>({});
 
-  const ALL_EVENTS = ['sent', 'delivered', 'bounced', 'opened', 'clicked', 'complained', 'unsubscribed'];
+  const ALL_EVENTS = ['sent', 'delivered', 'bounced', 'opened', 'clicked', 'complained', 'unsubscribed', 'queued', 'sms.queued', 'sms.sent', 'sms.failed', 'sms.delivered'];
 
   async function fetchWebhooks() {
     try {
@@ -97,6 +124,29 @@ export default function WebhooksPage() {
     } catch {
       // Error handling
     }
+  }
+
+  async function toggleHistory(id: string) {
+    if (deliveries[id]) {
+      setDeliveries((prev) => ({ ...prev, [id]: null }));
+      return;
+    }
+    setHistoryLoading((prev) => ({ ...prev, [id]: true }));
+    try {
+      const res = await fetch(`/api/webhooks/${id}/deliveries`);
+      const body = await res.json();
+      setDeliveries((prev) => ({ ...prev, [id]: body.data?.length !== undefined ? body : { data: [], summary: { attempts: 0, delivered: 0, failed: 0, pending_retry: 0, success_rate: 0, last: null } } }));
+    } catch {
+      setDeliveries((prev) => ({ ...prev, [id]: null }));
+    } finally {
+      setHistoryLoading((prev) => ({ ...prev, [id]: false }));
+    }
+  }
+
+  function outcomeBadge(outcome: DeliveryRow['outcome']): string {
+    if (outcome === 'delivered') return 'bg-emerald-500/20 text-emerald-400';
+    if (outcome === 'dead') return 'bg-red-500/20 text-red-400';
+    return 'bg-amber-500/20 text-amber-400';
   }
 
   async function toggleWebhook(id: string, isActive: boolean) {
@@ -267,13 +317,84 @@ export default function WebhooksPage() {
                       <> • Last triggered {new Date(webhook.last_triggered_at).toLocaleDateString()}</>
                     )}
                   </p>
-                  <button
-                    onClick={() => copyValue(webhook.url)}
-                    className="text-sm text-brand hover:underline self-start"
-                  >
-                    Copy URL
-                  </button>
+                  <div className="flex items-center gap-4 self-start">
+                    <button
+                      onClick={() => copyValue(webhook.url)}
+                      className="text-sm text-brand hover:underline"
+                    >
+                      Copy URL
+                    </button>
+                    <button
+                      onClick={() => toggleHistory(webhook.id)}
+                      className="text-sm text-slate-300 hover:text-white hover:underline"
+                    >
+                      {historyLoading[webhook.id]
+                        ? 'Loading…'
+                        : deliveries[webhook.id]
+                          ? 'Hide history'
+                          : 'View history'}
+                    </button>
+                  </div>
                 </div>
+
+                {deliveries[webhook.id] && (
+                  <div className="mt-4 rounded-xl border border-canvas-border bg-canvas p-4">
+                    {deliveries[webhook.id]!.data.length === 0 ? (
+                      <p className="text-sm text-slate-500">
+                        No delivery attempts yet — they'll appear here after the first event fires.
+                      </p>
+                    ) : (
+                      <>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                          <span className="text-slate-400">
+                            Success rate{' '}
+                            <span className="font-semibold text-white">
+                              {deliveries[webhook.id]!.summary.success_rate}%
+                            </span>
+                          </span>
+                          <span className="text-emerald-400">{deliveries[webhook.id]!.summary.delivered} delivered</span>
+                          <span className="text-red-400">{deliveries[webhook.id]!.summary.failed} dead</span>
+                          <span className="text-amber-400">{deliveries[webhook.id]!.summary.pending_retry} retrying</span>
+                        </div>
+                        <div className="mt-3 max-h-48 overflow-y-auto">
+                          <table className="w-full text-left text-xs">
+                            <thead className="sticky top-0 bg-canvas text-slate-500">
+                              <tr>
+                                <th className="py-1 pr-4">Event</th>
+                                <th className="py-1 pr-4">Attempt</th>
+                                <th className="py-1 pr-4">Outcome</th>
+                                <th className="py-1 pr-4">HTTP</th>
+                                <th className="py-1">When</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {deliveries[webhook.id]!.data.slice(0, 8).map((d) => (
+                                <tr key={d.id} className="border-t border-canvas-border/60">
+                                  <td className="py-1.5 pr-4 font-mono text-slate-300">{d.event}</td>
+                                  <td className="py-1.5 pr-4 text-slate-400">#{d.attempt}</td>
+                                  <td className="py-1.5 pr-4">
+                                    <span className={`rounded px-2 py-0.5 ${outcomeBadge(d.outcome)}`}>
+                                      {d.outcome}
+                                    </span>
+                                  </td>
+                                  <td className="py-1.5 pr-4 text-slate-400">{d.http_status ?? '—'}</td>
+                                  <td className="py-1.5 text-slate-500">
+                                    {d.created_at ? new Date(d.created_at).toLocaleString() : '—'}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        {deliveries[webhook.id]!.data.length > 8 && (
+                          <p className="mt-2 text-xs text-slate-500">
+                            Showing 8 of {deliveries[webhook.id]!.data.length} recent attempts.
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -284,21 +405,25 @@ export default function WebhooksPage() {
       <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
         <h2 className="mb-4 text-lg font-semibold text-white">Webhook Payload</h2>
         <p className="mb-4 text-sm text-slate-400">
-          Webhooks are sent as POST requests with a JSON body. Verify the signature using the <code className="font-mono text-slate-300">X-Webhook-Signature</code> header.
+          Webhooks are delivered as HTTP POST requests with a JSON body. Verify the signature using the{' '}
+          <code className="font-mono text-slate-300">X-Webhook-Signature</code> header. Deliveries
+          retry with backoff (30s → 5m → 30m) and keep an attempt history in the dashboard.
         </p>
-        <pre className="bg-canvas p-4 overflow-x-auto text-sm text-slate-300">
-{`{
-  "event": "email.sent",
-  "timestamp": "2024-01-15T10:30:00Z",
-  "data": {
-    "id": "msg_abc123",
-    "from": "sender@example.com",
-    "to": "recipient@example.com",
-    "subject": "Hello World",
-    "status": "sent"
-  }
+        <pre className="bg-canvas p-4 overflow-x-auto text-xs leading-relaxed text-slate-300">
+{`POST <your-url>
+X-Webhook-Signature: sha256=<hmac_sha256_of_raw_body>
+
+{
+  "id": "<email-id>:delivered:1762506600000",
+  "event": "delivered",
+  "created_at": "2026-11-07T09:30:00.000Z",
+  "data": { ... }
 }`}
         </pre>
+        <p className="mt-3 text-xs text-slate-500">
+          See the <a href="/documentation/webhooks" className="text-brand hover:underline">Webhooks guide</a> for
+          the full event list, payload schemas (email + SMS), and a signature-verification snippet.
+        </p>
       </section>
     </div>
   );
