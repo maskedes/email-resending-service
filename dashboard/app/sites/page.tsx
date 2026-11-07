@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SITE_TEMPLATES, DEFAULT_TEMPLATE, type SiteTemplate } from '@/lib/siteTemplates';
@@ -41,7 +41,7 @@ type Draft = {
 
 type Status = 'idle' | 'saving' | 'saved' | 'error';
 
-/* ─────────────── reusable blocks (Gutenberg-style, localStorage) ────────────── */
+/* --- reusable blocks (Gutenberg-style, localStorage) --- */
 
 /** A section saved "for reuse across sites" — stored in this browser only. */
 type ReusableBlock = { id: string; name: string; section: Section; saved_at: number };
@@ -343,10 +343,10 @@ export default function SitesPage() {
 
   return (
     <div className="mx-auto max-w-6xl p-6">
-      {/* Toolbar â€” no page <h1> by request. */}
+      {/* Toolbar — no page <h1> by request. */}
       <div className="mb-1 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-slate-400">
-          Build pages visually on <span className="font-semibold text-slate-200">*.{SITE_DOMAIN}</span> â€” add sections, edit settings, publish.
+          Build pages visually on <span className="font-semibold text-slate-200">*.{SITE_DOMAIN}</span> — add sections, edit settings, publish.
         </p>
         <button
           onClick={() => openNew()}
@@ -372,7 +372,7 @@ export default function SitesPage() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-slate-500">Loadingâ€¦</p>
+        <p className="text-sm text-slate-500">Loading…</p>
       ) : sites.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-10 text-center">
           <p className="text-sm text-slate-300">No sites yet.</p>
@@ -493,7 +493,7 @@ function SiteCard({
   );
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• visual editor â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ═══════════════════════════════ visual editor ════════════════════════════ */
 
 const SECTION_ICON: Record<string, string> = {
   hero: 'home',
@@ -621,7 +621,7 @@ function SiteEditor({
     setAddOpen(false);
   };
 
-  /* ── Reusable blocks: save / insert / forget ── */
+  /* Reusable blocks: save / insert / forget */
 
   const saveReusableBlock = (s: Section) => {
     if (s.type === 'legacy') return; // imported HTML is site-specific
@@ -643,7 +643,7 @@ function SiteEditor({
     } else if (sections.length && sections[sections.length - 1].type === 'footer') {
       at = sections.length - 1;
     }
-    const s = cloneSection(b.section); // fresh id → independently editable copy
+    const s = cloneSection(b.section); // fresh id -> independently editable copy
     sections.splice(at, 0, s);
     apply({ ...model, sections });
     setSel(s.id);
@@ -674,8 +674,8 @@ function SiteEditor({
             <div className="text-sm font-semibold text-white">{isNew ? 'New site' : (draft.title || draft.subdomain + '.' + SITE_DOMAIN)}</div>
             <div className="truncate text-xs text-slate-400">
               {isNew ? `Will publish to https://${host}` : `https://${host}`}
-              {status === 'saving' && <span className="ml-2 text-amber-300">Â· Savingâ€¦</span>}
-              {status === 'saved' && !isNew && <span className="ml-2 text-emerald-400">Â· Saved</span>}
+              {status === 'saving' && <span className="ml-2 text-amber-300">· Saving…</span>}
+              {status === 'saved' && !isNew && <span className="ml-2 text-emerald-400">· Saved</span>}
             </div>
           </div>
           <div className="ml-auto flex items-center gap-2">
@@ -697,7 +697,7 @@ function SiteEditor({
         </div>
 
         <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[380px_1fr]">
-          {/* â”€â”€ Left: sections + publish â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          {/* ── Left: sections + publish ─────────────────────────────────── */}
           <div className="flex min-h-0 flex-col border-white/10 lg:border-r">
             <div className="min-h-0 flex-1 overflow-y-auto p-4">
               {error && (
@@ -736,7 +736,7 @@ function SiteEditor({
               )}
               {model.sections.length === 1 && model.sections[0].type === 'legacy' && (
                 <div className="mb-3 rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-300">
-                  This site was built with the old editor. Its original content appears below as a Custom HTML block â€” add new sections on top of it, or delete that block to go fully visual.
+                  This site was built with the old editor. Its original content appears below as a Custom HTML block — add new sections on top of it, or delete that block to go fully visual.
                 </div>
               )}
 
@@ -760,7 +760,7 @@ function SiteEditor({
               {(model.sections.length > 1 || model.sections[0]?.type !== 'legacy') && (
                 <>
                   <div className="mb-1 mt-4 text-[11px] font-semibold tracking-wide text-slate-500">PAGE SECTIONS</div>
-                  <p className="mb-2 text-[11px] text-slate-500">Click a section to edit its settings â€” preview updates live.</p>
+                  <p className="mb-2 text-[11px] text-slate-500">Click a section to edit its settings — preview updates live.</p>
                 </>
               )}
               <div className="flex flex-col gap-1.5">
@@ -792,7 +792,7 @@ function SiteEditor({
                           title="Move up"
                           className="rounded p-1 text-slate-400 hover:bg-white/10 hover:text-white disabled:opacity-25"
                         >
-                          â†‘
+                          ↑
                         </button>
                         <button
                           onClick={() => {
@@ -805,7 +805,7 @@ function SiteEditor({
                           title="Move down"
                           className="rounded p-1 text-slate-400 hover:bg-white/10 hover:text-white disabled:opacity-25"
                         >
-                          â†“
+                          ↓
                         </button>
                         <button
                           onClick={() => saveReusableBlock(s)}
@@ -824,13 +824,23 @@ function SiteEditor({
                           title="Remove section"
                           className="rounded p-1 text-red-400 hover:bg-red-500/10"
                         >
-                          âœ•
+                          ✕
                         </button>
                       </span>
                     </div>
                     {/* Selected section settings */}
                     {s.id === sel && s.type !== 'legacy' && (
                       <div className="border-t border-white/10 px-3 py-3">
+                        <LayoutSliders
+                          section={s}
+                          onChange={(p) => {
+                            if (!model) return;
+                            apply({
+                              ...model,
+                              sections: model.sections.map((x) => (x.id === s.id ? ({ ...x, ...p } as Section) : x)),
+                            });
+                          }}
+                        />
                         <SectionForm
                           section={s}
                           onChange={(p) => {
@@ -845,7 +855,7 @@ function SiteEditor({
                     )}
                     {s.id === sel && s.type === 'legacy' && (
                       <div className="border-t border-white/10 px-3 py-2 text-xs text-slate-400">
-                        Original imported page content â€” it stays exactly as-is on the published site.
+                        Original imported page content — it stays exactly as-is on the published site.
                       </div>
                     )}
                   </div>
@@ -945,7 +955,7 @@ function SiteEditor({
                     placeholder="your-name"
                     className="w-full rounded-lg border border-white/12 bg-white/[0.03] px-3 py-2 text-sm font-semibold text-white outline-none focus:border-brand"
                   />
-                  <div className="mt-1 truncate text-[11px] text-slate-500">{host} â€” your custom website address</div>
+                  <div className="mt-1 truncate text-[11px] text-slate-500">{host} — your custom website address</div>
                 </div>
               </div>
               {subProblem(draft.subdomain) && (
@@ -965,7 +975,7 @@ function SiteEditor({
                 disabled={busy || Boolean(subProblem(draft.subdomain))}
                 className="w-full rounded-full bg-slate-950 py-2.5 text-sm font-bold text-white shadow-lg ring-1 ring-white/15 transition hover:bg-black disabled:opacity-40"
               >
-                {isNew ? (busy ? 'Publishingâ€¦' : 'Publish website') : 'Save & publish'}
+                {isNew ? (busy ? 'Publishing…' : 'Publish website') : 'Save & publish'}
               </button>
               {!isNew && (
                 <div className="mt-2 flex items-center justify-between text-xs">
@@ -976,7 +986,7 @@ function SiteEditor({
             </div>
           </div>
 
-          {/* â”€â”€ Right: live preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          {/* ── Right: live preview ──────────────────────────────────────── */}
           <div className="flex min-h-0 flex-col bg-slate-950/40">
             <div className="flex items-center gap-2 border-b border-white/10 px-4 py-2">
               <span className="text-[11px] font-semibold tracking-wide text-slate-500">LIVE WEBSITE PREVIEW</span>
@@ -998,10 +1008,10 @@ function SiteEditor({
                 </button>
               </div>
             </div>
-            <div className="flex min-h-0 flex-1 items-stretch justify-center overflow-hidden p-3">
+            <div className="min-h-0 flex-1 overflow-hidden">
               <div
-                className="h-full overflow-hidden rounded-xl border border-white/10 bg-white shadow-2xl transition-all"
-                style={{ width: device === 'mobile' ? 390 : '100%' }}
+                className="h-full w-full overflow-hidden border border-white/10 bg-white transition-all"
+                style={{ width: device === 'mobile' ? 390 : '100%', margin: device === 'mobile' ? '0 auto' : undefined }}
               >
                 <iframe
                   title="Live preview"
@@ -1011,7 +1021,7 @@ function SiteEditor({
                 />
               </div>
             </div>
-            <p className="px-4 pb-2 text-xs text-slate-500">Preview updates as you edit your sections.</p>
+            <p className="px-4 py-1.5 text-xs text-slate-500">Preview updates as you edit your sections.</p>
           </div>
         </div>
       </div>
@@ -1087,7 +1097,7 @@ function applyTemplate(
   onPatch({ title: preset.title || '' });
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ section settings forms â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─────────────────────────── section settings forms ────────────────────── */
 
 const inputCls =
   'w-full rounded-lg border border-white/12 bg-white/[0.03] px-2.5 py-1.5 text-sm text-white outline-none focus:border-brand';
@@ -1127,6 +1137,113 @@ function CheckField({ label, checked, onChange }: { label: string; checked: bool
   );
 }
 
+const sliderLbl = 'flex items-center justify-between text-[11px] font-medium text-slate-400';
+
+/** Slider-driven layout overrides for any section — alignment, spacing, widths, corners, borders. */
+function LayoutSliders({
+  section,
+  onChange,
+}: {
+  section: Section;
+  onChange: (p: Record<string, unknown>) => void;
+}) {
+  const st = section.style || {};
+  const set = (patch: Partial<NonNullable<Section['style']>>) => {
+    const next = { ...(section.style || {}), ...patch };
+    // Drop keys that return to default/empty so resetting is clean.
+    for (const k of Object.keys(next) as (keyof typeof next)[]) {
+      if (next[k] === undefined || (k === 'align' && next[k] === 'left')) delete next[k];
+    }
+    onChange({ style: Object.keys(next).length ? next : undefined });
+  };
+  const hasAny = Boolean(section.style && Object.keys(section.style).length);
+
+  return (
+    <div className="mb-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-[11px] font-semibold tracking-wide text-slate-500">LAYOUT & POSITION</span>
+        {hasAny && (
+          <button onClick={() => onChange({ style: undefined })} className="text-[10px] text-slate-500 underline-offset-2 hover:text-slate-200 hover:underline">
+            Reset
+          </button>
+        )}
+      </div>
+
+      <div className="mb-2.5">
+        <div className={sliderLbl}><span>Header & paragraph alignment</span><span>{st.align === 'center' ? 'Center' : 'Left'}</span></div>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={1}
+          value={st.align === 'center' ? 1 : 0}
+          onChange={(e) => set({ align: Number(e.target.value) === 1 ? 'center' : 'left' })}
+          className="mt-1 w-full accent-white"
+          aria-label="Alignment"
+        />
+        <div className="flex justify-between text-[10px] text-slate-600"><span>Left</span><span>Center</span></div>
+      </div>
+
+      <div className="mb-2.5">
+        <div className={sliderLbl}><span>Space above & below</span><span>{st.padY ?? 56}px</span></div>
+        <input
+          type="range"
+          min={0}
+          max={140}
+          step={4}
+          value={st.padY ?? 56}
+          onChange={(e) => set({ padY: Number(e.target.value) })}
+          className="mt-1 w-full accent-white"
+          aria-label="Section spacing"
+        />
+      </div>
+
+      <div className="mb-2.5">
+        <div className={sliderLbl}><span>Paragraph width</span><span>{st.contentW ? `${st.contentW}px` : 'Full'}</span></div>
+        <input
+          type="range"
+          min={320}
+          max={1000}
+          step={20}
+          value={st.contentW ?? 1000}
+          onChange={(e) => set({ contentW: Number(e.target.value) >= 1000 ? undefined : Number(e.target.value) })}
+          className="mt-1 w-full accent-white"
+          aria-label="Paragraph width"
+        />
+        <div className="flex justify-between text-[10px] text-slate-600"><span>320px</span><span>Full width</span></div>
+      </div>
+
+      <div className="mb-2.5">
+        <div className={sliderLbl}><span>Corner radius (cards & images)</span><span>{st.radius ?? 16}px</span></div>
+        <input
+          type="range"
+          min={0}
+          max={28}
+          step={1}
+          value={st.radius ?? 16}
+          onChange={(e) => set({ radius: Number(e.target.value) })}
+          className="mt-1 w-full accent-white"
+          aria-label="Corner radius"
+        />
+      </div>
+
+      <div>
+        <div className={sliderLbl}><span>Border width (cards & images)</span><span>{st.borderW ?? 1}px</span></div>
+        <input
+          type="range"
+          min={0}
+          max={8}
+          step={1}
+          value={st.borderW ?? 1}
+          onChange={(e) => set({ borderW: Number(e.target.value) })}
+          className="mt-1 w-full accent-white"
+          aria-label="Border width"
+        />
+      </div>
+    </div>
+  );
+}
+
 /** Generic repeating-item editor (links, features, testimonials, images). */
 function ItemsEditor<T>({ items, onChange, blank, label, children }: {
   items: T[];
@@ -1156,11 +1273,11 @@ function ItemsEditor<T>({ items, onChange, blank, label, children }: {
               title="Remove"
               className="absolute right-1.5 top-1.5 rounded p-1 text-xs text-slate-500 hover:bg-red-500/10 hover:text-red-400"
             >
-              âœ•
+              ✕
             </button>
           </div>
         ))}
-        {items.length === 0 && <p className="text-[11px] text-slate-500">Nothing yet â€” press Add.</p>}
+        {items.length === 0 && <p className="text-[11px] text-slate-500">Nothing yet — press Add.</p>}
       </div>
     </div>
   );
@@ -1240,7 +1357,7 @@ function SectionForm({
           >
             {(item, set) => (
               <>
-                <input value={item.url} onChange={(e) => set({ url: e.target.value })} placeholder="Image URL (https://â€¦jpg)" className={`${inputCls} mb-1.5`} />
+                <input value={item.url} onChange={(e) => set({ url: e.target.value })} placeholder="Image URL (https://…jpg)" className={`${inputCls} mb-1.5`} />
                 <input
                   value={item.alt || ''}
                   onChange={(e) => set({ alt: e.target.value })}
@@ -1261,13 +1378,13 @@ function SectionForm({
           <ItemsEditor
             label="Feature cards"
             items={section.items}
-            blank={() => ({ icon: 'â­', title: 'New feature', body: 'Describe it here.' })}
+            blank={() => ({ icon: '⭐', title: 'New feature', body: 'Describe it here.' })}
             onChange={(items) => onChange({ items })}
           >
             {(item, set) => (
               <>
                 <div className="grid grid-cols-[56px_1fr] gap-1.5 mb-1.5">
-                  <input value={item.icon} onChange={(e) => set({ icon: e.target.value })} placeholder="ðŸ’¡" className={inputCls} />
+                  <input value={item.icon} onChange={(e) => set({ icon: e.target.value })} placeholder="💡" className={inputCls} />
                   <input value={item.title} onChange={(e) => set({ title: e.target.value })} placeholder="Title" className={inputCls} />
                 </div>
                 <textarea
@@ -1329,7 +1446,7 @@ function SectionForm({
       return (
         <>
           <TextField label="Brand / name" value={section.brand} onChange={(x) => onChange({ brand: x })} />
-          <TextField label="Note (e.g. Â© 2026)" value={section.note} onChange={(x) => onChange({ note: x })} />
+          <TextField label="Note (e.g. © 2026)" value={section.note} onChange={(x) => onChange({ note: x })} />
           <ItemsEditor label="Footer links" items={section.links} blank={linkBlank} onChange={(links) => onChange({ links })}>
             {(item, set) => <LinkFields item={item} set={set} />}
           </ItemsEditor>

@@ -16,10 +16,25 @@ const MARKER_RE = /<!--\s*ENVOY-SITES:v1\s+([A-Za-z0-9+/=]+)\s*-->/;
 
 export type NavLink = { label: string; url: string };
 
+/** Per-section layout overrides — set from the sliders in the editor. */
+export type SectionStyle = {
+  /** 'left' (default) or 'center' — header and paragraphs alignment. */
+  align?: 'left' | 'center';
+  /** Vertical padding above and below the section, px. */
+  padY?: number;
+  /** Max width of paragraph text, px. */
+  contentW?: number;
+  /** Corner radius for cards and images, px. */
+  radius?: number;
+  /** Border width for cards and images, px. */
+  borderW?: number;
+};
+
 export type Section =
-  | { id: string; type: 'nav'; brand: string; links: NavLink[] }
+  | { id: string; style?: SectionStyle; type: 'nav'; brand: string; links: NavLink[] }
   | {
       id: string;
+      style?: SectionStyle;
       type: 'hero';
       eyebrow: string;
       title: string;
@@ -30,20 +45,21 @@ export type Section =
       cta2Url: string;
       center: boolean;
     }
-  | { id: string; type: 'text'; title: string; body: string; center: boolean }
-  | { id: string; type: 'images'; title: string; images: { url: string; caption: string; alt?: string }[] }
+  | { id: string; style?: SectionStyle; type: 'text'; title: string; body: string; center: boolean }
+  | { id: string; style?: SectionStyle; type: 'images'; title: string; images: { url: string; caption: string; alt?: string }[] }
   | {
       id: string;
+      style?: SectionStyle;
       type: 'features';
       title: string;
       subtitle: string;
       items: { icon: string; title: string; body: string }[];
     }
-  | { id: string; type: 'testimonials'; title: string; items: { quote: string; name: string; role: string }[] }
-  | { id: string; type: 'contact'; title: string; subtitle: string; email: string; buttonLabel: string }
-  | { id: string; type: 'links'; title: string; note: string; links: NavLink[] }
-  | { id: string; type: 'footer'; brand: string; note: string; links: NavLink[] }
-  | { id: string; type: 'legacy'; html: string };
+  | { id: string; style?: SectionStyle; type: 'testimonials'; title: string; items: { quote: string; name: string; role: string }[] }
+  | { id: string; style?: SectionStyle; type: 'contact'; title: string; subtitle: string; email: string; buttonLabel: string }
+  | { id: string; style?: SectionStyle; type: 'links'; title: string; note: string; links: NavLink[] }
+  | { id: string; style?: SectionStyle; type: 'footer'; brand: string; note: string; links: NavLink[] }
+  | { id: string; style?: SectionStyle; type: 'legacy'; html: string };
 
 export type SectionType = Exclude<Section['type'], 'legacy'>;
 
@@ -298,6 +314,23 @@ export function templateModel(templateId: string): Preset {
 
 const FONT = 'system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif';
 
+/** Per-section inline styles/class applied in renderModel (see SectionStyle). */
+function wrapAttrs(s: Section): { wrapClass: string; wrapStyle: string } {
+  const st = s.style;
+  const parts: string[] = ['--cw:none', '--radius:16px', '--bw:1px'];
+  // The link-in-bio page is a full-height layout; spacing sliders would distort it.
+  const padOk = s.type !== 'links';
+  const hasPad = padOk && st?.padY != null;
+  if (hasPad) parts.push(`padding-top:${st!.padY}px;padding-bottom:${st!.padY}px`);
+  if (st?.contentW != null) parts.push(`--cw:${st.contentW}px`);
+  if (st?.radius != null) parts.push(`--radius:${st.radius}px`);
+  if (st?.borderW != null) parts.push(`--bw:${st.borderW}px`);
+  const cls = ['wa'];
+  if (hasPad) cls.push('wa-pad');
+  if (st?.align === 'center') cls.push('wa-center');
+  return { wrapClass: cls.join(' '), wrapStyle: parts.join(';') };
+}
+
 const esc = (v: string) =>
   String(v)
     .replace(/&/g, '&amp;')
@@ -370,12 +403,18 @@ const BASE_CSS = `
   header.nav nav a{color:var(--muted);text-decoration:none;font-size:.92rem}
   header.nav nav a:hover{color:var(--fg)}
   .grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
-  .card{border:1px solid var(--bd);background:var(--card);border-radius:16px;padding:1.3rem}
+  .wa{ }
+  .wa-center{text-align:center}
+  .wa-center p{margin-inline:auto}
+  .wa-pad>section,.wa-pad>footer,.wa-pad>header{padding-top:0;padding-bottom:0}
+  .wa p, .wa .quote{max-width:var(--cw,none)}
+  .wa .sub{max-width:var(--cw,38rem)}
+  .card{border:var(--bw,1px) solid var(--bd);background:var(--card);border-radius:var(--radius,16px);padding:1.3rem}
   .card p{margin:0}
   .dot{width:2.2rem;height:2.2rem;border-radius:10px;background:var(--acc);color:var(--accfg);display:grid;place-items:center;font-size:1rem;font-weight:900}
   .imgs{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
-  .imgs img{width:100%;height:180px;object-fit:cover;border-radius:14px;border:1px solid var(--bd);display:block;margin-bottom:.35rem}
-  .ph{height:180px;border-radius:14px;border:1px dashed var(--bd);background:linear-gradient(135deg,rgba(255,255,255,.04),rgba(255,255,255,.01));display:grid;place-items:center;color:var(--muted);font-size:1.6rem;margin-bottom:.35rem}
+  .imgs img{width:100%;height:180px;object-fit:cover;border-radius:var(--radius,14px);border:var(--bw,1px) solid var(--bd);display:block;margin-bottom:.35rem}
+  .ph{height:180px;border-radius:var(--radius,14px);border:var(--bw,1px) dashed var(--bd);background:linear-gradient(135deg,rgba(255,255,255,.04),rgba(255,255,255,.01));display:grid;place-items:center;color:var(--muted);font-size:1.6rem;margin-bottom:.35rem}
   .cap{font-size:.82rem;color:var(--muted);text-align:center}
   .quote{font-size:1rem;color:var(--fg)}
   .who{margin-top:.7rem;font-size:.85rem;color:var(--muted)}
@@ -566,8 +605,12 @@ export function renderModel(model: SiteModel, title: string): string {
 
   const parts: string[] = [];
   for (const s of model.sections) {
-    if (s.type === 'legacy') parts.push(legacyInner(s.html));
-    else parts.push(renderSection(s));
+    if (s.type === 'legacy') {
+      parts.push(legacyInner(s.html));
+      continue;
+    }
+    const { wrapClass, wrapStyle } = wrapAttrs(s);
+    parts.push(`<div class="${wrapClass}" style="${wrapStyle}">${renderSection(s)}</div>`);
   }
 
   return `<!DOCTYPE html>
