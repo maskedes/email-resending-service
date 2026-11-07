@@ -988,21 +988,21 @@ function SiteEditor({
 
           {/* ── Right: live preview ──────────────────────────────────────── */}
           <div className="flex min-h-0 flex-col bg-slate-950/40">
-            <div className="flex items-center gap-2 border-b border-white/10 px-4 py-2">
-              <span className="text-[11px] font-semibold tracking-wide text-slate-500">LIVE WEBSITE PREVIEW</span>
+            <div className="flex items-center gap-2 border-b border-canvas-border bg-canvas-raised px-4 py-2">
+              <span className="text-[11px] font-semibold tracking-wide text-slate-200">LIVE WEBSITE PREVIEW</span>
               <span className="flex items-center gap-1 text-[11px] text-emerald-400">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" /> realtime
               </span>
-              <div className="ml-auto flex items-center gap-1 rounded-none border border-white/10 p-0.5">
+              <div className="ml-auto flex items-center gap-1 rounded-none border border-canvas-border bg-white/90 p-0.5 shadow-sm">
                 <button
                   onClick={() => setDevice('desktop')}
-                  className={`rounded-none px-2 py-1 text-xs ${device === 'desktop' ? 'bg-white/15 text-white' : 'text-slate-400'}`}
+                  className={`rounded-none px-3 py-1 text-xs font-semibold transition ${device === 'desktop' ? 'bg-slate-950 text-white' : 'text-slate-500 hover:text-slate-900'}`}
                 >
                   Desktop
                 </button>
                 <button
                   onClick={() => setDevice('mobile')}
-                  className={`rounded-none px-2 py-1 text-xs ${device === 'mobile' ? 'bg-white/15 text-white' : 'text-slate-400'}`}
+                  className={`rounded-none px-3 py-1 text-xs font-semibold transition ${device === 'mobile' ? 'bg-slate-950 text-white' : 'text-slate-500 hover:text-slate-900'}`}
                 >
                   Mobile
                 </button>
@@ -1021,7 +1021,7 @@ function SiteEditor({
                 />
               </div>
             </div>
-            <p className="px-4 py-1.5 text-xs text-slate-500">Preview updates as you edit your sections.</p>
+            <p className="border-t border-canvas-border bg-canvas-raised px-4 py-1.5 text-xs text-slate-300">Preview updates as you edit your sections.</p>
           </div>
         </div>
       </div>
