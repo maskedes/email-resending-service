@@ -363,9 +363,9 @@ export default function SitesPage() {
             key={t.id}
             onClick={() => openNew(t)}
             title={t.description}
-            className="group flex h-8 w-28 items-center justify-center gap-2 whitespace-nowrap rounded-none border border-white/10 bg-white/[0.09] text-[11px] text-slate-200 transition hover:border-white/25 hover:bg-white/[0.15] hover:text-white"
+            className="group flex h-8 w-28 items-center justify-center gap-2 whitespace-nowrap rounded-none border border-slate-400/50 bg-slate-300 text-[11px] font-semibold text-slate-900 transition hover:bg-slate-400"
           >
-            <span className="h-2.5 w-2.5 rounded-full bg-slate-500 group-hover:bg-slate-300" />
+            <span className="h-2.5 w-2.5 rounded-full bg-slate-600 group-hover:bg-slate-800" />
             {t.name}
           </button>
         ))}
@@ -934,9 +934,9 @@ function SiteEditor({
                         else applyTemplate(t, model, apply, onPatch, draft.title);
                       }}
                       title={t.description}
-                      className="group flex h-8 w-28 items-center justify-center gap-2 whitespace-nowrap rounded-none border border-white/10 bg-white/[0.09] text-[11px] text-slate-200 transition hover:border-white/25 hover:bg-white/[0.15] hover:text-white"
+                      className="group flex h-8 w-28 items-center justify-center gap-2 whitespace-nowrap rounded-none border border-slate-400/50 bg-slate-300 text-[11px] font-semibold text-slate-900 transition hover:bg-slate-400"
                     >
-                      <span className="h-2.5 w-2.5 rounded-full bg-slate-500 group-hover:bg-slate-300" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-slate-600 group-hover:bg-slate-800" />
                       {t.name}
                     </button>
                   ))}
