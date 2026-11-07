@@ -1035,18 +1035,18 @@ function SiteEditor({
           onClick={() => setPendingTemplate(null)}
         >
           <div
-            className="w-full max-w-md overflow-hidden rounded-xl border border-white/12 bg-slate-950 shadow-2xl"
+            className="w-full max-w-md overflow-hidden rounded-2xl border border-white/12 bg-slate-950 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="border-b border-white/10 px-6 py-5 text-center">
               <div
-                className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-white/10"
-                style={{ background: `${pendingTemplate.accent}22` }}
+                className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10"
+                style={{ background: `${pendingTemplate.accent}26` }}
               >
-                <span className="h-3 w-3 rounded-full" style={{ background: pendingTemplate.accent }} />
+                <span className="h-3.5 w-3.5 rounded-full" style={{ background: pendingTemplate.accent }} />
               </div>
-              <h2 className="text-base font-bold text-white">Replace content with &ldquo;{pendingTemplate.name}&rdquo;?</h2>
-              <p className="mt-2 text-sm leading-relaxed text-slate-400">{pendingTemplate.description}</p>
+              <h2 className="text-xl font-extrabold tracking-tight !text-white">Replace content with &ldquo;{pendingTemplate.name}&rdquo;?</h2>
+              <p className="mt-2 text-[15px] leading-relaxed text-slate-300">{pendingTemplate.description}</p>
             </div>
             <div className="px-6 py-4">
               <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-center text-[13px] leading-relaxed text-amber-300">
@@ -1056,10 +1056,10 @@ function SiteEditor({
             <div className="grid grid-cols-2 gap-3 px-6 pb-6">
               <button
                 onClick={() => setPendingTemplate(null)}
-                className="rounded-xl border border-white/15 bg-white/[0.03] px-4 py-4 text-center transition hover:border-white/25 hover:bg-white/[0.07]"
+                className="rounded-2xl border border-white/15 bg-white/[0.05] px-4 py-4 text-center transition hover:border-white/25 hover:bg-white/[0.08]"
               >
-                <span className="block text-sm font-semibold text-slate-200">Cancel</span>
-                <span className="mt-0.5 block text-[13px] text-slate-500">Keep my content</span>
+                <span className="block text-base font-semibold text-slate-100">Cancel</span>
+                <span className="mt-0.5 block text-[13px] text-slate-400">Keep my content</span>
               </button>
               <button
                 onClick={() => {
@@ -1067,9 +1067,9 @@ function SiteEditor({
                   setPendingTemplate(null);
                   applyTemplate(t, model, apply, onPatch, draft.title);
                 }}
-                className="rounded-xl border border-white/15 bg-white px-4 py-4 text-center transition hover:bg-white/90"
+                className="rounded-2xl border border-white/15 bg-white px-4 py-4 text-center transition hover:bg-white/90"
               >
-                <span className="block text-sm font-bold text-slate-950">Replace</span>
+                <span className="block text-base font-extrabold text-slate-950">Replace</span>
                 <span className="mt-0.5 block text-[13px] text-slate-600">Apply {pendingTemplate.name}</span>
               </button>
             </div>
