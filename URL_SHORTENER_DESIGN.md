@@ -38,7 +38,7 @@ Use `go.mailenvoy.qd.je` (or `lnk.mailenvoy.qd.je` — cigarettes style).
   **Why not counter-based:** sequential IDs are enumerable (`short-1`, `short-2`…)
   — unacceptable for private links; and single-node deployment makes a
   coordinated counter/Snowflake service pure coordination overhead.
-  Base62 randomness solves both uniqueness-risk and guessability at once.**
+  Base62 randomness solves both uniqueness-risk and guessability at once.
 
 ### Step 3 — URL canonicalization + safety (P1) — **DONE**
 - Normalize on write (`canonicalizeUrl()`): lowercase scheme/host,
@@ -73,6 +73,21 @@ Use `go.mailenvoy.qd.je` (or `lnk.mailenvoy.qd.je` — cigarettes style).
 Current Supabase+PG path handles that fine; cache push is only needed past ~100 rps.
 
 ## 5. Immediate action items
-1. Decide short domain (`go.mailenvoy.qd.je` / `lnk.mailenvoy.qd.je` or `e.mailenvoy.qd.je`)
+1. Decide short domain (`go.mailenvoy.qd.je` recommended), point DNS at WispByte, set `SHORT_LINK_DOMAIN`
 2. Deploy WispByte + Vercel first (current prod artifacts are ahead of the server)
-3. Then execute Steps 1–3 (small, self-contained PRs)
+3. Steps 2 & 3 of the hardening plan are **DONE** (base62 slug IDs, 409 conflicts, canonicalization, per-key dedupe)
+
+## 6. Consistency & idempotency notes (article sync)
+- **Redirect correctness is strong-consistency**: `(domain, slug) → target_url`
+  is write-never-changed-after-create (no edit endpoint exists), so every read
+  resolves identically. Keep it that way unless a `PATCH /links/:id` is added —
+  if it ever is, add cache invalidation at the same time (Step 4).
+- **Click counts are eventually consistent by construction**: `clicks` is
+  fire-and-forget incremented off the redirect path; being off by a handful is
+  acceptable analytics behavior, exactly as designed.
+- **Create is idempotent via dedupe**: retrying `POST /api/links` with the same
+  canonical target for the same API key returns the existing link instead of a
+  duplicate row — no slug waste, safe client retries.
+- **Hot/cold tiering**: intentionally not implemented. Access patterns are
+  power-law-shaped but the dataset is tiny; prioritize the hot path (a real
+  short domain + healthy 302) before any storage-tier thinking.
