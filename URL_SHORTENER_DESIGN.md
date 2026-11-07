@@ -29,30 +29,34 @@ Use `go.mailenvoy.qd.je` (or `lnk.mailenvoy.qd.je` — cigarettes style).
 - Remove `en.12` as a runtime default — configuration-driven (`SHORT_LINK_DOMAIN` env).
 - Redirect behavior: keep **302** (analytics-safe, allows changing target).
 
-### Step 2 — Vanity slug disambiguation (P0)
-- `POST /api/links` with explicit `slug`: detect existing `(domain, slug)` →
-  return `409 { error: { type: 'alias_conflict', message: 'That short link is taken' } }`.
-- Auto-generated slugs: `base62(bigint)` free path — allocate an ID from an
-  `links.id` sequence (existing UUID PK works as bigint source; take high bits),
-  encode to base62, ~6 chars; unique index on `links(domain, slug)` enforced at DB.
-- Retry on collision (max ~5 attempts before falling back to a longer code).
+### Step 2 — Vanity slug disambiguation (P0) — **DONE**
+- `POST /api/links` with explicit `slug`: existing `(domain, slug)` →
+  **`409 { error: { type: 'alias_conflict' } }`** (detects PG 23505, no more raw DB errors).
+- Auto-generated slugs: high-entropy **base62 codes** (random bytes → base62),
+  ~6 chars (62^6 ≈ 57B space), 5 collision retries widening to 8 chars.
+  PG `UNIQUE(domain, slug)` is the arbiter.
+  **Why not counter-based:** sequential IDs are enumerable (`short-1`, `short-2`…)
+  — unacceptable for private links; and single-node deployment makes a
+  coordinated counter/Snowflake service pure coordination overhead.
+  Base62 randomness solves both uniqueness-risk and guessability at once.**
 
-### Step 3 — URL canonicalization + safety (P1)
-- Normalize on write: lowercase scheme/host, strip default port (`:80`/`:443`),
-  strip trailing slash on path (except pure `/`), collapse repeated slashes, sort
-  query params alphabetically (optional, opt-in for power users).
-- **Block dangerous protocols** in the write path: allow only `http` and `https`
-  (reject `javascript:`, `data:`, `file:`). Optionally, blocklists for known
-  phishing hosts via a small local list (feeds P3).
-- Dedup: one key per `(api_key_id, canonical_target_url)` — return the existing
-  short URL rather than a new slug (preserves analytics, saves storage).
+### Step 3 — URL canonicalization + safety (P1) — **DONE**
+- Normalize on write (`canonicalizeUrl()`): lowercase scheme/host,
+  strip default ports (`:80`/`:443`), collapse repeated slashes, strip trailing slash
+  (except bare `/`), reject credentialed URLs, and **only `http`/`https`** —
+  `javascript:`, `data:`, `file:`, `mailto:` are refused.
+- Dedup: one link per `(api_key_id, canonical target_url)` — creating the same
+  target twice returns the **existing** short URL (no slug waste, analytics stay unified).
 
-### Step 4 — Redirect cache (P2, when volume > ~100 rps or latency matters)
+### Step 4 — Redirect cache (P2, when volume > ~100 rps or latency matters) — **not yet (correct call)**
 - Read path is the hot path — redirect must be O(1).
 - Redis cache: `link:<domain>:<slug> → target_url` with TTL 10 min (LRU style),
   populate on miss, invalidate on `PATCH /links/:id` (none exists yet; add it).
 - Click counter goes to a Redis INCR, flushed to Supabase asynchronously in
   batches (every 5s, no per-request DB hit).
+- Graceful degradation is already true: cache-down → DB fallback, slightly
+  slower but still correct. Async analytics (click logs, click triggers) are
+  already fire-and-forget off the redirect path.
 
 ### Step 5 — Read replica + future abuse prevention (P3, not yet)
 - Phishing / malware redirect-destination scan at creation time.

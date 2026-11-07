@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { AuthRequest, authMiddleware } from '../middleware/auth';
-import { createSite, listSites, getSite, updateSite, deleteSite, createLink, listLinks, getLinkByDomainSlug, incrementLinkClick, dispatchClickTriggers, deleteLink, resolveSite } from '../services/siteLinkService.js';
+import { createSite, listSites, getSite, updateSite, deleteSite, createLink, listLinks, getLinkByDomainSlug, incrementLinkClick, dispatchClickTriggers, deleteLink, resolveSite, AliasConflictError, ValidationError } from '../services/siteLinkService.js';
 import { getPool } from '../database/db';
 
 const router = Router();
@@ -31,8 +31,14 @@ router.delete('/sites/:id', async (req: AuthRequest, res: Response): Promise<voi
 router.post('/links', async (req: AuthRequest, res: Response): Promise<void> => {
   const { domain, slug, target_url, site_id } = req.body as { domain?: string; slug?: string; target_url?: string; site_id?: string };
   if (!target_url) { res.status(400).json({ error: { type: 'validation_error', message: 'target_url (long URL) required' } }); return; }
-  // domain defaults to en.12 (short domain), slug auto-generated if empty — same api_key handles logs & triggers
-  try { const link = await createLink(req.apiKey!.id, { domain, slug, target_url, site_id }); res.status(201).json(link); } catch (e: unknown) { const msg = e instanceof Error ? e.message : 'failed'; res.status(400).json({ error: { type: 'validation_error', message: msg } }); }
+  // domain defaults to SHORT_LINK_DOMAIN env (legacy: en.12), slug auto-generated if empty — same api_key handles logs & triggers
+  try { const link = await createLink(req.apiKey!.id, { domain, slug, target_url, site_id }); res.status(201).json(link); }
+  catch (e: unknown) {
+    if (e instanceof AliasConflictError) { res.status(409).json({ error: { type: 'alias_conflict', message: e.message } }); return; }
+    if (e instanceof ValidationError) { res.status(400).json({ error: { type: 'validation_error', message: e.message } }); return; }
+    const msg = e instanceof Error ? e.message : 'failed';
+    res.status(400).json({ error: { type: 'validation_error', message: msg } });
+  }
 });
 router.get('/links', async (req: AuthRequest, res: Response): Promise<void> => { res.json({ data: await listLinks(req.apiKey!.id) }); });
 router.delete('/links/:id', async (req: AuthRequest, res: Response): Promise<void> => {
