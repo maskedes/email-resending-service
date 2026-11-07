@@ -944,29 +944,29 @@ function SiteEditor({
               </div>
             </div>
 
-            {/* Publish bar — blue card */}
-            <div className="border-t-2 border-blue-400/60 bg-blue-950/70 p-4">
+            {/* Publish bar — button is blue, card stays standard */}
+            <div className="border-t border-white/10 p-4">
               <div className="mb-2 flex items-center gap-2">
-                <svg width="16" height="16" viewBox="0 0 20 20" className="shrink-0 text-blue-300"><g fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="10" cy="10" r="7.5" /><path d="M2.5 10h15M10 2.5c-4.5 4.7-4.5 10.3 0 15M10 2.5c4.5 4.7 4.5 10.3 0 15" /></g></svg>
+                <svg width="16" height="16" viewBox="0 0 20 20" className="shrink-0 text-slate-400"><g fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="10" cy="10" r="7.5" /><path d="M2.5 10h15M10 2.5c-4.5 4.7-4.5 10.3 0 15M10 2.5c4.5 4.7 4.5 10.3 0 15" /></g></svg>
                 <div className="min-w-0 flex-1">
                   <input
                     value={draft.subdomain}
                     onChange={(e) => onPatch({ subdomain: e.target.value.toLowerCase() })}
                     placeholder="your-name"
-                    className="w-full rounded-none border border-blue-300/40 bg-blue-900/50 px-3 py-2 text-sm font-semibold text-white outline-none placeholder-blue-200/40 focus:border-blue-300"
+                    className="w-full rounded-none border border-white/12 bg-white/[0.03] px-3 py-2 text-sm font-semibold text-white outline-none focus:border-brand"
                   />
-                  <div className="mt-1 truncate text-[11px] text-blue-200/70">{host} — your custom website address</div>
+                  <div className="mt-1 truncate text-[11px] text-slate-500">{host} — your custom website address</div>
                 </div>
               </div>
               {subProblem(draft.subdomain) && (
                 <p className="mb-2 text-[11px] text-amber-300">{subProblem(draft.subdomain)}</p>
               )}
-              <label className="mb-2 flex cursor-pointer items-center gap-2 text-xs text-blue-100/70">
+              <label className="mb-2 flex cursor-pointer items-center gap-2 text-xs text-slate-400">
                 <input
                   type="checkbox"
                   checked={draft.is_published}
                   onChange={(e) => onPatch({ is_published: e.target.checked })}
-                  className="h-3.5 w-3.5 accent-blue-500"
+                  className="h-3.5 w-3.5 accent-emerald-500"
                 />
                 Visible live after publishing
               </label>
@@ -979,7 +979,7 @@ function SiteEditor({
               </button>
               {!isNew && (
                 <div className="mt-2 flex items-center justify-between text-xs">
-                  <button onClick={onDuplicate} className="text-blue-200/70 transition hover:text-white">Duplicate</button>
+                  <button onClick={onDuplicate} className="text-slate-400 transition hover:text-white">Duplicate</button>
                   <button onClick={onDelete} className="text-red-400 transition hover:text-red-300">Delete site</button>
                 </div>
               )}
