@@ -128,7 +128,7 @@ export default function DomainsPage() {
               });
             }
           } catch {
-            // Silent fail � domains remain in their current state
+            // Silent fail — domains remain in their current state
           } finally {
             setCheckingIds(new Set());
           }
@@ -254,10 +254,10 @@ export default function DomainsPage() {
         : RECORD_PENDING[type];
     const label = live
       ? verified
-        ? `${type} ?`
-        : `${type} �`
+        ? `${type} ✓`
+        : `${type} ✗`
       : verified
-        ? `${type} ?`
+        ? `${type} ✓`
         : `${type} pending`;
     return (
       <span
@@ -283,7 +283,7 @@ export default function DomainsPage() {
             }`}
           />
           <span className="text-slate-400">
-            {connected ? 'Live � realtime DNS checks' : 'Reconnecting�'}
+            {connected ? 'Live · realtime DNS checks' : 'Reconnecting…'}
           </span>
         </div>
       </div>
@@ -356,7 +356,7 @@ export default function DomainsPage() {
             disabled={creating}
             className="w-full rounded-xl md:w-auto bg-brand px-6 py-2.5 font-medium text-black transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {creating ? 'Adding�' : 'Add Domain'}
+            {creating ? 'Adding…' : 'Add Domain'}
           </button>
         </form>
       </section>
@@ -379,7 +379,7 @@ export default function DomainsPage() {
                   key={domain.id}
                   className="rounded-2xl border border-canvas-border bg-canvas/30 overflow-hidden"
                 >
-                  {/* Collapsed row � click to expand */}
+                  {/* Collapsed row — click to expand */}
                   <button
                     onClick={() => toggleExpand(domain.id)}
                     className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-brand/5 transition-colors"
@@ -404,7 +404,7 @@ export default function DomainsPage() {
                           </svg>
                         )}
                         {checking
-                          ? 'Checking DNS records�'
+                          ? 'Checking DNS records…'
                           : domain.last_checked_at
                             ? `Last checked ${new Date(domain.last_checked_at).toLocaleString()}`
                             : `Added ${new Date(domain.created_at).toLocaleDateString()}`}
@@ -507,7 +507,7 @@ export default function DomainsPage() {
                           disabled={checking}
                           className="bg-brand px-4 py-1.5 text-sm font-medium text-black transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-wait"
                         >
-                          {checking ? 'Verifying�' : 'Verify DNS'}
+                          {checking ? 'Verifying…' : 'Verify DNS'}
                         </button>
                         <button
                           onClick={(e) => {
