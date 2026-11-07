@@ -58,7 +58,24 @@ Use `go.mailenvoy.qd.je` (or `lnk.mailenvoy.qd.je` — cigarettes style).
   slower but still correct. Async analytics (click logs, click triggers) are
   already fire-and-forget off the redirect path.
 
-### Step 5 — Read replica + future abuse prevention (P3, not yet)
+### Step 5 — Abuse & security guards (P1) — **DONE**
+Article's "what prevents someone from using your service to distribute malware?"
+answered in code (`src/services/urlSafety.ts`, wired into `createLink`):
+
+| Measure | Threat | Implementation |
+| --- | --- | --- |
+| URL validation | Malformed/invalid/schemed targets | `canonicalizeUrl()` — only http/https, no user-info, canonical form |
+| Local/private-host rejection | Internal-address phishing / SSRF-alikes | `isLocalOrPrivateHost()` — localhost, 127/8, RFC1918, link-local, .local/.internal |
+| Reputation check | Known malware/phishing URLs | Optional **Google Safe Browsing v4** (`SAFE_BROWSING_API_KEY`, 2s timeout, **fail-open**) |
+| Create-path rate limit | Spam, ID-space flooding, DoS | Per-API-key fixed window, **5 links/sec** → `429` + `Retry-After` (separate budget from sends) |
+| Unpredictable codes | Enumeration of private links | Random base62 IDs (Step 2) |
+| Alias abuse | Impersonation / routing hijack | `validateVanitySlug()` — reserved slugs (`api`, `s`, `admin`, `login`…) + impersonation patterns rejected |
+| Vanity conflicts | Two users, same alias | `409 alias_conflict` (Step 2) |
+
+Trust & safety teams / daily scans of millions of URLs (Bitly-style) stay a
+non-goal until volume justifies them.
+
+### Step 6 — Read replica + future abuse prevention (P3, not yet)
 - Phishing / malware redirect-destination scan at creation time.
 - Geo-aware redirects, open-redirect metrics, QR generation.
 - Hourly redirect-count reporting per link for tenant-level analytics.
@@ -91,3 +108,19 @@ Current Supabase+PG path handles that fine; cache push is only needed past ~100 
 - **Hot/cold tiering**: intentionally not implemented. Access patterns are
   power-law-shaped but the dataset is tiny; prioritize the hot path (a real
   short domain + healthy 302) before any storage-tier thinking.
+
+## 7. Summary — the tradeoffs we actually made
+Deliberate, defensible choices (not defaults, not interview theater):
+1. **Redirect performance dominates**: 302 kept (analytics fidelity) — the
+   correct trade for a marketing/analytics shortener; 301 would trade
+   accuracy for load reduction we don't need yet.
+2. **Uniqueness without coordination**: random base62 IDs arbitrated by the
+   DB unique index — no counter service, no Snowflake, and non-enumerable
+   (solves the predictability tradeoff for free).
+3. **Consistency where it matters**: the mapping is write-once → strong
+   consistency for free; click counters are eventual (auxiliary).
+4. **Graceful degradation everywhere**: analytics/triggers fire-and-forget;
+   Safe Browsing fails open; limiter is in-process with no Redis dependency.
+5. **Feature surface stays honest**: no QR, geo-routing, A/B, or consent
+   banners until there's a reason — but the architecture (async tap points on
+   create/redirect) leaves room for every one of them.

@@ -1,6 +1,8 @@
 import { randomBytes, randomUUID as uuidv4 } from 'node:crypto';
 import { getPool } from '../database/db';
 import { getSupabase } from '../database/supabase';
+import { rejectUnsafeUrl, validateVanitySlug } from './urlSafety';
+import { checkRateLimit } from './rateLimiter';
 
 export interface SiteRow { id: string; api_key_id: string; domain: string; subdomain: string | null; title: string | null; html: string; is_published: boolean; created_at: string; updated_at: string }
 export interface LinkRow { id: string; api_key_id: string; site_id: string | null; domain: string; slug: string; target_url: string; clicks: number; is_active: boolean; created_at: string }
@@ -22,6 +24,16 @@ export class AliasConflictError extends Error {
 export class ValidationError extends Error {
   code = 'validation_error';
   constructor(message: string) { super(message); }
+}
+
+/** Thrown when the API key exceeds its link-creation budget → HTTP 429. */
+export class RateLimitedError extends Error {
+  code = 'rate_limit_exceeded';
+  retryAfterSeconds: number;
+  constructor(retryAfterSeconds: number) {
+    super(`Too many links created. Try again in ${retryAfterSeconds}s.`);
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
 }
 
 // ── URL canonicalization (normalized targets → no duplicate slugs, no dangerous schemes) ──
@@ -103,10 +115,31 @@ export async function createLink(apiKeyId: string, input: { domain?: string; slu
   const sb = getSupabase(); const id = uuidv4();
   const domain = (input.domain || defaultShortDomain()).trim() || defaultShortDomain();
 
+  // Abuse guard (edge-of-write): reject the request early when the key is
+  // flooding the create endpoint (5 links/sec per key — sends keep their own budget).
+  const rl = await checkRateLimit(`links:${apiKeyId}`, 5);
+  if (!rl.allowed) {
+    throw new RateLimitedError(rl.retryAfterSeconds);
+  }
+
   // Canonicalize the target; reject dangerous/invalid URLs outright.
   const canonical = canonicalizeUrl(input.target_url);
   if (!canonical) {
     throw new ValidationError('target_url must be a valid absolute http(s) URL');
+  }
+
+  // Safety: no internal-address redirects, and (when configured) no known-bad destinations.
+  const unsafeReason = await rejectUnsafeUrl(canonical);
+  if (unsafeReason) {
+    throw new ValidationError(unsafeReason);
+  }
+
+  // Vanity-slug guard: reserved routing paths and impersonation-style slugs.
+  if (input.slug && input.slug.trim()) {
+    const reservedReason = validateVanitySlug(input.slug.trim());
+    if (reservedReason) {
+      throw new ValidationError(reservedReason);
+    }
   }
 
   // Dedupe: identical targets for the same key reuse the existing short link
