@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import { generateKeyPairSync } from 'node:crypto';
 import { getSupabase } from '../database/supabase';
 import { checkAllDns, DnsRecordStatus } from './dnsService';
@@ -54,7 +54,11 @@ function generateDKIMKeys(): { privateKey: string; publicKey: string } {
 }
 
 function generateSPFRecord(): string {
-  return `v=spf1 include:spf.freemailsend.com ~all`;
+  // Include covers the infrastructure client mail actually leaves from.
+  // SENDING_SPF_INCLUDE env override (self-hosted egress) > Brevo default.
+  // The old "spf.freemailsend.com" token was never backed by DNS.
+  const include = (process.env.SENDING_SPF_INCLUDE || 'spf.brevo.com').trim();
+  return `v=spf1 include:${include} ~all`;
 }
 
 function generateDKIMRecordName(): string {

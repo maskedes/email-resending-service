@@ -27,7 +27,7 @@ export default function CLIDomains() {
 
   Add these DNS records to verify your domain:
 
-  SPF (TXT):   v=spf1 include:spf.freemailsend.com ~all
+  SPF (TXT):   v=spf1 include:spf.brevo.com ~all
   DKIM (TXT):  fm1a2b3c._domainkey
     Value: v=DKIM1; k=rsa; p=...
   DMARC (TXT): v=DMARC1; p=none; rua=mailto:dmarc@example.com

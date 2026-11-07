@@ -100,18 +100,36 @@ export async function checkAuthoritativeDns(domain: string): Promise<DnsRecordSt
 }
 
 /**
+ * Candidate SPF include tokens that authorize our outbound infrastructure.
+ * Order of precedence:
+ *   1. SENDING_SPF_INCLUDE env var (explicit operator override, e.g. a
+ *      self-hosted "spf1.yourdomain.com" publishing the sending IPs)
+ *   2. spf.brevo.com — platform sends via Brevo's HTTPS API
+ *   3. spf.freemailsend.com — legacy token kept so domains verified before
+ *      the rebrand still pass
+ */
+export function spfIncludeCandidates(): string[] {
+  const env = (process.env.SENDING_SPF_INCLUDE || '').trim();
+  return env
+    ? [...new Set([env, 'spf.brevo.com', 'spf.freemailsend.com'])]
+    : ['spf.brevo.com', 'spf.freemailsend.com'];
+}
+
+/**
  * Verifies SPF: looks for a TXT record at the root domain that
- * starts with v=spf1 and includes our include token.
+ * starts with v=spf1 and includes ANY of our include tokens
+ * (see spfIncludeCandidates).
  */
 export async function checkSpf(domain: string): Promise<DnsRecordStatus> {
-  const expected = `v=spf1 include:spf.freemailsend.com ~all`;
+  const candidates = spfIncludeCandidates();
+  const expected = `v=spf1 ${candidates.map((c) => `include:${c}`).join(' ')} ~all`;
   const hostname = domain;
   const found = await resolveTxt(hostname);
-  const normExpected = normalize(expected);
 
   const matching = found.find((r) => normalize(r).startsWith('v=spf1'));
   const verified =
-    !!matching && normalize(matching).includes('include:spf.freemailsend.com');
+    !!matching &&
+    candidates.some((token) => normalize(matching).includes(`include:${token}`));
 
   return {
     type: 'SPF',
