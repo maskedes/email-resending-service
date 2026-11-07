@@ -1,6 +1,7 @@
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID as uuidv4 } from 'node:crypto';
 import { getSupabase } from '../database/supabase';
 import { enqueueSms } from '../queue/smsQueue';
+import { dispatchSmsWebhooks } from './webhookService';
 
 export interface SendSmsInput {
   to: string;
@@ -72,6 +73,7 @@ export async function sendSms(apiKeyId: string, input: SendSmsInput): Promise<Sm
     status: 'queued',
   });
   await addSmsEvent(id, 'queued', 'SMS queued for gateway dispatch');
+  dispatchSmsWebhooks(id, 'sms.queued').catch(() => {});
 
   await enqueueSms({ smsId: id }, { delay: input.scheduleInMs });
 
@@ -88,18 +90,21 @@ export async function recordSmsSent(smsId: string, info?: string): Promise<void>
   const sb = getSupabase();
   await sb.from('sms_messages').update({ status: 'sent', sent_at: new Date().toISOString(), error_message: null }).eq('id', smsId);
   await addSmsEvent(smsId, 'sent', info || 'Sent via gateway');
+  dispatchSmsWebhooks(smsId, 'sms.sent', info).catch(() => {});
 }
 
 export async function recordSmsFailed(smsId: string, err: string): Promise<void> {
   const sb = getSupabase();
   await sb.from('sms_messages').update({ status: 'failed', error_message: err }).eq('id', smsId);
   await addSmsEvent(smsId, 'failed', err);
+  dispatchSmsWebhooks(smsId, 'sms.failed', err).catch(() => {});
 }
 
 export async function recordSmsDelivered(smsId: string): Promise<void> {
   const sb = getSupabase();
   await sb.from('sms_messages').update({ status: 'delivered', delivered_at: new Date().toISOString() }).eq('id', smsId);
   await addSmsEvent(smsId, 'delivered', 'Delivery confirmed by gateway');
+  dispatchSmsWebhooks(smsId, 'sms.delivered').catch(() => {});
 }
 
 export async function getSmsById(id: string): Promise<SmsRecord | null> {

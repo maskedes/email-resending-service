@@ -11,6 +11,7 @@ import dashboardRoutes from './dashboard';
 import { errorHandler, edgeProxyMiddleware } from './middleware/auth';
 import { initEmailWorker } from './workers/emailWorker';
 import { initSmsWorker } from './workers/smsWorker';
+import { initWebhookWorker } from './workers/webhookWorker';
 import smsRoutes from './routes/smsRoutes.js';
 import smsGatewayRoutes from './routes/smsGatewayRoutes.js';
 import siteLinkRoutes, { publicSiteLinkRouter } from './routes/siteLinkRoutes.js';
@@ -84,6 +85,7 @@ async function bootstrap(): Promise<void> {
 
   initEmailWorker();
   initSmsWorker();
+  initWebhookWorker();
 
   const server = app.listen(config.port, config.host, () => {
     console.log(`

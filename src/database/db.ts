@@ -103,6 +103,19 @@ async function runMigrations(pool: Pool): Promise<void> {
     ALTER TABLE IF EXISTS webhooks ADD COLUMN IF NOT EXISTS name TEXT NOT NULL DEFAULT '';
     ALTER TABLE IF EXISTS webhooks ADD COLUMN IF NOT EXISTS last_triggered_at TIMESTAMPTZ;
 
+    CREATE TABLE IF NOT EXISTS webhook_deliveries (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      webhook_id UUID NOT NULL REFERENCES webhooks(id) ON DELETE CASCADE,
+      api_key_id UUID NOT NULL REFERENCES api_keys(id) ON DELETE CASCADE,
+      event TEXT NOT NULL,
+      attempt INT NOT NULL DEFAULT 1,
+      outcome TEXT NOT NULL,
+      http_status INT,
+      error TEXT,
+      delivered_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT now()
+    );
+
     CREATE TABLE IF NOT EXISTS domains (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       api_key_id UUID NOT NULL REFERENCES api_keys(id),
@@ -138,6 +151,8 @@ async function runMigrations(pool: Pool): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_emails_created_at ON emails(created_at);
     CREATE INDEX IF NOT EXISTS idx_email_events_email_id ON email_events(email_id);
     CREATE INDEX IF NOT EXISTS idx_webhooks_api_key ON webhooks(api_key_id);
+    CREATE INDEX IF NOT EXISTS idx_webhook_deliveries_webhook ON webhook_deliveries(webhook_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_webhook_deliveries_key ON webhook_deliveries(api_key_id, created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_domains_api_key ON domains(api_key_id);
     CREATE INDEX IF NOT EXISTS idx_templates_api_key ON templates(api_key_id);
   `);
