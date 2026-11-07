@@ -30,6 +30,16 @@ const sections = [
     href: '/api-reference',
   },
   {
+    title: 'Sending Domains',
+    desc: 'SPF, DKIM and DMARC for your own domain — main domain vs subdomain, record walkthrough, DMARC ramp plan.',
+    href: '/documentation/domains',
+  },
+  {
+    title: 'Webhooks',
+    desc: 'Real-time notifications for email and SMS events — payload schemas, HMAC verification, retries and delivery history.',
+    href: '/documentation/webhooks',
+  },
+  {
     title: 'Deliverability',
     desc: 'SPF, DKIM, and DMARC best practices to keep mail out of spam.',
     href: '/help',
