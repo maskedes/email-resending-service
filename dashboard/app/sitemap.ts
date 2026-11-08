@@ -3,7 +3,7 @@ import type { MetadataRoute } from 'next';
 // Production dashboard URL. Update this if a custom domain is later attached.
 const BASE_URL = 'https://mailenvoy.qd.je';
 
-// All publicly indexable pages (matches the PUBLIC_PATHS in middleware.ts).
+// All publicly indexable pages (matches the PUBLIC_PATHS in proxy.ts).
 const paths = [
   '', // Landing / home
   '/documentation',

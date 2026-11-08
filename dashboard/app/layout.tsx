@@ -84,8 +84,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <head>
+    <html lang="en" suppressHydrationWarning>      <head>
         <style dangerouslySetInnerHTML={{ __html: `
           @font-face {
             font-family: 'Material Symbols Outlined';

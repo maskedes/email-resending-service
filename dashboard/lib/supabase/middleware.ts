@@ -18,9 +18,9 @@ function getSessionToken(request: NextRequest): string | undefined {
 }
 
 /**
- * Refresh the Supabase session in Edge middleware and return both the
+ * Refresh the Supabase session in the proxy (formerly "middleware") and return
  * updated response and the current user (if any). Call this first in
- * the middleware and use the returned response for routing decisions.
+ * the proxy and use the returned response for routing decisions.
  *
  * The user lookup is cached for 60s per session cookie so navigating between
  * screens doesn't trigger a Supabase Auth request every time.

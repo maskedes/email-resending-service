@@ -36,7 +36,7 @@ const PUBLIC_PATHS = [
   '/s',
 ];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // ---- Cloudflare Zero Trust Access check ----
