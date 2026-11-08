@@ -86,12 +86,14 @@ export default async function SmsPage() {
             className="h-[42px] min-h-[42px] max-h-40 border border-input rounded px-3 py-2 text-sm w-full bg-transparent resize-y"
           ></textarea>
         </div>
-        <button
-          type="submit"
-          className="h-[42px] border-0 bg-blue-600 text-white rounded px-6 text-sm font-semibold whitespace-nowrap transition hover:bg-blue-500"
-        >
-          Send SMS
-        </button>
+        <div className="flex flex-col justify-end">
+          <button
+            type="submit"
+            className="flex h-[42px] items-center justify-center rounded border-0 bg-blue-600 px-6 text-sm font-semibold whitespace-nowrap text-white transition hover:bg-blue-500"
+          >
+            Send SMS
+          </button>
+        </div>
       </form>
       <p className="text-xs text-muted-foreground -mt-3">
         Queued on your server and delivered by your Android gateway phone. Requires SMS enabled on your API key.
