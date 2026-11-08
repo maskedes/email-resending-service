@@ -54,9 +54,9 @@ export default async function SmsPage() {
         Queue a test SMS through your server. Your Android gateway phone delivers the message.
       </p>
 
-      {/* ── Send test SMS: compact inline form (no card) ── */}
-      <form action={sendSmsAction} className="flex flex-col sm:flex-row gap-2 sm:items-end">
-        <div className="flex-1">
+      {/* ── Send test SMS: compact inline form, aligned boxes, blue send button ── */}
+      <form action={sendSmsAction} className="flex flex-col sm:flex-row sm:items-stretch gap-2">
+        <div className="flex-1 flex flex-col justify-end">
           <label htmlFor="sms-to" className="block text-xs text-slate-400 mb-1">
             Phone number
           </label>
@@ -66,10 +66,10 @@ export default async function SmsPage() {
             type="tel"
             placeholder="+2567XXXXXXXX"
             required
-            className="border rounded px-3 py-2 text-sm w-full bg-transparent"
+            className="h-[42px] border border-input rounded px-3 text-sm w-full bg-transparent"
           />
         </div>
-        <div className="flex-[2]">
+        <div className="flex-[2] flex flex-col justify-end">
           <label htmlFor="sms-body" className="block text-xs text-slate-400 mb-1">
             Message
           </label>
@@ -80,12 +80,12 @@ export default async function SmsPage() {
             rows={1}
             required
             maxLength={1600}
-            className="border rounded px-3 py-2 text-sm w-full bg-transparent resize-y"
+            className="h-[42px] min-h-[42px] max-h-40 border border-input rounded px-3 py-2 text-sm w-full bg-transparent resize-y"
           ></textarea>
         </div>
         <button
           type="submit"
-          className="bg-primary text-primary-foreground rounded px-6 py-2 text-sm whitespace-nowrap"
+          className="h-[42px] border-0 bg-blue-600 text-white rounded px-6 text-sm font-semibold whitespace-nowrap transition hover:bg-blue-500"
         >
           Send SMS
         </button>
