@@ -1,50 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-
-/** Dial codes for the country-selector flags (calling code without "+"). */
-const COUNTRIES = [
-  { iso2: 'UG', name: 'Uganda', cc: '256' },
-  { iso2: 'KE', name: 'Kenya', cc: '254' },
-  { iso2: 'TZ', name: 'Tanzania', cc: '255' },
-  { iso2: 'RW', name: 'Rwanda', cc: '250' },
-  { iso2: 'BI', name: 'Burundi', cc: '257' },
-  { iso2: 'CD', name: 'DR Congo', cc: '243' },
-  { iso2: 'SS', name: 'South Sudan', cc: '211' },
-  { iso2: 'ET', name: 'Ethiopia', cc: '251' },
-  { iso2: 'SO', name: 'Somalia', cc: '252' },
-  { iso2: 'SD', name: 'Sudan', cc: '249' },
-  { iso2: 'EG', name: 'Egypt', cc: '20' },
-  { iso2: 'NG', name: 'Nigeria', cc: '234' },
-  { iso2: 'GH', name: 'Ghana', cc: '233' },
-  { iso2: 'ZA', name: 'South Africa', cc: '27' },
-  { iso2: 'GB', name: 'United Kingdom', cc: '44' },
-  { iso2: 'US', name: 'United States', cc: '1' },
-  { iso2: 'AE', name: 'UAE', cc: '971' },
-  { iso2: 'SA', name: 'Saudi Arabia', cc: '966' },
-  { iso2: 'IN', name: 'India', cc: '91' },
-  { iso2: 'CN', name: 'China', cc: '86' },
-  { iso2: 'DE', name: 'Germany', cc: '49' },
-  { iso2: 'FR', name: 'France', cc: '33' },
-  { iso2: 'IT', name: 'Italy', cc: '39' },
-  { iso2: 'ES', name: 'Spain', cc: '34' },
-  { iso2: 'NL', name: 'Netherlands', cc: '31' },
-  { iso2: 'PL', name: 'Poland', cc: '48' },
-  { iso2: 'TR', name: 'Turkey', cc: '90' },
-  { iso2: 'RU', name: 'Russia', cc: '7' },
-  { iso2: 'JP', name: 'Japan', cc: '81' },
-  { iso2: 'KR', name: 'South Korea', cc: '82' },
-  { iso2: 'SG', name: 'Singapore', cc: '65' },
-  { iso2: 'MY', name: 'Malaysia', cc: '60' },
-  { iso2: 'ID', name: 'Indonesia', cc: '62' },
-  { iso2: 'PH', name: 'Philippines', cc: '63' },
-  { iso2: 'BR', name: 'Brazil', cc: '55' },
-  { iso2: 'MX', name: 'Mexico', cc: '52' },
-  { iso2: 'AR', name: 'Argentina', cc: '54' },
-  { iso2: 'CA', name: 'Canada', cc: '1' },
-  { iso2: 'AU', name: 'Australia', cc: '61' },
-  { iso2: 'NZ', name: 'New Zealand', cc: '64' },
-] as const;
+import { COUNTRIES } from './countries';
 
 function flagUrl(iso2: string): string {
   return `https://flagcdn.com/w20/${iso2.toLowerCase()}.png`;
