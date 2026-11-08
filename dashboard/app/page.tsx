@@ -32,8 +32,6 @@ export default function Home() {
       <section className="relative overflow-hidden pt-32 pb-20">
         {/* Glow */}
         <div className="hero-glow pointer-events-none absolute inset-0" />
-        {/* Grid */}
-        <div className="hero-grid pointer-events-none absolute inset-0" />
 
         <div className="relative mx-auto max-w-4xl px-6 text-center">
           {/* Badge */}
@@ -46,7 +44,7 @@ export default function Home() {
           <h1 className="text-5xl font-bold leading-tight tracking-tight md:text-7xl">
             Reach every inbox,
             <br />
-            <span className="bg-gradient-to-r from-brand-300 via-accent to-brand-400 bg-clip-text text-transparent">
+            <span className="text-slate-300">
               not the spam folder
             </span>
           </h1>

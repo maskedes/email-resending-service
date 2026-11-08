@@ -304,13 +304,6 @@ svg {
   background: radial-gradient(ellipse 60% 50% at 50% -20%, rgba(148, 163, 184, 0.18), transparent 70%);
 }
 
-.hero-grid {
-  background-size: 60px 60px;
-  background-image:
-    linear-gradient(to right, rgba(148, 163, 184, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
-}
-
 /* Email preview card float animation */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
