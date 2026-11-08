@@ -54,48 +54,45 @@ export default async function SmsPage() {
         Queue a test SMS through your server. Your Android gateway phone delivers the message.
       </p>
 
-      {/* ── Send test SMS ── */}
-      <section className="border rounded-lg p-4 space-y-3">
-        <h2 className="font-semibold">Send test SMS</h2>
-        <form action={sendSmsAction} className="flex flex-col sm:flex-row gap-2">
-          <div className="flex-1">
-            <label htmlFor="sms-to" className="block text-xs text-slate-400 mb-1">
-              Phone number
-            </label>
-            <input
-              id="sms-to"
-              name="to"
-              type="tel"
-              placeholder="+2567XXXXXXXX"
-              required
-              className="border rounded px-3 py-2 text-sm w-full bg-transparent"
-            />
-          </div>
-          <div className="flex-1">
-            <label htmlFor="sms-body" className="block text-xs text-slate-400 mb-1">
-              Message
-            </label>
-            <textarea
-              id="sms-body"
-              name="body"
-              placeholder="Type your message here"
-              rows={4}
-              required
-              maxLength={1600}
-              className="border rounded px-3 py-2 text-sm w-full bg-transparent"
-            ></textarea>
-          </div>
-          <button
-            type="submit"
-            className="bg-primary text-primary-foreground rounded px-6 py-2 text-sm whitespace-nowrap self-start"
-          >
-            Send SMS
-          </button>
-        </form>
-        <p className="text-xs text-muted-foreground">
-          Queued on your server and delivered by your Android gateway phone. Requires SMS enabled on your API key.
-        </p>
-      </section>
+      {/* ── Send test SMS: compact inline form (no card) ── */}
+      <form action={sendSmsAction} className="flex flex-col sm:flex-row gap-2 sm:items-end">
+        <div className="flex-1">
+          <label htmlFor="sms-to" className="block text-xs text-slate-400 mb-1">
+            Phone number
+          </label>
+          <input
+            id="sms-to"
+            name="to"
+            type="tel"
+            placeholder="+2567XXXXXXXX"
+            required
+            className="border rounded px-3 py-2 text-sm w-full bg-transparent"
+          />
+        </div>
+        <div className="flex-[2]">
+          <label htmlFor="sms-body" className="block text-xs text-slate-400 mb-1">
+            Message
+          </label>
+          <textarea
+            id="sms-body"
+            name="body"
+            placeholder="Type your message here"
+            rows={1}
+            required
+            maxLength={1600}
+            className="border rounded px-3 py-2 text-sm w-full bg-transparent resize-y"
+          ></textarea>
+        </div>
+        <button
+          type="submit"
+          className="bg-primary text-primary-foreground rounded px-6 py-2 text-sm whitespace-nowrap"
+        >
+          Send SMS
+        </button>
+      </form>
+      <p className="text-xs text-muted-foreground -mt-3">
+        Queued on your server and delivered by your Android gateway phone. Requires SMS enabled on your API key.
+      </p>
 
       {/* ── Recent messages ── */}
       <section className="border rounded-lg p-4">
