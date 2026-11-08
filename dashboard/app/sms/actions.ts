@@ -44,7 +44,13 @@ export async function sendSmsAction(formData: FormData): Promise<void> {
     throw new Error('You must be signed in to send SMS.');
   }
 
-  const to = String(formData.get('to') ?? '').trim();
+  const cc = String(formData.get('cc') ?? '').trim(); // dial code without "+", e.g. "256"
+  const local = String(formData.get('phone') ?? '').replace(/[\s()-]/g, '');
+  const to = `+${cc.replace(/^\+/, '')}${local}`;
+
+  if (!cc || !local) {
+    throw new Error('Select a country code and enter the phone number.');
+  }
   const body = String(formData.get('body') ?? '').trim();
 
   if (!to || !body) {

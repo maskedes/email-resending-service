@@ -19,6 +19,50 @@ const STATUS_STYLES: Record<string, string> = {
   failed: 'text-rose-400',
 };
 
+/** Dial codes for the country selector (calling code without "+"). */
+const COUNTRIES: Array<{ code: string; cc: string }> = [
+  { code: '🇺🇬 Uganda', cc: '256' },
+  { code: '🇰🇪 Kenya', cc: '254' },
+  { code: '🇹🇿 Tanzania', cc: '255' },
+  { code: '🇷🇼 Rwanda', cc: '250' },
+  { code: '🇧🇮 Burundi', cc: '257' },
+  { code: '🇨🇩 DR Congo', cc: '243' },
+  { code: '🇸🇸 South Sudan', cc: '211' },
+  { code: '🇪🇹 Ethiopia', cc: '251' },
+  { code: '🇸🇴 Somalia', cc: '252' },
+  { code: '🇸🇩 Sudan', cc: '249' },
+  { code: '🇪🇬 Egypt', cc: '20' },
+  { code: '🇳🇬 Nigeria', cc: '234' },
+  { code: '🇬🇭 Ghana', cc: '233' },
+  { code: '🇿🇦 South Africa', cc: '27' },
+  { code: '🇬🇧 United Kingdom', cc: '44' },
+  { code: '🇺🇸 United States', cc: '1' },
+  { code: '🇦🇪 UAE', cc: '971' },
+  { code: '🇸🇦 Saudi Arabia', cc: '966' },
+  { code: '🇮🇳 India', cc: '91' },
+  { code: '🇨🇳 China', cc: '86' },
+  { code: '🇩🇪 Germany', cc: '49' },
+  { code: '🇫🇷 France', cc: '33' },
+  { code: '🇮🇹 Italy', cc: '39' },
+  { code: '🇪🇸 Spain', cc: '34' },
+  { code: '🇳🇱 Netherlands', cc: '31' },
+  { code: '🇵🇱 Poland', cc: '48' },
+  { code: '🇹🇷 Turkey', cc: '90' },
+  { code: '🇷🇺 Russia', cc: '7' },
+  { code: '🇯🇵 Japan', cc: '81' },
+  { code: '🇰🇷 South Korea', cc: '82' },
+  { code: '🇸🇬 Singapore', cc: '65' },
+  { code: '🇲🇾 Malaysia', cc: '60' },
+  { code: '🇮🇩 Indonesia', cc: '62' },
+  { code: '🇵🇭 Philippines', cc: '63' },
+  { code: '🇧🇷 Brazil', cc: '55' },
+  { code: '🇲🇽 Mexico', cc: '52' },
+  { code: '🇦🇷 Argentina', cc: '54' },
+  { code: '🇨🇦 Canada', cc: '1' },
+  { code: '🇦🇺 Australia', cc: '61' },
+  { code: '🇦🇺 New Zealand', cc: '64' },
+];
+
 /** SMS inbox + send form. Fully server-rendered — the browser never calls the SMS API. */
 export default async function SmsPage() {
   const supabase = await createClient();
@@ -56,15 +100,34 @@ export default async function SmsPage() {
 
       {/* ── Send test SMS: compact inline form, aligned boxes, blue send button ── */}
       <form action={sendSmsAction} className="flex flex-col sm:flex-row sm:items-stretch gap-2">
-        <div className="flex-1 flex flex-col justify-end">
-          <label htmlFor="sms-to" className="block text-xs text-slate-400 mb-1">
-            Phone number
+        <div className="flex flex-col justify-end sm:w-52">
+          <label htmlFor="sms-cc" className="block text-xs text-slate-400 mb-1">
+            Country code
+          </label>
+          <select
+            id="sms-cc"
+            name="cc"
+            defaultValue="256"
+            required
+            className="h-[42px] border border-input rounded px-2 text-sm w-full bg-transparent"
+          >
+            {COUNTRIES.map((c) => (
+              <option key={`${c.cc}-${c.code}`} value={c.cc}>
+                {c.code} +{c.cc}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col justify-end sm:w-44">
+          <label htmlFor="sms-phone" className="block text-xs text-slate-400 mb-1">
+            Number
           </label>
           <input
-            id="sms-to"
-            name="to"
+            id="sms-phone"
+            name="phone"
             type="tel"
-            placeholder="+2567XXXXXXXX"
+            inputMode="tel"
+            placeholder="756924177"
             required
             className="h-[42px] border border-input rounded px-3 text-sm w-full bg-transparent"
           />
