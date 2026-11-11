@@ -226,6 +226,32 @@ export async function dispatchClickTriggers(link: LinkRow): Promise<void> {
 export async function deleteLink(id: string): Promise<void> { const sb = getSupabase(); await sb.from('links').delete().eq('id', id); }
 
 /**
+ * Edits an existing short link: swap the long URL target and/or pause/activate.
+ * Target changes re-run the same canonicalization + safety checks as creation
+ * so an edit can never sneak in a scheme or host that create would reject.
+ */
+export async function updateLink(
+  id: string,
+  patch: Partial<Pick<LinkRow, 'target_url' | 'is_active'>>,
+): Promise<LinkRow | null> {
+  const sb = getSupabase();
+  const update: Record<string, unknown> = {};
+  if (patch.is_active !== undefined) update.is_active = Boolean(patch.is_active);
+  if (patch.target_url !== undefined) {
+    const canonical = canonicalizeUrl(patch.target_url);
+    if (!canonical) throw new ValidationError('target_url must be a valid absolute http(s) URL');
+    const unsafeReason = await rejectUnsafeUrl(canonical);
+    if (unsafeReason) throw new ValidationError(unsafeReason);
+    update.target_url = canonical;
+    update.long_url = canonical;
+  }
+  if (Object.keys(update).length === 0) return null;
+  const { data, error } = await sb.from('links').update(update).eq('id', id).select().single();
+  if (error) throw new Error(error.message);
+  return (data as LinkRow) || null;
+}
+
+/**
  * Writes a per-click log row (event='click') for the redirect path.
  * Privacy: the last octet of IPv4 is masked, IPv6 is truncated to its first
  * four groups; user agents are truncated. Fire-and-forget caller — never

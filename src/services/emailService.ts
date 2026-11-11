@@ -191,7 +191,16 @@ export async function sendEmail(apiKeyId: string, input: SendEmailInput): Promis
 
   await addEmailEvent(id, 'queued', 'Email queued for delivery');
 
-  await enqueueEmail({ emailId: id }, { delay: input.scheduleInMs });
+  try {
+    await enqueueEmail({ emailId: id }, { delay: input.scheduleInMs });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    // Persist the failure so the operator can see what happened; the
+    // route layer maps this to 503 (queue unavailable).
+    await sb.from('emails').update({ status: 'failed', error_message: `Delivery queue unavailable: ${msg}` }).eq('id', id);
+    await addEmailEvent(id, 'failed', `Message recorded but not queued — delivery queue unavailable (${msg})`);
+    throw err;
+  }
 
   const { data } = await sb.from('emails').select('*').eq('id', id).single();
   return data as EmailRecord;

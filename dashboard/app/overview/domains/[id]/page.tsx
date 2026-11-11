@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { CopyButton } from '../CopyButton';
 import { VerifiedBadge } from '../VerifiedBadge';
+import { DeleteDomainDialog } from '../DeleteDomainDialog';
 
 interface Domain {
   id: string;
@@ -22,7 +23,7 @@ interface Domain {
 }
 
 interface DnsCheck {
-  type: 'DOMAIN' | 'NS' | 'SPF' | 'DKIM' | 'DMARC';
+  type: 'DOMAIN' | 'NS' | 'SPF' | 'DKIM' | 'DMARC' | 'MX';
   hostname: string;
   expected: string;
   found: string[] | null;
@@ -57,6 +58,8 @@ export default function DomainDetailPage() {
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'records' | 'configuration'>('records');
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const applyVerification = useCallback(
     (payload: { id: string; verification?: { domain?: Domain; checks?: DnsCheck[] } }) => {
@@ -123,24 +126,29 @@ export default function DomainDetailPage() {
   }
 
   async function deleteDomain() {
-    if (!confirm('Are you sure you want to delete this domain? This action cannot be undone.')) return;
+    setDeleting(true);
     try {
-      await fetch(`/api/domains/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/domains/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error?.message || 'Could not delete the domain.');
+      }
       router.push('/overview/domains');
       router.refresh();
-    } catch {
-      setError('Could not delete the domain.');
+    } catch (err) {
+      setDeleting(false);
+      setError(err instanceof Error && err.message ? err.message : 'Could not delete the domain.');
     }
   }
 
   if (notFound) {
     return (
       <div className="space-y-8">
-        <div className="border border-canvas-border bg-canvas-raised/80 p-10 text-center">
+        <div className="rounded-2xl border border-canvas-border bg-canvas-raised/80 p-10 text-center">
           <p className="text-slate-400">Domain not found.</p>
           <button
             onClick={() => router.push('/overview/domains')}
-            className="mt-4 bg-brand px-4 py-2 text-sm font-medium text-black hover:bg-brand/90"
+            className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-black hover:bg-brand/90"
           >
             Back to Domains
           </button>
@@ -152,7 +160,7 @@ export default function DomainDetailPage() {
   if (!domain) {
     return (
       <div className="space-y-8">
-        <div className="border border-canvas-border bg-canvas-raised/80 p-10 text-center">
+        <div className="rounded-2xl border border-canvas-border bg-canvas-raised/80 p-10 text-center">
           <p className="text-slate-400">Loading domain…</p>
         </div>
       </div>
@@ -206,10 +214,10 @@ export default function DomainDetailPage() {
       </div>
 
       {/* Header */}
-      <div className="border border-canvas-border bg-canvas-raised p-6">
+      <div className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center bg-canvas-border">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-canvas-border">
               <span className="material-symbols-outlined text-2xl text-brand-300">dns</span>
             </div>
             <div>
@@ -227,13 +235,13 @@ export default function DomainDetailPage() {
             <button
               onClick={verifyDomain}
               disabled={checking}
-              className="bg-brand px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-wait"
+              className="rounded-xl bg-brand px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-wait"
             >
               {checking ? 'Verifying…' : 'Restart'}
             </button>
             <button
-              onClick={deleteDomain}
-              className="border border-canvas-border px-4 py-2 text-sm font-medium text-slate-400 hover:bg-brand/10 hover:text-white transition-colors"
+              onClick={() => setDeleteOpen(true)}
+              className="rounded-xl border border-canvas-border px-4 py-2 text-sm font-medium text-slate-400 hover:bg-brand/10 hover:text-white transition-colors"
             >
               Delete
             </button>
@@ -267,7 +275,7 @@ export default function DomainDetailPage() {
       </div>
 
       {error && (
-        <div className="border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
           {error}
         </div>
       )}
@@ -293,7 +301,7 @@ export default function DomainDetailPage() {
       {activeTab === 'records' ? (
         <>
           {/* Status overview */}
-          <section className="border border-canvas-border bg-canvas-raised p-6">
+          <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-white">DNS Records</h2>
               <span className="text-sm text-slate-400">
@@ -313,7 +321,7 @@ export default function DomainDetailPage() {
                 {domainChecks.map((check) => (
                   <div
                     key={check.type}
-                    className={`border p-5 ${
+                    className={`rounded-xl border p-5 ${
                       check.verified
                         ? 'border-success-border bg-success-soft'
                         : check.found && check.found.length > 0
@@ -344,9 +352,9 @@ export default function DomainDetailPage() {
           </section>
 
           {/* Domain Verification — DKIM */}
-          <section className="border border-canvas-border bg-canvas-raised p-6">
+          <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
             <h2 className="text-lg font-semibold text-white">Domain Verification</h2>
-            <h3 className="mt-1 text-sm font-medium text-slate-400">DKIM</h3>
+            <h3 className="mt-1 text-base font-bold text-slate-200">DKIM</h3>
 
             <table className="mt-4 w-full text-left text-sm">
               <thead>
@@ -387,9 +395,9 @@ export default function DomainDetailPage() {
           </section>
 
           {/* Enable Sending — SPF */}
-          <section className="border border-canvas-border bg-canvas-raised p-6">
+          <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
             <h2 className="text-lg font-semibold text-white">Enable Sending</h2>
-            <h3 className="mt-1 text-sm font-medium text-slate-400">SPF</h3>
+            <h3 className="mt-1 text-base font-bold text-slate-200">SPF</h3>
 
             <table className="mt-4 w-full text-left text-sm">
               <thead>
@@ -430,7 +438,7 @@ export default function DomainDetailPage() {
           </section>
 
           {/* DMARC */}
-          <section className="border border-canvas-border bg-canvas-raised p-6">
+          <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
             <h2 className="text-lg font-semibold text-white">DMARC</h2>
             <p className="mt-1 text-sm text-slate-400">
               DMARC helps protect your domain from spoofing. Add this record to your DNS provider.
@@ -477,7 +485,7 @@ export default function DomainDetailPage() {
       ) : (
         <>
           {/* Configuration */}
-          <section className="border border-canvas-border bg-canvas-raised p-6">
+          <section className="rounded-2xl border border-canvas-border bg-canvas-raised p-6">
             <h2 className="mb-5 text-lg font-semibold text-white">Details</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-2xl border border-canvas-border bg-canvas/60 p-4">
@@ -503,6 +511,14 @@ export default function DomainDetailPage() {
             </div>
           </section>
         </>
+      )}
+
+      {deleteOpen && domain && (
+        <DeleteDomainDialog
+          domainName={domain.name}
+          onConfirm={deleteDomain}
+          onClose={() => setDeleteOpen(false)}
+        />
       )}
     </div>
   );

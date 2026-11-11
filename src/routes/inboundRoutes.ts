@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { config } from '../config';
 import { getApiKeyById, getApiKeyByInboundAddress } from '../services/apiKeyService';
+import { resolveForwardFor } from '../services/forwardingService';
 import { sendEmail } from '../services/emailService';
 
 const router = Router();
@@ -15,11 +16,15 @@ const router = Router();
  *   Header: x-inbound-secret: <INBOUND_EMAIL_SECRET>
  *   Body:   { to, from, subject?, text?, html?, api_key_id? }
  *
- * The recipient (`to`) is matched against an API key's `email` address to find
- * the owning key. The key's per-key toggles are then enforced:
+ * The recipient (`to`) is resolved in DNSimple-style order:
+ *   1. a forwarding rule — exact alias on the domain, then the domain
+ *      catch-all ('*') — created via /api/forwarding;
+ *   2. otherwise an API key whose `email` matches the recipient, using the
+ *      key's `forward_to` address (legacy per-key forwarding).
+ *
+ * The owning key's per-key toggles are enforced in both paths:
  *   - allow_incoming_email = false → the message is rejected (403).
- *   - allow_incoming_email = true  → the message is accepted, and when
- *     `forward_to` is set it is forwarded there via the normal send pipeline.
+ *   - allow_incoming_email = true  → the message is accepted and forwarded.
  *
  * If the endpoint is not configured (no INBOUND_EMAIL_SECRET) it responds 503.
  */
@@ -81,7 +86,53 @@ router.post('/email', requireInboundSecret, async (req: Request, res: Response):
       return;
     }
 
-    // Per-key "Forwarding" setting.
+    const originalSubject = String(subject || '(no subject)');
+    const subjectIsForward = originalSubject.toLowerCase().startsWith('fwd:');
+
+    // Loop protection: a message that already came from our own pipeline
+    // (platform From address) must never be forwarded again.
+    const fromAddress = String(from).trim().toLowerCase();
+    if (fromAddress === config.defaultFrom.email.toLowerCase()) {
+      res.status(202).json({ accepted: true, forwarded: false, reason: 'loop_guard' });
+      return;
+    }
+
+    // ── DNSimple-style domain/alias rules first ─────────────────────────────
+    // An exact alias rule beats the domain catch-all; resolution already
+    // validates the owning key is active and allowed incoming email.
+    const resolved = await resolveForwardFor(recipient);
+    if (resolved) {
+      const destination = resolved.rule.destination.trim();
+      if (destination.toLowerCase() === recipient.toLowerCase()) {
+        res.status(202).json({ accepted: true, forwarded: false, reason: 'self_destination' });
+        return;
+      }
+
+      const forwarded = await sendEmail(resolved.apiKeyId, {
+        from: config.defaultFrom.email,
+        to: destination,
+        subject: subjectIsForward ? originalSubject : `Fwd: ${originalSubject}`,
+        html: typeof html === 'string' ? html : undefined,
+        text: typeof text === 'string' ? text : (html ? undefined : originalSubject),
+        reply_to: fromAddress,
+        tags: {
+          forwarded_from: fromAddress,
+          original_to: recipient,
+          forwarded_rule: resolved.catchAll ? 'catch_all' : 'alias',
+        },
+      });
+
+      res.status(202).json({
+        accepted: true,
+        forwarded: true,
+        matched: { domain: resolved.rule.domain, alias: resolved.rule.alias, catch_all: resolved.catchAll },
+        forward_to: destination,
+        forward_id: forwarded.id,
+      });
+      return;
+    }
+
+    // ── Legacy per-key forwarding fallback ──────────────────────────────────
     const forwardTo = (apiKey.forward_to || '').trim();
     if (!forwardTo) {
       // Accepted and stored nowhere by design; no forwarder configured.
@@ -89,17 +140,14 @@ router.post('/email', requireInboundSecret, async (req: Request, res: Response):
       return;
     }
 
-    const originalSubject = String(subject || '(no subject)');
     const forwarded = await sendEmail(apiKey.id, {
       from: config.defaultFrom.email,
       to: forwardTo,
-      subject: originalSubject.toLowerCase().startsWith('fwd:')
-        ? originalSubject
-        : `Fwd: ${originalSubject}`,
+      subject: subjectIsForward ? originalSubject : `Fwd: ${originalSubject}`,
       html: typeof html === 'string' ? html : undefined,
       text: typeof text === 'string' ? text : (html ? undefined : originalSubject),
-      reply_to: String(from),
-      tags: { forwarded_from: String(from), original_to: recipient },
+      reply_to: fromAddress,
+      tags: { forwarded_from: fromAddress, original_to: recipient },
     });
 
     res.status(202).json({

@@ -22,6 +22,11 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 class GatewayService : Service() {
+    companion object {
+        /** Broadcast when a log entry is added so MainActivity can live-refresh. */
+        const val ACTION_LOG_UPDATED = "com.freemailsend.gateway.LOG_UPDATED"
+    }
+
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val client = OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(40, TimeUnit.SECONDS).build()
     private val jsonType = "application/json; charset=utf-8".toMediaType()
@@ -34,6 +39,7 @@ class GatewayService : Service() {
         super.onCreate()
         createChannel()
         startForeground(1, notification("E-NVOY Gateway — running"))
+        prefs().edit().putBoolean("gatewayRunning", true).apply()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -80,6 +86,7 @@ class GatewayService : Service() {
             val sentReceiver = object : BroadcastReceiver() {
                 override fun onReceive(ctx: Context?, intent: Intent?) {
                     val ok = resultCode == android.app.Activity.RESULT_OK
+                    logSms(smsId, to, body, if (ok) "sent" else "failed", if (ok) null else "SmsManager RESULT $resultCode")
                     scope.launch { reportResult(smsId, if (ok) "sent" else "failed", if (ok) null else "SmsManager RESULT $resultCode") }
                     try { unregisterReceiver(this) } catch (_: Exception) {}
                 }
@@ -87,7 +94,10 @@ class GatewayService : Service() {
             val deliveredReceiver = object : BroadcastReceiver() {
                 override fun onReceive(ctx: Context?, intent: Intent?) {
                     val ok = resultCode == android.app.Activity.RESULT_OK
-                    if (ok) scope.launch { reportResult(smsId, "delivered", null) }
+                    if (ok) {
+                        logSms(smsId, to, body, "delivered", null)
+                        scope.launch { reportResult(smsId, "delivered", null) }
+                    }
                     try { unregisterReceiver(this) } catch (_: Exception) {}
                 }
             }
@@ -100,8 +110,33 @@ class GatewayService : Service() {
                 smsManager.sendMultipartTextMessage(to, null, parts, sentList, deliveredList)
             }
         } catch (e: Exception) {
+            logSms(smsId, to, body, "failed", e.message)
             scope.launch { reportResult(smsId, "failed", e.message) }
         }
+    }
+
+    /**
+     * Appends a send outcome to the on-device log (SharedPreferences JSON, capped
+     * at the last 100 entries) and notifies the UI. Mirrors TextBee's message
+     * history without needing a local Room database.
+     */
+    private fun logSms(smsId: String, to: String, body: String, status: String, error: String?) {
+        try {
+            val p = prefs()
+            val arr = org.json.JSONArray(p.getString("smsLog", "[]") ?: "[]")
+            val entry = JSONObject()
+                .put("id", smsId)
+                .put("to", to)
+                .put("body", body.take(80))
+                .put("status", status)
+                .put("error", error ?: JSONObject.NULL)
+                .put("ts", System.currentTimeMillis())
+            val out = org.json.JSONArray()
+            out.put(entry)
+            for (i in 0 until minOf(arr.length(), 99)) out.put(arr.getJSONObject(i))
+            p.edit().putString("smsLog", out.toString()).apply()
+            sendBroadcast(Intent(ACTION_LOG_UPDATED).setPackage(packageName))
+        } catch (_: Exception) {}
     }
 
     private suspend fun reportResult(smsId: String, status: String, error: String?) {
@@ -118,8 +153,19 @@ class GatewayService : Service() {
         try {
             val url = serverUrl(); val token = gatewayToken()
             val req = Request.Builder().url("$url/api/sms/gateway/heartbeat").header("x-gateway-token", token).post("{}".toRequestBody(jsonType)).build()
-            withContext(Dispatchers.IO) { client.newCall(req).execute().close() }
-        } catch (_: Exception) {}
+            val resp = withContext(Dispatchers.IO) { client.newCall(req).execute() }
+            val ok = resp.code in 200..299
+            resp.close()
+            prefs().edit()
+                .putLong("lastHeartbeatTs", System.currentTimeMillis())
+                .putBoolean("lastHeartbeatOk", ok)
+                .apply()
+        } catch (_: Exception) {
+            prefs().edit()
+                .putLong("lastHeartbeatTs", System.currentTimeMillis())
+                .putBoolean("lastHeartbeatOk", false)
+                .apply()
+        }
     }
 
     private fun createChannel() {

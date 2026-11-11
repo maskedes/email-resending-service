@@ -1,12 +1,479 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="vertical" android:padding="16dp" android:layout_width="match_parent" android:layout_height="match_parent">
-  <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="E-NVOY SMS Gateway" android:textSize="20sp" android:textStyle="bold" android:layout_marginBottom="12dp"/>
-  <EditText android:id="@+id/serverUrl" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Server URL (e.g. https://api.example.com)" android:inputType="textUri"/>
-  <EditText android:id="@+id/gatewayToken" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Gateway token (gw_...)" android:inputType="text"/>
-  <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp">
-    <Button android:id="@+id/btnSave" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Save"/>
-    <Button android:id="@+id/btnStart" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Start"/>
-    <Button android:id="@+id/btnStop" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Stop"/>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  android:background="@color/envoy_surface"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent">
+
+  <!-- ── Sticky teal header (TextBee home pattern) ─────────────────────── -->
+  <LinearLayout
+    android:id="@+id/stickyHeader"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+      android:orientation="vertical"
+      android:background="@drawable/header_bg"
+      android:padding="24dp"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content">
+
+      <LinearLayout
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp">
+
+        <ImageView
+          android:layout_width="48dp"
+          android:layout_height="48dp"
+          android:src="@drawable/ic_phone_android"
+          android:contentDescription="App Icon"
+          android:layout_marginEnd="12dp"
+          android:tint="@color/white"
+          android:background="@drawable/icon_chip"
+          android:padding="11dp" />
+
+        <LinearLayout
+          android:orientation="vertical"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content">
+
+          <TextView
+            android:textSize="21sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="E-NVOY — sms gateway"
+            android:shadowColor="#80000000"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="4"
+            android:letterSpacing="0.02" />
+
+          <TextView
+            android:textSize="12sp"
+            android:textColor="@color/white"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Streamline your SMS relay"
+            android:alpha="0.95"
+            android:letterSpacing="0.01" />
+        </LinearLayout>
+      </LinearLayout>
+    </LinearLayout>
+
+    <!-- Device-info strip: flat, hairline below (TextBee structure) -->
+    <LinearLayout
+      android:gravity="center_vertical"
+      android:orientation="horizontal"
+      android:background="@color/envoy_teal_soft"
+      android:padding="14dp"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content">
+
+      <ImageView
+        android:padding="6dp"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:src="@drawable/ic_phone_android"
+        android:tint="@color/envoy_teal"
+        android:background="@color/envoy_teal_container"
+        android:contentDescription="Gateway device" />
+
+      <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="10dp">
+        <TextView
+          android:textSize="15sp"
+          android:textStyle="bold"
+          android:textColor="?android:attr/textColorPrimary"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Gateway Device" />
+        <LinearLayout
+          android:gravity="center_vertical"
+          android:orientation="horizontal"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content">
+          <TextView
+            android:textSize="11sp"
+            android:textColor="@color/envoy_text_muted"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Device ID:" />
+          <TextView
+            android:id="@+id/deviceIdInfoTxt"
+            android:textSize="11sp"
+            android:textColor="?android:attr/textColorPrimary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="" />
+          <ImageButton
+            android:id="@+id/copyDeviceIdImgBtn"
+            android:background="?selectableItemBackgroundBorderless"
+            android:padding="2dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_content_copy"
+            android:tint="@color/envoy_teal"
+            android:contentDescription="Copy device id" />
+        </LinearLayout>
+      </LinearLayout>
+
+      <LinearLayout
+        android:gravity="center"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <Switch
+          android:id="@+id/gatewaySwitch"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:minHeight="32dp"
+          android:thumbTint="@color/envoy_teal"
+          android:trackTint="@color/envoy_teal" />
+        <TextView
+          android:textSize="12sp"
+          android:textStyle="bold"
+          android:textColor="?android:attr/textColorPrimary"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Gateway" />
+      </LinearLayout>
+    </LinearLayout>
+
+    <View
+      android:background="@color/envoy_gray_divider"
+      android:layout_width="match_parent"
+      android:layout_height="1dp" />
   </LinearLayout>
-  <TextView android:id="@+id/status" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Enter server URL + token and tap Save → Start. Grant SMS permission when asked." android:textSize="12sp" android:layout_marginTop="12dp"/>
-</LinearLayout>
+
+  <!-- ── Scroll body: flat aligned sections ────────────────────────────── -->
+  <ScrollView
+    android:id="@+id/scrollBody"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_below="@id/stickyHeader">
+
+    <LinearLayout
+      android:orientation="vertical"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="24dp">
+
+      <!-- CONNECTION — section-labelled flat form -->
+      <TextView
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="18dp"
+        android:layout_marginBottom="6dp"
+        android:text="Connection"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:textColor="?android:attr/textColorPrimary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+      <LinearLayout
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView android:textSize="11sp" android:textColor="@color/envoy_text_muted"
+          android:text="Server URL" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        <EditText
+          android:id="@+id/serverUrl"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="4dp"
+          android:hint="https://api.example.com"
+          android:importantForAutofill="no"
+          android:inputType="textUri"
+          android:padding="11dp"
+          android:textColor="?android:attr/textColorPrimary"
+          android:background="@drawable/field_bg" />
+
+        <TextView android:textSize="11sp" android:textColor="@color/envoy_text_muted"
+          android:layout_marginTop="12dp" android:text="Gateway token"
+          android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        <EditText
+          android:id="@+id/gatewayToken"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="4dp"
+          android:hint="gw_..."
+          android:importantForAutofill="no"
+          android:inputType="textPassword"
+          android:padding="11dp"
+          android:textColor="?android:attr/textColorPrimary"
+          android:background="@drawable/field_bg" />
+      </LinearLayout>
+
+      <!-- Action row: Save filled teal / Start outlined / Stop text -->
+      <LinearLayout
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp">
+        <Button
+          android:id="@+id/btnSave"
+          android:layout_width="0dp"
+          android:layout_height="48dp"
+          android:layout_weight="2"
+          android:text="Save"
+          android:textSize="13sp"
+          android:textStyle="bold"
+          android:textColor="@color/white"
+          android:textAllCaps="false"
+          android:elevation="4dp"
+          android:backgroundTint="@color/envoy_teal"
+          app:cornerRadius="8dp" />
+        <Button
+          android:id="@+id/btnStart"
+          android:layout_width="0dp"
+          android:layout_height="48dp"
+          android:layout_weight="2"
+          android:layout_marginStart="8dp"
+          android:text="Start"
+          android:textSize="13sp"
+          android:textStyle="bold"
+          android:textColor="@color/envoy_teal"
+          android:textAllCaps="false"
+          android:backgroundTint="@android:color/transparent"
+          app:strokeColor="@color/envoy_teal"
+          app:strokeWidth="1.5dp"
+          app:cornerRadius="8dp" />
+        <Button
+          android:id="@+id/btnStop"
+          android:layout_width="0dp"
+          android:layout_height="48dp"
+          android:layout_weight="2"
+          android:layout_marginStart="8dp"
+          android:text="Stop"
+          android:textSize="13sp"
+          android:textStyle="bold"
+          android:textColor="#D93025"
+          android:textAllCaps="false"
+          android:backgroundTint="@android:color/transparent"
+          app:strokeColor="#D93025"
+          app:strokeWidth="1.5dp"
+          app:cornerRadius="8dp" />
+      </LinearLayout>
+
+      <!-- Status line (keep id=status — MainActivity writes here) -->
+      <TextView
+        android:id="@+id/status"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="12dp"
+        android:text="Enter server URL + token, tap Save → Start."
+        android:textSize="11sp"
+        android:textColor="@color/envoy_text_muted"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+      <View
+        android:background="@color/envoy_gray_divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="18dp" />
+
+      <!-- CONFIGURATION — rows with hairlines, no cards -->
+      <TextView
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="18dp"
+        android:layout_marginBottom="4dp"
+        android:text="Configuration"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:textColor="?android:attr/textColorPrimary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+      <LinearLayout
+        android:orientation="vertical"
+        android:paddingStart="4dp"
+        android:paddingEnd="20dp">
+
+        <LinearLayout
+          android:gravity="center_vertical"
+          android:orientation="horizontal"
+          android:padding="14dp"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content">
+          <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            <TextView android:textSize="14sp" android:textStyle="bold" android:textColor="?android:attr/textColorPrimary"
+              android:text="Auto-start on boot" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView android:textSize="11sp" android:textColor="@color/envoy_text_muted"
+              android:text="Start the gateway automatically after reboot"
+              android:layout_width="wrap_content" android:layout_height="wrap_content" />
+          </LinearLayout>
+          <Switch
+            android:id="@+id/autoStartSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="32dp"
+            android:thumbTint="@color/envoy_teal"
+            android:trackTint="@color/envoy_teal" />
+        </LinearLayout>
+        <View android:background="@color/envoy_gray_divider" android:layout_width="match_parent" android:layout_height="1dp" />
+
+        <!-- THEME — app-level override (System / Dark / Light) -->
+        <LinearLayout
+          android:gravity="center_vertical"
+          android:orientation="horizontal"
+          android:padding="14dp"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content">
+          <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            <TextView android:textSize="14sp" android:textStyle="bold" android:textColor="?android:attr/textColorPrimary"
+              android:text="Theme" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView
+              android:id="@+id/themeSubtitleTxt"
+              android:textSize="11sp"
+              android:textColor="@color/envoy_text_muted"
+              android:text="Follow system"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          </LinearLayout>
+          <Button
+            android:id="@+id/themeBtn"
+            android:textSize="12sp"
+            android:textAllCaps="false"
+            android:text="Auto"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:textColor="@color/envoy_teal"
+            android:backgroundTint="@android:color/transparent"
+            app:strokeColor="@color/envoy_teal"
+            app:strokeWidth="1.5dp"
+            app:cornerRadius="8dp" />
+        </LinearLayout>
+        <View android:background="@color/envoy_gray_divider" android:layout_width="match_parent" android:layout_height="1dp" />
+
+        <LinearLayout
+          android:gravity="center_vertical"
+          android:orientation="horizontal"
+          android:padding="14dp"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content">
+          <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            <TextView android:textSize="14sp" android:textStyle="bold" android:textColor="?android:attr/textColorPrimary"
+              android:text="SMS permissions" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView android:textSize="11sp" android:textColor="@color/envoy_text_muted"
+              android:text="Required to relay outbound SMS" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+          </LinearLayout>
+          <Button
+            android:id="@+id/grantSmsPermissionsBtn"
+            android:textSize="12sp"
+            android:textAllCaps="false"
+            android:text="Grant"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/envoy_teal"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            app:cornerRadius="8dp" />
+        </LinearLayout>
+        <View android:background="@color/envoy_gray_divider" android:layout_width="match_parent" android:layout_height="1dp" />
+
+        <LinearLayout
+          android:gravity="center_vertical"
+          android:orientation="horizontal"
+          android:padding="14dp"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content">
+          <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+            <TextView android:textSize="14sp" android:textStyle="bold" android:textColor="?android:attr/textColorPrimary"
+              android:text="Device Health" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView android:textSize="11sp" android:textColor="@color/envoy_text_muted"
+              android:text="Service · permissions · heartbeat status"
+              android:layout_width="wrap_content" android:layout_height="wrap_content" />
+          </LinearLayout>
+          <Button
+            android:id="@+id/deviceHealthBtn"
+            android:textSize="12sp"
+            android:textAllCaps="false"
+            android:text="Open"
+            android:textStyle="bold"
+            android:paddingHorizontal="18dp"
+            android:textColor="@color/envoy_teal"
+            android:backgroundTint="@android:color/transparent"
+            app:strokeColor="@color/envoy_teal"
+            app:strokeWidth="1.5dp"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            app:cornerRadius="8dp" />
+        </LinearLayout>
+      </LinearLayout>
+
+      <!-- RECENT GATEWAY ACTIVITY -->
+      <TextView
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="18dp"
+        android:layout_marginBottom="4dp"
+        android:text="Recent gateway activity"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:textColor="?android:attr/textColorPrimary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+      <LinearLayout
+        android:id="@+id/logsContainer"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+      <View
+        android:background="@color/envoy_gray_divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="18dp" />
+
+      <!-- App information — single muted line, not a card -->
+      <TextView
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="14dp"
+        android:layout_marginEnd="20dp"
+        android:text="E-NVOY — free, open source, self-hosted email &amp; SMS relay.&#10;Version: 1.0.0 (Build: 1)"
+        android:lineSpacingMultiplier="1.2"
+        android:textSize="11sp"
+        android:textColor="@color/envoy_text_muted"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    </LinearLayout>
+  </ScrollView>
+</RelativeLayout>

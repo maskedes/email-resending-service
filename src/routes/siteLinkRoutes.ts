@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { AuthRequest, authMiddleware } from '../middleware/auth';
-import { createSite, listSites, getSite, updateSite, deleteSite, createLink, listLinks, getLinkByDomainSlug, incrementLinkClick, logLinkClick, dispatchClickTriggers, deleteLink, resolveSite, AliasConflictError, RateLimitedError, ValidationError } from '../services/siteLinkService.js';
+import { createSite, listSites, getSite, updateSite, deleteSite, createLink, listLinks, getLinkByDomainSlug, incrementLinkClick, logLinkClick, dispatchClickTriggers, deleteLink, updateLink, resolveSite, AliasConflictError, RateLimitedError, ValidationError } from '../services/siteLinkService.js';
 import { sendEmail } from '../services/emailService.js';
 import { sendSms, isValidPhone } from '../services/smsService.js';
 import { getPool } from '../database/db';
@@ -52,6 +52,30 @@ router.delete('/links/:id', async (req: AuthRequest, res: Response): Promise<voi
   const pool = getPool(); const { rows } = await pool.query('SELECT api_key_id FROM links WHERE id=$1', [req.params.id]);
   if (!rows.length || rows[0].api_key_id !== req.apiKey!.id) { res.status(404).json({ error: { type: 'not_found' } }); return; }
   await deleteLink(req.params.id); res.json({ message: 'deleted' });
+});
+
+// Edit a short link: change the long-URL target and/or pause/activate it.
+router.patch('/links/:id', async (req: AuthRequest, res: Response): Promise<void> => {
+  const pool = getPool(); const { rows } = await pool.query('SELECT api_key_id FROM links WHERE id=$1', [req.params.id]);
+  if (!rows.length || rows[0].api_key_id !== req.apiKey!.id) { res.status(404).json({ error: { type: 'not_found' } }); return; }
+  const { target_url, is_active } = req.body as { target_url?: string; is_active?: boolean };
+  if (target_url === undefined && is_active === undefined) {
+    res.status(400).json({ error: { type: 'validation_error', message: 'Nothing to update — send target_url and/or is_active.' } });
+    return;
+  }
+  if (is_active !== undefined && typeof is_active !== 'boolean') {
+    res.status(400).json({ error: { type: 'validation_error', message: 'is_active must be a boolean.' } });
+    return;
+  }
+  try {
+    const link = await updateLink(req.params.id, { target_url, is_active });
+    if (!link) { res.status(400).json({ error: { type: 'validation_error', message: 'Update produced no changes.' } }); return; }
+    res.json(link);
+  } catch (e: unknown) {
+    if (e instanceof ValidationError) { res.status(400).json({ error: { type: 'validation_error', message: e.message } }); return; }
+    const msg = e instanceof Error ? e.message : 'failed';
+    res.status(400).json({ error: { type: 'validation_error', message: msg } });
+  }
 });
 
 // ── Test-send a short link via email or SMS (same API key budget) ──
@@ -114,6 +138,31 @@ export const publicSiteLinkRouter = Router();
 router.get('/links/logs', async (req: AuthRequest, res: Response): Promise<void> => {
   const pool = getPool(); const { rows } = await pool.query('SELECT * FROM link_logs WHERE api_key_id=$1 ORDER BY created_at DESC LIMIT 100', [req.apiKey!.id]);
   res.json({ data: rows });
+});
+
+// Aggregated analytics for the Links screen: totals, clicks/day, most-visited links.
+router.get('/links/stats', async (req: AuthRequest, res: Response): Promise<void> => {
+  const pool = getPool(); const keyId = req.apiKey!.id;
+  const [totals, perDay, top] = await Promise.all([
+    pool.query('SELECT count(*)::int AS total_links, COALESCE(sum(clicks), 0)::int AS total_clicks FROM links WHERE api_key_id=$1', [keyId]),
+    pool.query(
+      `SELECT date_trunc('day', created_at)::date::text AS day, count(*)::int AS clicks
+       FROM link_logs
+       WHERE api_key_id=$1 AND event='click' AND created_at > now() - interval '14 days'
+       GROUP BY 1 ORDER BY 1`,
+      [keyId],
+    ),
+    pool.query(
+      'SELECT id, domain, slug, target_url, clicks, is_active FROM links WHERE api_key_id=$1 ORDER BY clicks DESC LIMIT 5',
+      [keyId],
+    ),
+  ]);
+  res.json({
+    total_links: totals.rows[0]?.total_links ?? 0,
+    total_clicks: totals.rows[0]?.total_clicks ?? 0,
+    clicks_per_day: perDay.rows,            // [{ day: '2026-11-05', clicks: 12 }, …]
+    top_links: top.rows,                    // most visited first
+  });
 });
 router.get('/triggers', async (req: AuthRequest, res: Response): Promise<void> => {
   const pool = getPool(); const { rows } = await pool.query('SELECT * FROM link_triggers WHERE api_key_id=$1 ORDER BY created_at DESC', [req.apiKey!.id]);

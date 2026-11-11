@@ -1,11 +1,13 @@
 'use client';
 import { useEffect, useState } from 'react';
-type LinkRow = { id: string; domain: string; slug: string; target_url: string; clicks: number; created_at: string };
+type LinkRow = { id: string; domain: string; slug: string; target_url: string; clicks: number; is_active: boolean; created_at: string };
 type LogRow = { id: string; long_url: string; short_url: string; created_at: string; event?: string; ip?: string | null; ua?: string | null };
+type Stats = { total_links: number; total_clicks: number; clicks_per_day: Array<{ day: string; clicks: number }>; top_links: LinkRow[] };
 
 export default function LinksPage() {
   const [links, setLinks] = useState<LinkRow[]>([]);
   const [logs, setLogs] = useState<LogRow[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [domain, setDomain] = useState('en.12');
   const [slug, setSlug] = useState('');
   const [target, setTarget] = useState('https://example.com/very/long/url/to/shorten/for/customer');
@@ -17,13 +19,19 @@ export default function LinksPage() {
   const [testKey, setTestKey] = useState('');
   const [sending, setSending] = useState(false);
   const [sendStatus, setSendStatus] = useState<string | null>(null);
+  const [linkBusy, setLinkBusy] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTarget, setEditTarget] = useState('');
+  const [editError, setEditError] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const load = async () => {
-    const [a, b] = await Promise.all([
+    const [a, b, c] = await Promise.all([
       fetch('/api/sites-links/links').then(r => (r.ok ? r.json() : { data: [] })).catch(() => ({ data: [] })),
       fetch('/api/sites-links/logs').then(r => (r.ok ? r.json() : { data: [] })).catch(() => ({ data: [] })),
+      fetch('/api/sites-links/stats').then(r => (r.ok ? r.json() : null)).catch(() => null),
     ]);
-    setLinks(a.data || []); setLogs(b.data || []);
+    setLinks(a.data || []); setLogs(b.data || []); setStats(c);
   };
   useEffect(() => { load(); const v = localStorage.getItem('short_link_pref') as 'green' | 'blue' | null; if (v) setPref(v); }, []);
   useEffect(() => { localStorage.setItem('short_link_pref', pref); }, [pref]);
@@ -63,6 +71,43 @@ export default function LinksPage() {
 
   const copy = async (text: string) => { try { await navigator.clipboard.writeText(text); } catch { /* clipboard unavailable */ } };
 
+  /** Pause/resume a short link — paused links serve 404 on click until reactivated. */
+  const toggleActive = async (l: LinkRow) => {
+    setLinkBusy(l.id);
+    try {
+      const r = await fetch(`/api/sites-links/links/${l.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: !l.is_active }),
+      });
+      if (r.ok) load(); else setFormError((await r.json().catch(() => null))?.error?.message || `Failed (HTTP ${r.status})`);
+    } finally { setLinkBusy(null); }
+  };
+
+  /** Point an existing short code at a new long URL (same slug, same click history). */
+  const saveTarget = async (l: LinkRow) => {
+    const issue = targetIssue(editTarget);
+    if (issue) { setEditError(issue); return; }
+    setEditError(null); setLinkBusy(l.id);
+    try {
+      const r = await fetch(`/api/sites-links/links/${l.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target_url: editTarget }),
+      });
+      if (r.ok) { setEditingId(null); load(); } else setEditError((await r.json().catch(() => null))?.error?.message || `Failed (HTTP ${r.status})`);
+    } finally { setLinkBusy(null); }
+  };
+
+  /** Delete a short link — the slug is freed and clicks stop resolving. */
+  const removeLink = async (l: LinkRow) => {
+    setLinkBusy(l.id);
+    try {
+      const r = await fetch(`/api/sites-links/links/${l.id}`, { method: 'DELETE' });
+      if (r.ok) { setConfirmDeleteId(null); load(); } else setFormError((await r.json().catch(() => null))?.error?.message || `Failed (HTTP ${r.status})`);
+    } finally { setLinkBusy(null); }
+  };
+
   /** Test-send a short link via email or SMS — channel inferred from the recipient. */
   const sendTestLink = async (linkId: string) => {
     const value = testTo.trim();
@@ -99,10 +144,64 @@ export default function LinksPage() {
         <button onClick={() => setPref('green')} className={`rounded px-3 py-1 text-xs ${pref === 'green' ? 'bg-emerald-500 text-white' : 'border border-canvas-border'}`}>Green</button>
         <button onClick={() => setPref('blue')} className={`rounded px-3 py-1 text-xs ${pref === 'blue' ? 'bg-sky-500 text-white' : 'border border-canvas-border'}`}>Blue</button>
       </div>
+      {/* Analytics — totals, clicks/day (14d), most-visited links */}
+      {stats && (
+        <div className="rounded-2xl border border-canvas-border bg-canvas-raised p-4 space-y-4">
+          <div className="flex flex-wrap items-center gap-6">
+            <div>
+              <p className="text-2xl font-bold text-white">{stats.total_links}</p>
+              <p className="text-[11px] uppercase tracking-wider text-slate-500">short links</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-white">{stats.total_clicks.toLocaleString()}</p>
+              <p className="text-[11px] uppercase tracking-wider text-slate-500">total clicks</p>
+            </div>
+          </div>
+          {stats.clicks_per_day.length > 0 && (() => {
+            const max = Math.max(...stats.clicks_per_day.map(d => d.clicks), 1);
+            return (
+              <div>
+                <p className="mb-1.5 text-[11px] uppercase tracking-wider text-slate-500">Redirections · last 14 days</p>
+                <div className="flex h-20 items-end gap-1">
+                  {stats.clicks_per_day.map(d => (
+                    <div key={d.day} className="group relative flex-1">
+                      <div
+                        className="w-full rounded-t bg-brand/70 transition-colors group-hover:bg-brand"
+                        style={{ height: `${(d.clicks / max) * 72 + 2}px` }}
+                      />
+                      <span className="pointer-events-none absolute -top-6 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded border border-canvas-border bg-canvas-raised px-1.5 py-0.5 text-[10px] text-slate-200 opacity-0 transition-opacity group-hover:opacity-100">
+                        {d.day.slice(5)} · {d.clicks}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+          {stats.top_links.length > 0 && (
+            <div>
+              <p className="mb-1.5 text-[11px] uppercase tracking-wider text-slate-500">Most visited</p>
+              <ol className="divide-y divide-canvas-border">
+                {stats.top_links.map((t, i) => (
+                  <li key={t.id} className="flex items-baseline justify-between gap-3 py-1.5 text-xs">
+                    <span className="min-w-0 truncate">
+                      <span className="mr-2 font-mono text-slate-500">#{i + 1}</span>
+                      <span className="font-mono text-slate-200">{t.domain}/{t.slug}</span>
+                      {!t.is_active && <span className="ml-1 text-amber-400">(paused)</span>}
+                    </span>
+                    <span className="shrink-0 text-slate-400">{t.clicks} clicks</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="rounded-2xl border border-canvas-border bg-canvas-raised p-4 space-y-3">
         <div className="grid gap-2 sm:grid-cols-3">
           <input value={domain} onChange={e => setDomain(e.target.value)} placeholder="short domain (backend default if empty)" className="border border-canvas-border bg-canvas px-3 py-2 text-sm" />
-          <input value={slug} onChange={e => setSlug(e.target.value)} placeholder="slug (auto if empty)" className="border border-canvas-border bg-canvas px-3 py-2 text-sm" />
+          <input value={slug} onChange={e => setSlug(e.target.value)} maxLength={16} placeholder="custom slug (auto if empty, max 16)" className="border border-canvas-border bg-canvas px-3 py-2 text-sm" />
           <input value={target} onChange={e => setTarget(e.target.value)} placeholder="long https://target.url" className="border border-canvas-border bg-canvas px-3 py-2 text-sm" />
         </div>
         {targetIssue(target) !== null && target.trim() !== '' && (
@@ -123,21 +222,28 @@ export default function LinksPage() {
           const expanded = preview === l.id;
           const schemeSafe = l.target_url.startsWith('https://');
           return (
-            <div key={l.id} className="rounded-2xl border border-canvas-border bg-canvas-raised p-3 text-sm">
+            <div key={l.id} className={`rounded-2xl border bg-canvas-raised p-3 text-sm ${l.is_active ? 'border-canvas-border' : 'border-amber-500/40'}`}>
               <div className="flex justify-between gap-2">
                 <span className="min-w-0">
                   <a href={short} target="_blank" rel="noreferrer" className={shortClass}>
                     <b style={{ color: pref === 'blue' ? '#38bdf8' : '#34d399' }}>{l.domain.split('.')[0]}</b>{l.domain.slice(l.domain.indexOf('.'))}/{l.slug}
                   </a>{' '}
-                  <span className="text-slate-400">({l.clicks} clicks)</span> — long:{' '}
+                  <span className="text-slate-400">({l.clicks} clicks)</span>{' '}
+                  {!l.is_active && (
+                    <span className="ml-1 rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-400">PAUSED</span>
+                  )}{' '}
+                  — long:{' '}
                   <span className="break-all text-slate-400">{l.target_url.length > 80 ? `${l.target_url.slice(0, 80)}…` : l.target_url}</span>
                 </span>
                 <span className="flex shrink-0 gap-3">
                   <button
-                    onClick={() => setPreview(expanded ? null : l.id)}
+                    onClick={() => { setPreview(expanded ? null : l.id); setEditingId(null); setConfirmDeleteId(null); }}
                     className="text-slate-300 underline decoration-dotted hover:text-white"
                   >
                     {expanded ? 'Hide preview' : 'Preview'}
+                  </button>
+                  <button onClick={() => toggleActive(l)} disabled={linkBusy === l.id} className="text-slate-300 underline decoration-dotted hover:text-white disabled:opacity-50">
+                    {l.is_active ? 'Pause' : 'Activate'}
                   </button>
                   <button onClick={() => copy(short)} className="text-slate-300 underline decoration-dotted hover:text-white">Copy</button>
                   <a href={short} target="_blank" rel="noreferrer" className="text-brand underline">open</a>
@@ -157,6 +263,71 @@ export default function LinksPage() {
                   </div>
                   <p className="mt-2 text-xs text-slate-500">Full destination (verify before sharing):</p>
                   <p className="mt-1 break-all font-mono text-slate-200">{l.target_url}</p>
+
+                  {/* QR — for print (books/magazines/flyers) where typing the URL is error-prone */}
+                  <div className="mt-3 flex items-start gap-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(short)}`}
+                      alt={`QR code for ${short}`}
+                      width={120}
+                      height={120}
+                      className="rounded-lg border border-canvas-border bg-white p-1"
+                    />
+                    <div className="min-w-0 text-xs">
+                      <p className="font-semibold text-slate-300">QR code</p>
+                      <p className="mt-0.5 text-slate-500">Scan-to-open version of this short link — handy for print.</p>
+                    </div>
+                  </div>
+
+                  {/* Edit target — repoint the slug at a new long URL */}
+                  <div className="mt-3 rounded-lg border border-canvas-border bg-canvas-raised p-2">
+                    {editingId === l.id ? (
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold text-slate-300">New long URL</p>
+                        <input
+                          value={editTarget}
+                          onChange={e => setEditTarget(e.target.value)}
+                          placeholder="https://new-destination.example.com/page"
+                          className="w-full border border-canvas-border bg-canvas px-2 py-1 text-xs"
+                        />
+                        {editError && <p className="text-xs text-red-300">{editError}</p>}
+                        <div className="flex gap-2">
+                          <button onClick={() => saveTarget(l)} disabled={linkBusy === l.id} className="border border-canvas-border bg-white px-3 py-1 text-xs font-bold text-slate-950 disabled:opacity-50">
+                            {linkBusy === l.id ? 'Saving…' : 'Save target'}
+                          </button>
+                          <button onClick={() => { setEditingId(null); setEditError(null); }} className="border border-canvas-border px-3 py-1 text-xs text-slate-300 hover:text-white">
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs text-slate-500">Wrong destination? Repoint this slug — clicks and history are kept.</p>
+                        <button onClick={() => { setEditingId(l.id); setEditTarget(l.target_url); setEditError(null); }} className="shrink-0 text-xs text-slate-300 underline decoration-dotted hover:text-white">
+                          Edit target
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Delete — two-step confirm, frees the slug */}
+                  <div className="mt-2 rounded-lg border border-canvas-border bg-canvas-raised p-2">
+                    {confirmDeleteId === l.id ? (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-xs text-red-300">Delete {short} permanently? Clicks on it will 404.</p>
+                        <button onClick={() => removeLink(l)} disabled={linkBusy === l.id} className="rounded bg-red-500/20 px-3 py-1 text-xs font-bold text-red-300 hover:bg-red-500/30 disabled:opacity-50">
+                          {linkBusy === l.id ? 'Deleting…' : 'Yes, delete'}
+                        </button>
+                        <button onClick={() => setConfirmDeleteId(null)} className="px-2 py-1 text-xs text-slate-300 hover:text-white">Cancel</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => setConfirmDeleteId(l.id)} className="text-xs text-slate-300 underline decoration-dotted hover:text-red-400">
+                        Delete link
+                      </button>
+                    )}
+                  </div>
+
                   <p className="mt-3 text-xs text-slate-500">Recent activity for this link:</p>
                   {(() => {
                     const linkEvents = logs

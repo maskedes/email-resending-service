@@ -48,8 +48,19 @@ router.post('/send', authMiddleware, async (req: AuthRequest, res: Response): Pr
     return;
   }
 
-  const sms = await sendSms(req.apiKey!.id, { to: String(to), body: String(msgBody), from: from ? String(from) : undefined, tags, scheduleInMs, gatewayId });
-  res.status(200).json({ id: sms.id, to: sms.to_phone, body: sms.body, status: sms.status, parts: sms.parts, created_at: sms.created_at });
+  try {
+    const sms = await sendSms(req.apiKey!.id, { to: String(to), body: String(msgBody), from: from ? String(from) : undefined, tags, scheduleInMs, gatewayId });
+    res.status(200).json({ id: sms.id, to: sms.to_phone, body: sms.body, status: sms.status, parts: sms.parts, created_at: sms.created_at });
+  } catch (err: unknown) {
+    const code = (err as { code?: string })?.code;
+    const msg = err instanceof Error ? err.message : String(err);
+    if (code === 'queue_unavailable') {
+      res.status(503).json({ error: { type: 'queue_unavailable', message: 'The delivery queue is temporarily unavailable (Redis quota exceeded or unreachable). The message was recorded as failed and will NOT be sent automatically.' } });
+      return;
+    }
+    console.error('[sms] send failed:', msg);
+    res.status(500).json({ error: { type: 'internal_error', message: 'Failed to queue the SMS.' } });
+  }
 });
 
 // List

@@ -50,6 +50,7 @@ const RESERVED_SLUGS = new Set([
 /** Throws a message when a customer-chosen vanity slug is not allowed. */
 export function validateVanitySlug(slug: string): string | null {
   const s = slug.toLowerCase();
+  if (s.length > 16) return 'Custom short paths are limited to 16 characters.';
   if (RESERVED_SLUGS.has(s)) return `The short path /${slug} is reserved by the platform. Choose a different slug.`;
   if (/^(pay|secure|login|verify|update|confirm|recover)/.test(s) && /(-|freesend|envoy|onboard|bank|wallet)/.test(s)) {
     return 'That short path looks like impersonation and is not allowed. Choose a different slug.';

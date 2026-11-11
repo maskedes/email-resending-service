@@ -57,9 +57,16 @@ export function CopyButton({
     <button
       type="button"
       onClick={handleCopy}
-      title={copied ? 'Copied!' : label ? `Copy ${label}` : 'Copy'}
-      className={`inline-flex shrink-0 items-center justify-center text-slate-400 transition-colors hover:text-white ${className}`}
+      aria-label={copied ? 'Copied!' : label ? `Copy ${label}` : 'Copy'}
+      className={`group relative inline-flex shrink-0 items-center justify-center text-slate-400 transition-colors hover:text-white ${className}`}
     >
+      {/* Slide-in label from the left of the icon — hidden when idle */}
+      <span
+        role="status"
+        className="pointer-events-none absolute right-full top-1/2 z-50 mr-2 -translate-y-1/2 translate-x-2 whitespace-nowrap rounded-lg border border-canvas-border bg-canvas-raised px-2 py-1 text-xs font-semibold text-slate-200 opacity-0 shadow-lg transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100"
+      >
+        {copied ? 'Copied!' : label ? `Copy ${label}` : 'Copy'}
+      </span>
       {copied ? (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path fill="currentColor" d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dark theme overrides — TextBee teal still heads everything -->
+<resources>
+  <color name="envoy_bg">#101418</color>
+  <color name="envoy_surface">#101418</color>          <!-- same as app background; all fields/sections sit on it -->
+  <color name="envoy_soft_bg">#181D23</color>           <!-- section body zebra (unused by flat layout but kept consistent) -->
+  <color name="envoy_teal_soft">#12201E</color>          <!-- device-strip dark-tint teal -->
+  <color name="envoy_teal_container">#17332F</color>     <!-- dark teal container for icons -->
+  <color name="envoy_teal_on_container">#BDECE4</color>  <!-- readable on dark container -->
+  <color name="envoy_gray_divider">#2B2F36</color>
+  <color name="envoy_text_muted">#8A94A6</color>
+  <color name="white">#F8FAFC</color>                     <!-- flipped for on-primary-content legibility -->
+</resources>

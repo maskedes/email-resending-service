@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- App theme: Material3 DayNight (auto dark) with E-NVOY brand colors. -->
+  <style name="Theme.ENVOY" parent="Theme.Material3.DayNight.NoActionBar">
+    <item name="colorPrimary">@color/envoy_teal</item>
+    <item name="colorOnPrimary">@color/white</item>
+    <item name="colorPrimaryContainer">@color/envoy_teal_container</item>
+    <item name="colorOnPrimaryContainer">@color/envoy_teal_on_container</item>
+    <item name="colorSecondary">@color/envoy_teal_dark</item>
+    <item name="colorSurface">@color/envoy_surface</item>
+    <item name="colorOutline">@color/envoy_outline</item>
+    <item name="android:colorBackground">@color/envoy_surface</item>
+    <item name="android:statusBarColor">@color/envoy_teal</item>
+    <item name="android:windowLightStatusBar">false</item>
+  </style>
+</resources>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- E-NVOY Gateway palette: matches the dashboard's neutral-dark brand with
+     blue-600 as the action color. Dark mode variants come for free through
+     the Material3 DayNight parent theme. -->
+<resources>
+  <color name="envoy_blue">#2563EB</color>            <!-- blue-600 (kept: splash/accent) -->
+  <color name="envoy_blue_hover">#3B82F6</color>      <!-- blue-500 -->
+  <color name="envoy_blue_container">#DBEAFE</color>  <!-- blue-100 -->
+  <color name="envoy_blue_on_container">#1E3A8A</color> <!-- blue-900 -->
+  <color name="envoy_bg">#F8FAFC</color>              <!-- slate-50 -->
+  <color name="envoy_surface">#FFFFFF</color>
+  <color name="envoy_outline">#CBD5E1</color>         <!-- slate-300 -->
+  <color name="envoy_text">#0F172A</color>            <!-- slate-900 -->
+  <color name="envoy_text_muted">#64748B</color>      <!-- slate-500 -->
+  <color name="envoy_green">#059669</color>
+  <color name="envoy_red">#DC2626</color>
+  <color name="white">#FFFFFF</color>
+  <!-- TextBee teal palette (values from textbee.dev.v2.9.0.apk) -->
+  <color name="envoy_teal">#008577</color>
+  <color name="envoy_teal_dark">#006C60</color>
+  <color name="envoy_teal_container">#E0EFEC</color>
+  <color name="envoy_teal_on_container">#10312B</color>
+  <color name="envoy_teal_soft">#F0F7F6</color>        <!-- soft row bg -->
+  <color name="envoy_gray_divider">#E0E0E0</color>
+</resources>

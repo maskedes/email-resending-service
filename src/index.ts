@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { config } from './config';
 import { initDatabase, closeDatabase } from './database/db';
+import { selectRedisConnection } from './database/embedded';
 import emailRoutes from './routes/emailRoutes';
 import apiKeyRoutes from './routes/apiKeyRoutes';
 import domainRoutes from './routes/domainRoutes';
@@ -16,6 +17,21 @@ import smsRoutes from './routes/smsRoutes.js';
 import smsGatewayRoutes from './routes/smsGatewayRoutes.js';
 import siteLinkRoutes, { publicSiteLinkRouter } from './routes/siteLinkRoutes.js';
 import inboundRoutes from './routes/inboundRoutes.js';
+import forwardingRoutes from './routes/forwardingRoutes.js';
+
+// ─── Last-resort stability net ───────────────────────────────────────────
+// Express 4 does NOT route async rejections to the error middleware, and any
+// bare ioredis client that emits 'error' without a listener crashes the whole
+// process (that's what took the server down repeatedly when Redis was quota-
+// maxed). Log them loudly and keep the process alive — a paused worker is
+// recoverable; a dead server is not.
+process.on('unhandledRejection', (reason: unknown) => {
+  const msg = reason instanceof Error ? reason.message : String(reason);
+  console.error('[unhandledRejection]', msg);
+});
+process.on('uncaughtException', (err: Error) => {
+  console.error('[uncaughtException]', err?.message ?? err);
+});
 
 const app = express();
 
@@ -68,6 +84,7 @@ app.use('/api/sms/gateway', smsGatewayRoutes);
 app.use('/api/sms', smsRoutes);
 app.use('/api/sites-links', siteLinkRoutes);
 app.use('/api/inbound', inboundRoutes);
+app.use('/api/forwarding', forwardingRoutes);
 app.use('/', publicSiteLinkRouter);
 
 // Health check
@@ -82,6 +99,8 @@ app.use(errorHandler);
 async function bootstrap(): Promise<void> {
   await initDatabase();
   console.log('[db] PostgreSQL ready');
+
+  await selectRedisConnection();
 
   initEmailWorker();
   initSmsWorker();

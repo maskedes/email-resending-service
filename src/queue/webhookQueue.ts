@@ -1,5 +1,7 @@
 import { Queue, Worker, Job } from 'bullmq';
+import type { EventEmitter } from 'node:events';
 import { resolveRedisConfig } from '../database/embedded';
+import { attachQuotaGuard, QueueUnavailableError } from './quotaGuard';
 
 export interface WebhookDeliveryJobData {
   webhookId: string;
@@ -23,7 +25,9 @@ function makeConnection() {
     port: redis.port,
     username: redis.username,
     password: redis.password,
-    tls: redis.tls ? {} : undefined,
+    // Layerbase and similar TLS-routed providers REQUIRE an SNI servername;
+    // without it the handshake is rejected with "TLS SNI required".
+    tls: redis.tls ? { servername: redis.host } : undefined,
   };
 }
 
@@ -37,6 +41,11 @@ function getQueue(): Queue<WebhookDeliveryJobData> {
         removeOnFail: 1000,
       },
     });
+    // BullMQ's internal connection can emit 'error' (e.g. quota maxed on AUTH)
+    // — a bare client with no listener takes the whole process down.
+    (queue as unknown as EventEmitter).on('error', (err: Error) =>
+      console.error('[webhook-queue] error:', err?.message ?? String(err)),
+    );
   }
   return queue;
 }
@@ -46,7 +55,13 @@ export async function enqueueWebhookRetry(
   data: WebhookDeliveryJobData,
   delayMs: number
 ): Promise<void> {
-  await getQueue().add('retry', data, { delay: delayMs });
+  try {
+    await getQueue().add('retry', data, { delay: delayMs });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[webhook-queue] enqueue failed:', msg);
+    throw new QueueUnavailableError(msg);
+  }
 }
 
 export interface WebhookWorkerDeps {
@@ -70,5 +85,6 @@ export function startWebhookWorker(deps: WebhookWorkerDeps): void {
   worker.on('error', (err: Error) => {
     console.error('[webhook-worker] error:', err.message);
   });
+  attachQuotaGuard(worker, 'webhook-worker');
   console.log('[webhook-worker] started');
 }

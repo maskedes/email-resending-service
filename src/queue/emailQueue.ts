@@ -1,5 +1,7 @@
 import { Queue, Worker, Job } from 'bullmq';
+import type { EventEmitter } from 'node:events';
 import { resolveRedisConfig } from '../database/embedded';
+import { attachQuotaGuard, QueueUnavailableError } from './quotaGuard';
 
 export interface EmailJobData {
   emailId: string;
@@ -17,7 +19,9 @@ function makeConnection() {
     port: redis.port,
     username: redis.username,
     password: redis.password,
-    tls: redis.tls ? {} : undefined,
+    // Layerbase and similar TLS-routed providers REQUIRE an SNI servername;
+    // without it the handshake is rejected with "TLS SNI required".
+    tls: redis.tls ? { servername: redis.host } : undefined,
   };
 }
 
@@ -32,15 +36,26 @@ function getQueue(): Queue<EmailJobData> {
         removeOnFail: 5000,
       },
     });
+    // BullMQ's internal connection can emit 'error' (e.g. quota maxed on AUTH)
+    // — a bare client with no listener takes the whole process down.
+    (queue as unknown as EventEmitter).on('error', (err: Error) =>
+      console.error('[email-queue] error:', err?.message ?? String(err)),
+    );
   }
   return queue;
 }
 
 /** Enqueue an email for async delivery. Returns the job. */
 export async function enqueueEmail(data: EmailJobData, opts?: { delay?: number }): Promise<Job<EmailJobData>> {
-  return getQueue().add('send', data, {
-    delay: opts?.delay,
-  });
+  try {
+    return await getQueue().add('send', data, {
+      delay: opts?.delay,
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[email-queue] enqueue failed:', msg);
+    throw new QueueUnavailableError(msg);
+  }
 }
 
 export interface EmailWorkerDeps {
@@ -72,6 +87,8 @@ export function startEmailWorker(deps: EmailWorkerDeps): void {
   worker.on('error', (err: Error) => {
     console.error('[worker] Worker error:', err.message);
   });
+
+  attachQuotaGuard(worker, 'email-worker');
 
   console.log('[worker] Email worker started');
 }

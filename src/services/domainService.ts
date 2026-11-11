@@ -182,8 +182,21 @@ export async function verifyDomainDns(id: string, apiKeyId?: string): Promise<Do
 
 export async function deleteDomain(id: string, apiKeyId?: string): Promise<boolean> {
   const sb = getSupabase();
+  // Resolve the domain name first so its forwarding rules can be removed too.
+  const { data: row } = await sb.from('domains').select('name, api_key_id').eq('id', id).single();
+
   let query = sb.from('domains').delete().eq('id', id);
   if (apiKeyId) query = query.eq('api_key_id', apiKeyId);
   const { error } = await query;
-  return !error;
+  if (error) return false;
+
+  // Forwarding rules have no FK on domains (domains are free-text there), so
+  // without this they would silently keep matching inbound mail after the
+  // domain is deleted. Clean them up by name, scoped to the owning key.
+  if (row?.name) {
+    let rules = sb.from('forwarding_rules').delete().ilike('domain', row.name);
+    if (row.api_key_id) rules = rules.eq('api_key_id', row.api_key_id);
+    await rules;
+  }
+  return true;
 }

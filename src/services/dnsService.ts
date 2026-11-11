@@ -1,6 +1,6 @@
 import { promises as dns } from 'node:dns';
 
-export type DnsRecordType = 'DOMAIN' | 'NS' | 'SPF' | 'DKIM' | 'DMARC';
+export type DnsRecordType = 'DOMAIN' | 'NS' | 'SPF' | 'DKIM' | 'DMARC' | 'MX';
 
 export interface DnsRecordStatus {
   type: DnsRecordType;
@@ -69,7 +69,9 @@ export async function checkDomainExists(domain: string): Promise<DnsRecordStatus
     verified: exists,
     detail: exists
       ? `Domain exists in public DNS (${found.join(', ')}).`
-      : 'Domain does not resolve in public DNS. Check that the domain is registered and has DNS records.',
+      // An expired domain is disabled at the registry level, so it stops
+      // resolving exactly like a never-registered name.
+      : 'Domain does not resolve in public DNS. Check that the domain is registered, has DNS records, and has not expired (an expired domain stops resolving during its grace period).',
   };
 }
 
@@ -95,7 +97,9 @@ export async function checkAuthoritativeDns(domain: string): Promise<DnsRecordSt
     verified,
     detail: verified
       ? `Authoritative nameservers: ${found.join(', ')}`
-      : 'Could not resolve authoritative nameservers for this domain.',
+      // A previously-working domain failing this check often means the zone
+      // moved (registrar transfer / new DNS host) and records were not re-added.
+      : 'Could not resolve authoritative nameservers for this domain. If this domain worked before, a registrar transfer or DNS-host change may have moved the zone — re-add the MX/SPF/DKIM records at the new DNS host.',
   };
 }
 
@@ -225,24 +229,68 @@ export async function checkDmarc(domain: string): Promise<DnsRecordStatus> {
 }
 
 /**
+ * Check #6 — MX records (email reception, DNSimple-style).
+ * When INBOUND_MX_HOST is configured, verifies the domain's MX records point
+ * at the inbound mail host so messages can actually be received and forwarded.
+ * Without it the check is skipped (inbound reception is not part of the setup).
+ *
+ * SPF note: SPF is verified separately by checkSpf — operators who add a
+ * forwarding/receiving provider merge its include into the existing v=spf1
+ * record (checkSpf's detail text reports a present-but-missing-include SPF).
+ */
+export async function checkMx(domain: string): Promise<DnsRecordStatus | null> {
+  const expectedHost = (process.env.INBOUND_MX_HOST || '').trim();
+  if (!expectedHost) return null; // feature not in use for this deployment
+
+  const hostname = domain;
+  let found: { priority: number; exchange: string }[] = [];
+  try {
+    found = await dns.resolveMx(domain);
+  } catch {
+    found = [];
+  }
+
+  const normalize = (h: string) => h.replace(/\.$/, '').toLowerCase();
+  const expected = `MX → ${expectedHost}`;
+  const target = normalize(expectedHost);
+  const verified = found.some((mx) => normalize(mx.exchange) === target);
+
+  return {
+    type: 'MX',
+    hostname,
+    expected,
+    found: found.length > 0 ? found.map((mx) => `${mx.priority} ${mx.exchange}`) : null,
+    verified,
+    detail: verified
+      ? `MX records point at ${expectedHost} — inbound mail can be received.`
+      : found.length > 0
+        ? `MX records exist but none point at ${expectedHost}. Add an MX record → ${expectedHost} so mail for this domain reaches the forwarding service.`
+        : `No MX records found. Add an MX record → ${expectedHost} (email reception) and merge its include into your SPF record.`,
+  };
+}
+
+/**
  * Runs all DNS checks for a domain, in the spec order:
  *   1. Domain exists in public DNS
  *   2. Authoritative DNS resolvable
  *   3. SPF contains our include
  *   4. DKIM TXT matches our key
  *   5. DMARC exists and parses
+ *   6. MX records point at the inbound host (skipped when INBOUND_MX_HOST
+ *      is not configured — see checkMx)
  */
 export async function checkAllDns(domain: {
   name: string;
   dkimRecordName: string;
   dkimRecordValue: string;
 }): Promise<DnsRecordStatus[]> {
-  const [domainExists, ns, spf, dkim, dmarc] = await Promise.all([
+  const [domainExists, ns, spf, dkim, dmarc, mx] = await Promise.all([
     checkDomainExists(domain.name),
     checkAuthoritativeDns(domain.name),
     checkSpf(domain.name),
     checkDkim(domain.name, domain.dkimRecordName, domain.dkimRecordValue),
     checkDmarc(domain.name),
+    checkMx(domain.name),
   ]);
-  return [domainExists, ns, spf, dkim, dmarc];
+  return [domainExists, ns, spf, dkim, dmarc, ...(mx ? [mx] : [])];
 }

@@ -75,7 +75,16 @@ export async function sendSms(apiKeyId: string, input: SendSmsInput): Promise<Sm
   await addSmsEvent(id, 'queued', 'SMS queued for gateway dispatch');
   dispatchSmsWebhooks(id, 'sms.queued').catch(() => {});
 
-  await enqueueSms({ smsId: id }, { delay: input.scheduleInMs });
+  try {
+    await enqueueSms({ smsId: id }, { delay: input.scheduleInMs });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    // Persist the failure so the operator can see what happened; the route
+    // layer maps this to 503 (queue unavailable).
+    await sb.from('sms_messages').update({ status: 'failed', error_message: `Delivery queue unavailable: ${msg}` }).eq('id', id);
+    await addSmsEvent(id, 'failed', `SMS recorded but not queued — delivery queue unavailable (${msg})`);
+    throw err;
+  }
 
   const { data } = await sb.from('sms_messages').select('*').eq('id', id).single();
   return data as SmsRecord;

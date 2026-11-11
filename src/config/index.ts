@@ -29,6 +29,10 @@ export const config = {
     // Full connection URL wins over host/port. Supports rediss:// with auth
     // (e.g. Upstash, Redis Cloud) — the queues parse it for host/port/password/TLS.
     url: process.env.REDIS_URL || '',
+    // Optional secondary Redis (e.g. a free Layerbase/Redis Cloud instance).
+    // Used automatically at boot when the primary is unreachable or
+    // quota-maxed — see selectRedisConnection() in src/database/embedded.ts.
+    fallbackUrl: process.env.REDIS_FALLBACK_URL || '',
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6379', 10),
     password: process.env.REDIS_PASSWORD || '',
@@ -93,6 +97,11 @@ export const config = {
     header: process.env.INBOUND_EMAIL_HEADER || 'x-inbound-secret',
     /** Maximum accepted body size for an inbound message (bytes). */
     maxBytes: parseInt(process.env.INBOUND_EMAIL_MAX_BYTES || String(1024 * 1024), 10),
+    /**
+     * MX host the domain-verification MX check expects mail to route through
+     * (e.g. "mx.mailenvoy.qd.je"). Empty = the MX check is skipped.
+     */
+    mxHost: process.env.INBOUND_MX_HOST || '',
   },
 
   /** Optional shared secret that Cloudflare edge Worker sends to verify proxied traffic. */

@@ -36,3 +36,10 @@ __pycache__/
 
 # Confidential internal docs (never push)
 CONFIDENTIAL-PIPELINE.md
+
+# Local ops scripts — apply-rls.sql.mjs holds the Supabase PAT, never push
+scripts/*.mjs
+scripts/.last-api-key
+
+# Never commit DKIM/private keys
+*.private.pem

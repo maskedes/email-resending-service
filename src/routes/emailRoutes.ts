@@ -93,6 +93,12 @@ router.post('/send', authMiddleware, sendConcurrencyGuard, async (req: AuthReque
   } catch (error: any) {
     console.error('Error sending email:', error);
     const msg = error?.message || '';
+    if (error?.code === 'queue_unavailable') {
+      res.status(503).json({
+        error: { type: 'queue_unavailable', message: 'The delivery queue is temporarily unavailable (Redis quota exceeded or unreachable). The message was recorded as failed and will NOT be sent automatically.' },
+      });
+      return;
+    }
     if (/attachment|base64|image/i.test(msg)) {
       res.status(400).json({
         error: { type: 'validation_error', message: msg },

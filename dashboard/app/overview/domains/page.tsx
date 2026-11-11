@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { CopyButton } from './CopyButton';
 import { VerifiedBadge } from './VerifiedBadge';
+import { DeleteDomainDialog } from './DeleteDomainDialog';
 
 interface Domain {
   id: string;
@@ -21,7 +22,7 @@ interface Domain {
 }
 
 interface DnsCheck {
-  type: 'DOMAIN' | 'NS' | 'SPF' | 'DKIM' | 'DMARC';
+  type: 'DOMAIN' | 'NS' | 'SPF' | 'DKIM' | 'DMARC' | 'MX';
   hostname: string;
   verified: boolean;
   detail: string;
@@ -46,6 +47,7 @@ export default function DomainsPage() {
   const [creating, setCreating] = useState(false);
   const [connected, setConnected] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Domain | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const applyVerification = useCallback((payload: VerificationPayload) => {
@@ -198,13 +200,12 @@ export default function DomainsPage() {
   }
 
   async function deleteDomain(id: string) {
-    if (!confirm('Are you sure you want to delete this domain? This action cannot be undone.')) return;
-    try {
-      await fetch(`/api/domains/${id}`, { method: 'DELETE' });
-      await fetchDomains();
-    } catch {
-      // Error handling
+    const res = await fetch(`/api/domains/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      throw new Error(body?.error?.message || 'Could not delete the domain.');
     }
+    await fetchDomains();
   }
 
   function toggleExpand(id: string) {
@@ -299,25 +300,25 @@ export default function DomainsPage() {
             </p>
             <div className="space-y-3 text-sm">
               <div className="rounded-xl border border-canvas-border bg-canvas p-3">
-                <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">DKIM (TXT)</p>
+                <p className="text-sm font-bold uppercase tracking-wider text-slate-300 mb-1">DKIM (TXT)</p>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <code className="flex-1 font-mono text-slate-300 break-all">{newDomain.dkim_record_name}</code>
+                  <code className="flex-1 font-mono text-sm font-bold text-slate-200 break-all">{newDomain.dkim_record_name}</code>
                   <CopyButton text={newDomain.dkim_record_name} label="DKIM record name" />
                 </div>
                 <code className="block mt-1 font-mono text-slate-400 break-all">{newDomain.dkim_record_value}</code>
               </div>
               <div className="rounded-xl border border-canvas-border bg-canvas p-3">
-                <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">SPF (TXT)</p>
+                <p className="text-sm font-bold uppercase tracking-wider text-slate-300 mb-1">SPF (TXT)</p>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <code className="flex-1 font-mono text-slate-300 break-all">@{newDomain.name}</code>
+                  <code className="flex-1 font-mono text-sm font-bold text-slate-200 break-all">@{newDomain.name}</code>
                   <CopyButton text={`@${newDomain.name}`} label="SPF record name" />
                 </div>
                 <code className="block mt-1 font-mono text-slate-400 break-all">{newDomain.spf_record}</code>
               </div>
               <div className="rounded-xl border border-canvas-border bg-canvas p-3">
-                <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">DMARC (TXT)</p>
+                <p className="text-sm font-bold uppercase tracking-wider text-slate-300 mb-1">DMARC (TXT)</p>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <code className="flex-1 font-mono text-slate-300 break-all">_dmarc.{newDomain.name}</code>
+                  <code className="flex-1 font-mono text-sm font-bold text-slate-200 break-all">_dmarc.{newDomain.name}</code>
                   <CopyButton text={`_dmarc.${newDomain.name}`} label="DMARC record name" />
                 </div>
                 <code className="block mt-1 font-mono text-slate-400 break-all">{newDomain.dmarc_record}</code>
@@ -418,14 +419,14 @@ export default function DomainsPage() {
                       {domain.status.charAt(0).toUpperCase() + domain.status.slice(1)}
                     </span>
                     <svg
-                      className={`h-5 w-5 shrink-0 text-slate-500 transition-transform duration-200 ${
+                      className={`h-6 w-6 shrink-0 text-slate-400 transition-transform duration-200 ${
                         expanded ? 'rotate-180' : ''
                       }`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
 
@@ -447,7 +448,7 @@ export default function DomainsPage() {
                           {checks[domain.id].map((check) => (
                             <div
                               key={check.type}
-                              className={`flex flex-col gap-1 border px-3 py-2 text-xs ${
+                              className={`flex flex-col gap-1 rounded-xl border px-3 py-2 text-sm ${
                                 check.verified
                                   ? 'border-emerald-500/20 bg-emerald-500/[0.04]'
                                   : 'border-red-500/20 bg-red-500/[0.04]'
@@ -455,15 +456,15 @@ export default function DomainsPage() {
                             >
                               <div className="flex items-center gap-2">
                                 <span
-                                  className={`font-semibold ${
+                                  className={`text-sm font-bold tracking-wide ${
                                     check.verified ? 'text-emerald-400' : 'text-red-400'
                                   }`}
                                 >
-                                  {check.type} {check.verified ? '?' : '?'}
+                                  {check.type} {check.verified ? '✓' : '✗'}
                                 </span>
                                 <code className="font-mono text-slate-500">{check.hostname}</code>
                               </div>
-                              <p className="text-slate-400">{check.detail}</p>
+                              <p className="font-medium text-slate-300">{check.detail}</p>
                             </div>
                           ))}
                         </div>
@@ -471,26 +472,26 @@ export default function DomainsPage() {
 
                       {/* DNS Records */}
                       <div className="space-y-3 text-sm">
-                        <div className="border border-canvas-border bg-canvas p-3">
-                          <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">DKIM (TXT)</p>
+                        <div className="rounded-xl border border-canvas-border bg-canvas p-3">
+                          <p className="text-sm font-bold uppercase tracking-wider text-slate-300 mb-1">DKIM (TXT)</p>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <code className="flex-1 font-mono text-slate-300 break-all">{domain.dkim_record_name}</code>
+                            <code className="flex-1 font-mono text-sm font-bold text-slate-200 break-all">{domain.dkim_record_name}</code>
                             <CopyButton text={domain.dkim_record_name} label="DKIM record name" />
                           </div>
                           <code className="block mt-1 font-mono text-slate-400 break-all">{domain.dkim_record_value}</code>
                         </div>
-                        <div className="border border-canvas-border bg-canvas p-3">
-                          <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">SPF (TXT)</p>
+                        <div className="rounded-xl border border-canvas-border bg-canvas p-3">
+                          <p className="text-sm font-bold uppercase tracking-wider text-slate-300 mb-1">SPF (TXT)</p>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <code className="flex-1 font-mono text-slate-300 break-all">@{domain.name}</code>
+                            <code className="flex-1 font-mono text-sm font-bold text-slate-200 break-all">@{domain.name}</code>
                             <CopyButton text={`@${domain.name}`} label="SPF record name" />
                           </div>
                           <code className="block mt-1 font-mono text-slate-400 break-all">{domain.spf_record}</code>
                         </div>
-                        <div className="border border-canvas-border bg-canvas p-3">
-                          <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">DMARC (TXT)</p>
+                        <div className="rounded-xl border border-canvas-border bg-canvas p-3">
+                          <p className="text-sm font-bold uppercase tracking-wider text-slate-300 mb-1">DMARC (TXT)</p>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <code className="flex-1 font-mono text-slate-300 break-all">_dmarc.{domain.name}</code>
+                            <code className="flex-1 font-mono text-sm font-bold text-slate-200 break-all">_dmarc.{domain.name}</code>
                             <CopyButton text={`_dmarc.${domain.name}`} label="DMARC record name" />
                           </div>
                           <code className="block mt-1 font-mono text-slate-400 break-all">{domain.dmarc_record}</code>
@@ -505,16 +506,16 @@ export default function DomainsPage() {
                             verifyDomain(domain.id);
                           }}
                           disabled={checking}
-                          className="bg-brand px-4 py-1.5 text-sm font-medium text-black transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-wait"
+                          className="rounded-xl bg-brand px-4 py-1.5 text-sm font-medium text-black transition-colors hover:bg-brand/90 disabled:opacity-50 disabled:cursor-wait"
                         >
                           {checking ? 'Verifying…' : 'Verify DNS'}
                         </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            deleteDomain(domain.id);
+                            setPendingDelete(domain);
                           }}
-                          className="border border-canvas-border px-4 py-1.5 text-sm font-medium text-slate-400 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30 transition-colors"
+                          className="rounded-xl border border-canvas-border px-4 py-1.5 text-sm font-medium text-slate-400 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30 transition-colors"
                         >
                           Delete
                         </button>
@@ -525,6 +526,14 @@ export default function DomainsPage() {
               );
             })}
           </div>
+        )}
+
+        {pendingDelete && (
+          <DeleteDomainDialog
+            domainName={pendingDelete.name}
+            onConfirm={() => deleteDomain(pendingDelete.id)}
+            onClose={() => setPendingDelete(null)}
+          />
         )}
       </section>
     </div>
