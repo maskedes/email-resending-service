@@ -8,19 +8,35 @@ let pool: Pool | null = null;
  * configured) and runs the schema migrations.
  */
 export async function initDatabase(): Promise<void> {
-  await ensureEmbeddedDatastores();
-  const pg = resolvePgConfig();
+  try {
+    await ensureEmbeddedDatastores();
+    const pg = resolvePgConfig();
 
-  pool = new Pool({
-    host: pg.host,
-    port: pg.port,
-    user: pg.user,
-    password: pg.password,
-    database: pg.database,
-  });
+    pool = new Pool({
+      host: pg.host,
+      port: pg.port,
+      user: pg.user,
+      password: pg.password,
+      database: pg.database,
+    });
 
-  await pool.query('SELECT 1');
-  await runMigrations(pool);
+    await pool.query('SELECT 1');
+    await runMigrations(pool);
+  } catch (err) {
+    // Some managed containers (e.g. Pterodactyl yolks running as an unknown
+    // uid on a read-only /etc) cannot boot the embedded PostgreSQL at all.
+    // When Supabase is configured the core pipeline (api keys, emails,
+    // profiles, queue via REDIS_URL) runs without local PG — degrade to a
+    // Supabase-only mode instead of refusing to start. Features backed by
+    // the local pool (site links, SMS gateway tracking) will report errors
+    // per-request on such hosts.
+    if (!process.env.SUPABASE_URL) throw err;
+    console.error(
+      '[db] local PostgreSQL unavailable — continuing in Supabase-only mode:',
+      (err as Error).message
+    );
+    pool = null;
+  }
 }
 
 export function getPool(): Pool {
