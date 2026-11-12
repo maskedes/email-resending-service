@@ -1,6 +1,6 @@
 {
   "name": "@maskedes/envoy-cli",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "E-NVOY CLI — Send emails, manage domains, and monitor delivery from your terminal",
   "main": "dist/index.js",
   "bin": {
