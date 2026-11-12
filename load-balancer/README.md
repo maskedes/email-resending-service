@@ -22,13 +22,15 @@ serve any request.
 
 ## Config
 
-| Env var       | Default                                                | Purpose            |
-| ------------- | ------------------------------------------------------ | ------------------ |
-| `LB_UPSTREAMS` | `http://78.154.103.19:12083,http://212.227.38.182:6113` | Comma-separated upstream base URLs |
+| Env var       | Default                                                                           | Purpose            |
+| ------------- | --------------------------------------------------------------------------------- | ------------------ |
+| `LB_UPSTREAMS` | `http://78-154-103-19.sslip.io:12083,http://212-227-38-182.sslip.io:6113` | Comma-separated upstream base URLs |
 
-Update the defaults in `api/lb.ts` (or set the env var) when a server
-allocation changes. No secrets are required — both upstream addresses
-are public allocation IPs.
+Vercel Edge forbids fetching bare IP addresses, so upstreams use
+[sslip.io](https://sslip.io) wildcard-DNS hostnames that resolve to the
+server allocation IPs. If an allocation IP changes, update the defaults
+in `api/lb.ts` (or set the env var) and redeploy. No secrets are
+required — both addresses are public allocation IPs.
 
 ## Deploy
 

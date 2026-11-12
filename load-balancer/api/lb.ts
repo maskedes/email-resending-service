@@ -14,7 +14,10 @@ export const config = { runtime: 'edge' };
 
 declare const process: { env: Record<string, string | undefined> };
 
-const DEFAULT_UPSTREAMS = 'http://78.154.103.19:12083,http://212.227.38.182:6113';
+// Vercel Edge forbids fetching bare IPs, so upstreams are expressed as
+// sslip.io wildcard-DNS hostnames that resolve to the allocation IPs
+// (78-154-103-19.sslip.io -> 78.154.103.19, etc).
+const DEFAULT_UPSTREAMS = 'http://78-154-103-19.sslip.io:12083,http://212-227-38-182.sslip.io:6113';
 
 const UPSTREAMS: string[] = (process.env.LB_UPSTREAMS || DEFAULT_UPSTREAMS)
   .split(',')
