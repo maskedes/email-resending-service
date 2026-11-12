@@ -8,6 +8,7 @@ import { logsCommand } from './commands/logs';
 import { statsCommand } from './commands/stats';
 import { initCommand } from './commands/init';
 import { smsCommand } from './commands/sms';
+import { picCommand } from './commands/pic';
 
 const pkg = require('../package.json');
 
@@ -94,24 +95,32 @@ program
   .argument('<id>', 'Domain ID')
   .action(async (id) => { await domainsCommand('delete', id, getGlobalOpts() as any); });
 
-// envoy keys
+// envoy keys — API keys are generated from the dashboard only; the CLI can
+// list and delete them but never mints new ones.
 program
   .command('keys')
-  .description('List all API keys')
+  .description('List all API keys (create keys from the dashboard)')
   .action(async () => { await keysCommand('list', undefined, undefined, getGlobalOpts() as any); });
-program
-  .command('key-create')
-  .alias('key:create')
-  .description('Create a new API key')
-  .argument('<name>', 'Key label')
-  .option('--email <email>', 'Associated email address', '')
-  .action(async (name, opts) => { await keysCommand('create', name, opts, getGlobalOpts() as any); });
 program
   .command('key-delete')
   .alias('key:delete')
   .description('Permanently delete an API key')
   .argument('<id>', 'API key ID')
   .action(async (id) => { await keysCommand('delete', id, undefined, getGlobalOpts() as any); });
+
+// envoy pic
+program
+  .command('pic')
+  .description('Show your profile picture')
+  .action(async () => { await picCommand('get', {}, getGlobalOpts() as any); });
+program
+  .command('pic-set')
+  .alias('pic:set')
+  .description('Set your profile picture (from a file, a URL, or clear it)')
+  .option('--file <path>', 'Image file to upload (png/jpg/webp/gif/svg, resized output ≤256×256 recommended)')
+  .option('--url <url>', 'http(s) URL of the image')
+  .option('--clear', 'Remove the current picture')
+  .action(async (opts) => { await picCommand('set', opts, getGlobalOpts() as any); });
 
 // envoy logs
 program

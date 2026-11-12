@@ -35,9 +35,10 @@ envoy stats
 | `envoy domain-add <name>` | Register a new domain |
 | `envoy domain-verify <id>` | Trigger DNS verification |
 | `envoy domain-delete <id>` | Delete a domain |
-| `envoy keys` | List all API keys |
-| `envoy key-create <name>` | Create a new API key |
+| `envoy keys` | List all API keys (create keys from the dashboard) |
 | `envoy key-delete <id>` | Delete an API key |
+| `envoy pic` | Show your profile picture |
+| `envoy pic-set --file/--url/--clear` | Set or clear your profile picture |
 | `envoy logs` | View email logs |
 | `envoy stats` | View delivery statistics |
 

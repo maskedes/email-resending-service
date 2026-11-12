@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, type ChangeEvent } from 'react';
 import {
   updateEmail,
   changePassword,
@@ -72,6 +72,92 @@ export default function SettingsPage() {
   const [draftAvatar, setDraftAvatar] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileError, setProfileError] = useState('');
+
+  // Profile picture (avatar) upload
+  const picInputRef = useRef<HTMLInputElement>(null);
+  const [picBusy, setPicBusy] = useState(false);
+  const [picMsg, setPicMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+
+  // Downscale the chosen image to a 256×256 JPEG data URL so it stays small
+  // enough to store inline, then persist via the profile endpoint.
+  async function processPicFile(file: File): Promise<string> {
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error('Could not read the file.'));
+      reader.readAsDataURL(file);
+    });
+
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => reject(new Error('Not a valid image file.'));
+      el.src = dataUrl;
+    });
+
+    const size = 256;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas not supported in this browser.');
+    // Cover-fit the source image into the square canvas.
+    const scale = Math.max(size / img.width, size / img.height);
+    const w = img.width * scale;
+    const h = img.height * scale;
+    ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+    const out = canvas.toDataURL('image/jpeg', 0.85);
+    if (out.length > 280_000) throw new Error('Image too large after resize — try a smaller one.');
+    return out;
+  }
+
+  async function handlePickPic(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = ''; // allow re-picking the same file
+    if (!file) return;
+    setPicBusy(true);
+    setPicMsg(null);
+    try {
+      const avatar_url = await processPicFile(file);
+      const res = await fetch('/api/auth/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatar_url }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error?.message || 'Failed to save the picture.');
+      }
+      setUser((u) => (u ? { ...u, avatar_url } : u));
+      setPicMsg({ type: 'ok', text: 'Profile picture updated.' });
+    } catch (err) {
+      setPicMsg({ type: 'err', text: err instanceof Error ? err.message : 'Upload failed.' });
+    } finally {
+      setPicBusy(false);
+    }
+  }
+
+  async function handleRemovePic() {
+    setPicBusy(true);
+    setPicMsg(null);
+    try {
+      const res = await fetch('/api/auth/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatar_url: '' }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error?.message || 'Failed to remove the picture.');
+      }
+      setUser((u) => (u ? { ...u, avatar_url: null } : u));
+      setPicMsg({ type: 'ok', text: 'Profile picture removed.' });
+    } catch (err) {
+      setPicMsg({ type: 'err', text: err instanceof Error ? err.message : 'Removal failed.' });
+    } finally {
+      setPicBusy(false);
+    }
+  }
 
   // Change email
   const [newEmail, setNewEmail] = useState('');
@@ -343,6 +429,66 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-4">
+            {/* Profile picture */}
+            <div className="flex items-center gap-4 rounded-2xl border border-canvas-border bg-canvas/30 p-4">
+              <button
+                type="button"
+                onClick={() => !picBusy && picInputRef.current?.click()}
+                disabled={picBusy || loading}
+                aria-label="Set profile picture"
+                className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border border-canvas-border bg-canvas transition hover:border-brand/60 disabled:opacity-50"
+              >
+                {user?.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={user.avatar_url} alt="Profile picture" className="h-full w-full object-cover" />
+                ) : (
+                  <svg className="h-full w-full text-slate-500" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                  </svg>
+                )}
+                <span className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity hover:opacity-100">
+                  <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </span>
+              </button>
+              <div className="min-w-0 flex-1">
+                <p className="text-white font-medium">Profile Picture</p>
+                <p className="text-sm text-slate-400">Shown as your avatar. Click the circle to upload — any user can set their picture here or via the SDK CLI (<span className="font-mono text-slate-300">envoy pic</span>).</p>
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => picInputRef.current?.click()}
+                    disabled={picBusy || loading}
+                    className="rounded-lg border border-canvas-border bg-canvas px-3 py-1.5 text-xs font-medium text-slate-200 transition hover:text-white disabled:opacity-50"
+                  >
+                    {picBusy ? 'Working…' : user?.avatar_url ? 'Replace' : 'Upload picture'}
+                  </button>
+                  {user?.avatar_url && (
+                    <button
+                      type="button"
+                      onClick={handleRemovePic}
+                      disabled={picBusy}
+                      className="rounded-lg border border-canvas-border bg-canvas px-3 py-1.5 text-xs font-medium text-slate-400 transition hover:text-white disabled:opacity-50"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+                {picMsg && (
+                  <p className={`mt-2 text-xs ${picMsg.type === 'ok' ? 'text-emerald-400' : 'text-red-300'}`}>{picMsg.text}</p>
+                )}
+              </div>
+              <input
+                ref={picInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handlePickPic}
+              />
+            </div>
+
             <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-canvas-border bg-canvas/30 p-4">
               <div>
                 <p className="text-sm text-slate-400">Display Name</p>

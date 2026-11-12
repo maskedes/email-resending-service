@@ -18,6 +18,7 @@ import smsGatewayRoutes from './routes/smsGatewayRoutes.js';
 import siteLinkRoutes, { publicSiteLinkRouter } from './routes/siteLinkRoutes.js';
 import inboundRoutes from './routes/inboundRoutes.js';
 import forwardingRoutes from './routes/forwardingRoutes.js';
+import profileRoutes from './routes/profileRoutes';
 
 // ─── Last-resort stability net ───────────────────────────────────────────
 // Express 4 does NOT route async rejections to the error middleware, and any
@@ -42,6 +43,8 @@ app.use(cors());
 // a dedicated parser BEFORE the global one; every other endpoint keeps the
 // small default budget.
 app.use('/api/emails/send', express.json({ limit: '14mb' }));
+// Profile pictures ride in as inline data:image payloads (~300KB encoded).
+app.use('/api/profile/pic', express.json({ limit: '2mb' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -85,6 +88,7 @@ app.use('/api/sms', smsRoutes);
 app.use('/api/sites-links', siteLinkRoutes);
 app.use('/api/inbound', inboundRoutes);
 app.use('/api/forwarding', forwardingRoutes);
+app.use('/api/profile', profileRoutes);
 app.use('/', publicSiteLinkRouter);
 
 // Health check

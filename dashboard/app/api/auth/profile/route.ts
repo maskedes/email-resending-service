@@ -3,7 +3,8 @@ import { requireSupabaseUser } from '@/lib/auth-server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 const NAME_MAX = 150;
-const URL_MAX = 500;
+// Allow inline data:image payloads (~256px JPEG) in addition to http(s) URLs.
+const URL_MAX = 300_000;
 
 /**
  * Updates the editable profile fields (display name + avatar) for the

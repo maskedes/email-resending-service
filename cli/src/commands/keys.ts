@@ -2,12 +2,12 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { config, api } from '../config';
 
-type KeyAction = 'list' | 'create' | 'delete';
+type KeyAction = 'list' | 'delete';
 
 interface GlobalOpts2 { apiKey?: string; host?: string; edgeProxySecret?: string; edgeSecret?: string; json?: boolean }
 function apiOpts2(g?: GlobalOpts2) { return { apiKey: g?.apiKey, host: g?.host, edgeProxySecret: g?.edgeProxySecret || g?.edgeSecret }; }
 
-export async function keysCommand(action: KeyAction, arg?: string, opts?: { email?: string }, globalOpts?: GlobalOpts2) {
+export async function keysCommand(action: KeyAction, arg?: string, _opts?: { email?: string }, globalOpts?: GlobalOpts2) {
   switch (action) {
     case 'list': {
       const spinner = ora('  Loading API keys...').start();
@@ -21,7 +21,7 @@ export async function keysCommand(action: KeyAction, arg?: string, opts?: { emai
         spinner.stop();
 
         if (!keys.length) {
-          console.log(chalk.dim('\n  No API keys yet. Create one with: envoy key-create "My App"\n'));
+          console.log(chalk.dim('\n  No API keys yet. Create one from the dashboard (API Keys page) — the CLI no longer mints keys.\n'));
           return;
         }
 
@@ -36,41 +36,6 @@ export async function keysCommand(action: KeyAction, arg?: string, opts?: { emai
             console.log(`    ${chalk.dim('Last used:')} ${new Date(k.last_used_at as string).toLocaleString()}`);
           }
           console.log('');
-        }
-      } catch {
-        spinner.fail(chalk.red('  Network error'));
-        process.exit(1);
-      }
-      break;
-    }
-
-    case 'create': {
-      if (!arg) {
-        console.error(chalk.red('\n  ✗ Key name is required.\n'));
-        process.exit(1);
-      }
-      const spinner = ora(`  Creating API key "${arg}"...`).start();
-      try {
-        const { status, data } = await api('POST', '/api/apikeys', {
-          name: arg,
-          email: opts?.email || '',
-        }, apiOpts2(globalOpts));
-        if (status === 201) {
-          const result = data as Record<string, unknown>;
-          spinner.succeed(chalk.green('  API key created!'));
-          console.log('');
-          console.log(`  ${chalk.dim('Name:')}  ${chalk.white(result.name)}`);
-          console.log(`  ${chalk.dim('ID:')}    ${chalk.dim(result.id)}`);
-          console.log('');
-          console.log(chalk.bold.yellow('  ⚠ Save this key now — it won\'t be shown again:\n'));
-          console.log(`  ${chalk.bold.white(result.key)}`);
-          console.log('');
-          console.log(chalk.dim('  Set it with: envoy init'));
-          console.log('');
-        } else {
-          const err = data as { error?: { message?: string } };
-          spinner.fail(chalk.red(`  ${err.error?.message || 'Failed to create key'}`));
-          process.exit(1);
         }
       } catch {
         spinner.fail(chalk.red('  Network error'));

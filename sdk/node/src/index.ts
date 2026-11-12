@@ -114,12 +114,38 @@ export class EmailsResource {
 }
 
 /**
+ * The profile API surface, reachable as `envoy.profile`.
+ */
+export class ProfileResource {
+  /** @internal */
+  constructor(private readonly client: ENovoy) {}
+
+  /** Get the current profile picture (http(s) URL or inline data:image). */
+  async getPic(): Promise<{ avatar_url: string | null }> {
+    return this.client.request<{ avatar_url: string | null }>('GET', '/api/profile/pic');
+  }
+
+  /**
+   * Set the profile picture. Pass an http(s) URL, an inline `data:image/…`
+   * payload (≤256×256 recommended), or `''` to clear it.
+   */
+  async setPic(avatarUrl: string): Promise<{ avatar_url: string | null; message?: string }> {
+    return this.client.request<{ avatar_url: string | null; message?: string }>(
+      'PUT',
+      '/api/profile/pic',
+      { avatar_url: avatarUrl },
+    );
+  }
+}
+
+/**
  * The unified E-NVOY client. One instance per API key.
  */
 export class ENovoy {
   readonly apiKey: string;
   readonly host: string;
   readonly emails: EmailsResource;
+  readonly profile: ProfileResource;
 
   constructor(options: ENovoyOptions) {
     if (!options || !options.apiKey) {
@@ -128,6 +154,7 @@ export class ENovoy {
     this.apiKey = options.apiKey;
     this.host = (options.host || DEFAULT_HOST).replace(/\/+$/, '');
     this.emails = new EmailsResource(this);
+    this.profile = new ProfileResource(this);
   }
 
   /** @internal — used by resource classes. */
