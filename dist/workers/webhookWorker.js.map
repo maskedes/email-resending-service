@@ -1,0 +1,1 @@
+{"version":3,"file":"webhookWorker.js","sourceRoot":"","sources":["../../src/workers/webhookWorker.ts"],"names":[],"mappings":";;AAIA,8CAIC;AARD,wDAAmF;AACnF,+DAAoE;AAEpE,4EAA4E;AAC5E,SAAgB,iBAAiB;IAC/B,IAAA,iCAAkB,EAAC;QACjB,OAAO,EAAE,CAAC,IAA4B,EAAE,EAAE,CAAC,IAAA,uCAAsB,EAAC,IAAI,CAAC;KACxE,CAAC,CAAC;AACL,CAAC"}

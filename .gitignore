@@ -1,5 +1,10 @@
 node_modules/
-dist/
+# Compiled backend IS committed — Pterodactyl hosts run `npm install --production`
+# with no build step, so the egg needs dist/ present in the repo.
+!dist/
+cli/dist/
+sdk/node/dist/
+dashboard/dist/
 data/
 .env
 .env.local

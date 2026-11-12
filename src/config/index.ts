@@ -8,8 +8,11 @@ const useEmbedded = process.env.USE_EMBEDDED === 'true' || !hasExternalPg;
 
 export const config = {
   env: process.env.NODE_ENV || 'development',
-  port: parseInt(process.env.PORT || '3000', 10),
-  host: process.env.HOST || 'localhost',
+  // Pterodactyl hosts inject the allocation as SERVER_PORT (no PORT var set).
+  port: parseInt(process.env.PORT || process.env.SERVER_PORT || '3000', 10),
+  // Bind all interfaces on Pterodactyl/managed hosts so the allocation is
+  // reachable externally; localhost default stays for bare local dev.
+  host: process.env.HOST || (process.env.SERVER_PORT ? '0.0.0.0' : 'localhost'),
 
   /** True when no real PostgreSQL is configured — we boot an embedded instance. */
   useEmbedded,
