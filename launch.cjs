@@ -39,7 +39,7 @@ if (userInfoBroken()) {
 
   if (!fixed) {
     const { registerHooks } = require('node:module');
-    const shimPath = path.join(__dirname, 'os-passwd-shim.cjs');
+    const shimPath = path.join(__dirname, 'scripts', 'os-passwd-shim.cjs');
     if (typeof registerHooks === 'function') {
       registerHooks({
         resolve(specifier, context, nextResolve) {
@@ -63,4 +63,4 @@ if (userInfoBroken()) {
   }
 }
 
-require(path.join(__dirname, '..', 'dist', 'index.js'));
+require(path.join(__dirname, 'dist', 'index.js'));
