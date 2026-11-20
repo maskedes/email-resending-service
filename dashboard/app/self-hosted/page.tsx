@@ -4,7 +4,7 @@ import { SelfHostedIcon } from '../components/FeatureIcons';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Self-Hosted',
+  title: 'Self-Host E-NVOY: Run Email on Your Own Server',
   description: 'Run E-NVOY on your own infrastructure. Full source available, your data stays with you, and there are no per-email fees.',
   alternates: { canonical: '/self-hosted' },
 };

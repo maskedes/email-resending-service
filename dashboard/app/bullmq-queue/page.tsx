@@ -4,7 +4,7 @@ import { BullMqIcon } from '../components/FeatureIcons';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'BullMQ Queue',
+  title: 'BullMQ Queue: Redis Jobs with Automatic Retries',
   description: 'Resilient, Redis-backed job processing for email: automatic retries with exponential backoff and horizontally scalable worker pools.',
   alternates: { canonical: '/bullmq-queue' },
 };

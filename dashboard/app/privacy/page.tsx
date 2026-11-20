@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy',
+  title: 'Privacy Policy: Data Handling & Your Rights',
   description:
     'How E-NVOY collects, uses, stores and protects information when you use our email and SMS sending service, dashboard and APIs.',
   alternates: { canonical: '/privacy' },

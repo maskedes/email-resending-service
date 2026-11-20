@@ -4,7 +4,7 @@ import { ApiKeyIcon } from '../components/FeatureIcons';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'API Key Auth',
+  title: 'API Key Auth: HMAC Keys, Scopes & Rate Limits',
   description: 'HMAC-signed, scoped API keys with full CRUD from the dashboard. Rotate and revoke instantly with zero downtime and per-key rate limits.',
   alternates: { canonical: '/api-key-auth' },
 };

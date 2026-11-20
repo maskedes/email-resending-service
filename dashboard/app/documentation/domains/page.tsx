@@ -3,7 +3,7 @@ import Navbar from '../../components/Navbar';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Sending Domains — E-NVOY Docs',
+  title: 'Sending Domains: DKIM, SPF & DMARC Setup Guide',
   description:
     'Add a sending domain to E-NVOY: SPF, DKIM and DMARC records, main domain vs subdomain guidance, and how verification works.',
   alternates: { canonical: '/documentation/domains' },

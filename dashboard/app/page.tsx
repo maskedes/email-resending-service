@@ -294,7 +294,7 @@ export default function Home() {
             {/* Left: brand */}
             <div className="text-center md:text-left">
               <div className="flex items-center justify-center gap-2 text-lg font-semibold text-white md:justify-start">
-                <img src="/logo-icon.svg" alt="E-NVOY" className="h-7 w-7" />
+                <img src="/logo-icon.svg" alt="E-NVOY" className="h-7 w-7" width={28} height={28} />
                 <span>E-NVOY</span>
               </div>
             </div>

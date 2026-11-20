@@ -4,7 +4,7 @@ import { API_URL } from '@/lib/api';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'API Reference',
+  title: 'API Reference: Every Endpoint & Parameter',
   description: 'Full E-NVOY REST API reference: every endpoint, parameter, and response for sending, listing, and tracking emails.',
   alternates: { canonical: '/api-reference' },
 };

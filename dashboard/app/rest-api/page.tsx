@@ -5,7 +5,7 @@ import { API_URL } from '@/lib/api';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'REST API',
+  title: 'REST API: Send Email with a Single POST Request',
   description: 'Send email with a single authenticated POST. Idempotent requests with automatic retries and webhooks for delivery events.',
   alternates: { canonical: '/rest-api' },
 };

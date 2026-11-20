@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Self-Hosted Setup',
+  title: 'Self-Hosted Setup: Docker Compose in Four Steps',
   description: 'Deploy the full E-NVOY stack in minutes with Docker Compose: clone the repo, configure env, start the stack, and point your DNS.',
   alternates: { canonical: '/self-hosted-setup' },
 };

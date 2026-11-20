@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'CEO Bio & Company Values',
+  title: 'CEO Bio: The Values Behind E-NVOY Open Source',
   description: 'Meet the founder behind E-NVOY and the open-by-default, deliverability-first, developer-focused values driving the project.',
   alternates: { canonical: '/ceo-bio' },
 };

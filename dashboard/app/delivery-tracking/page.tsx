@@ -4,7 +4,7 @@ import { DeliveryTrackingIcon } from '../components/FeatureIcons';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Delivery Tracking',
+  title: 'Delivery Tracking: Opens, Clicks & Bounce Handling',
   description: 'Real-time insight into every message: accepted, delivered, opened, and clicked, with automatic bounce and complaint handling.',
   alternates: { canonical: '/delivery-tracking' },
 };

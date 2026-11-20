@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Help & FAQ',
+  title: 'Help Center: Guides, Tutorials & Troubleshooting',
   description: 'E-NVOY help center: sending your first email, fixing spam placement, rotating API keys, and self-hosting questions answered.',
   alternates: { canonical: '/help' },
 };

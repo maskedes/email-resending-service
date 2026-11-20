@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Documentation',
+  title: 'Documentation: Quickstart, API & Setup Guides',
   description: 'E-NVOY guides: quickstart, REST API reference, self-hosted setup, SDKs, deliverability, and domain/API-key/webhook guides.',
   alternates: { canonical: '/documentation' },
 };

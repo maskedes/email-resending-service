@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Support',
+  title: 'Support: Response Times, Channels & SLA Details',
   description: 'E-NVOY support channels and response SLAs for Free, Pro, and Enterprise plans, plus GitHub issue tracking.',
   alternates: { canonical: '/support' },
 };

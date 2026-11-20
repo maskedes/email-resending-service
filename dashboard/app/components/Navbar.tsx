@@ -270,7 +270,7 @@ export default function Navbar() {
         {/* ── Logo ── */}
         <div className="flex flex-1">
           <Link href="/" className="flex items-center gap-2 py-1 text-lg font-semibold tracking-tight text-white transition duration-150">
-            <img src="/logo-icon.svg" alt="E-NVOY" className="h-8 w-8" />
+            <img src="/logo-icon.svg" alt="E-NVOY" className="h-8 w-8" width={32} height={32} />
             <span>E-NVOY</span>
           </Link>
         </div>

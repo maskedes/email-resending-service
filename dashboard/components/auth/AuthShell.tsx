@@ -17,7 +17,7 @@ export default function AuthShell({
     <div className="flex min-h-screen flex-col bg-canvas text-white">
       <header className="flex h-14 items-center gap-3 px-6 sm:px-10">
         <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold tracking-tight text-white">
-          <img src="/logo-icon.svg" alt="E-NVOY" className="h-7 w-7" />
+          <img src="/logo-icon.svg" alt="E-NVOY" className="h-7 w-7" width={28} height={28} />
           E-NVOY
         </Link>
         <Link href="/" className="ml-auto text-sm text-slate-400 transition hover:text-white">

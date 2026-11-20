@@ -3,7 +3,7 @@ import Navbar from '../../components/Navbar';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Webhooks — E-NVOY Docs',
+  title: 'Webhooks: Signatures, Events & Retries Guide',
   description:
     'Receive real-time HTTP notifications for email and SMS events from E-NVOY. Event list, payload schemas, HMAC signature verification, retries and delivery history.',
   alternates: { canonical: '/documentation/webhooks' },

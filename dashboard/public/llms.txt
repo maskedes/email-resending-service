@@ -1,0 +1,35 @@
+# E-NVOY
+
+> E-NVOY is a free, open source email and SMS sending service with SMTP relay, a REST API, and real-time delivery tracking.
+
+E-NVOY lets developers and businesses send transactional and marketing emails through a simple JSON API or standard SMTP, using their own sending domains with DKIM, SPF, and DMARC authentication. Messages are queued in Redis and delivered by background workers with automatic retries, bounce handling, and webhook notifications.
+
+## Product pages
+
+- [Home](https://mailenvoy.qd.je/): Free open source email sending service overview.
+- [REST API](https://mailenvoy.qd.je/rest-api): Send email with a single authenticated POST request.
+- [SMTP Relay](https://mailenvoy.qd.je/smtp-relay): Connect any application that speaks SMTP.
+- [API Key Auth](https://mailenvoy.qd.je/api-key-auth): HMAC-signed, scoped API keys with instant rotation.
+- [Delivery Tracking](https://mailenvoy.qd.je/delivery-tracking): Real-time queue status, opens, clicks, and bounces.
+- [BullMQ Queue](https://mailenvoy.qd.je/bullmq-queue): Redis-backed job processing with automatic retries.
+- [Self-Hosted](https://mailenvoy.qd.je/self-hosted): Run E-NVOY on your own infrastructure.
+
+## Documentation
+
+- [Documentation](https://mailenvoy.qd.je/documentation): Quickstart, guides, and references.
+- [API Reference](https://mailenvoy.qd.je/api-reference): Every endpoint, parameter, and response.
+- [Sending Domains](https://mailenvoy.qd.je/documentation/domains): DKIM, SPF, and DMARC setup guide.
+- [Webhooks](https://mailenvoy.qd.je/documentation/webhooks): Event payloads, signatures, and retries.
+- [Self-Hosted Setup](https://mailenvoy.qd.je/self-hosted-setup): Docker Compose deployment in four steps.
+- [Help Center](https://mailenvoy.qd.je/help): FAQs, tutorials, and troubleshooting.
+
+## Company
+
+- [Contact](https://mailenvoy.qd.je/contacts): Hotline, email, and support desk.
+- [Support](https://mailenvoy.qd.je/support): Response times, channels, and SLA details.
+- [CEO Bio](https://mailenvoy.qd.je/ceo-bio): The values behind E-NVOY open source.
+- [Privacy Policy](https://mailenvoy.qd.je/privacy): Data handling and your rights.
+
+## Optional
+
+- [GitHub repository](https://github.com/maskedes/email-resending-service): Source code and issue tracker.

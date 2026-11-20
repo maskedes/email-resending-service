@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Contact Us',
+  title: 'Contact: Support, Partnerships & Feedback',
   description: 'Reach the E-NVOY team by hotline, email, GitHub, or dedicated support desk for onboarding and partnerships.',
   alternates: { canonical: '/contacts' },
 };

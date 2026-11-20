@@ -4,7 +4,7 @@ import { SmtpIcon } from '../components/FeatureIcons';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'SMTP Relay',
+  title: 'SMTP Relay: Send Email from Any Application',
   description: 'Send from any app that already speaks SMTP. Standard SMTP and STARTTLS, per-account credentials, drop-in compatible with WordPress and Laravel.',
   alternates: { canonical: '/smtp-relay' },
 };

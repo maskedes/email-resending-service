@@ -20,8 +20,7 @@ const paths = [
   '/api-key-auth',
   '/delivery-tracking',
   '/bullmq-queue',
-  '/login',
-  '/signup',
+  '/self-hosted',
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
