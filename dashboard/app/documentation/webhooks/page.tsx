@@ -149,7 +149,7 @@ X-Webhook-Id: <webhook-id>
         </section>
 
         <p className="mt-8 text-xs text-slate-500">
-          Dashboard → Webhooks → <a href="/overview/webhooks" className="text-brand hover:underline">manage subscriptions &amp; history</a>.
+          Dashboard → Webhooks → <a href="/login" className="text-brand hover:underline">manage subscriptions &amp; history</a>.
         </p>
       </main>
     </div>

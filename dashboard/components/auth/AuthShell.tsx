@@ -28,7 +28,7 @@ export default function AuthShell({
       <main className="flex flex-1 items-center justify-center px-6 py-10 sm:px-10 sm:py-16">
         <div className="w-full max-w-xl">
           <h1 className="text-center text-3xl font-semibold tracking-tight text-white sm:text-4xl">{title}</h1>
-          <p className="mt-2 text-center text-sm text-slate-400 sm:text-base">{subtitle}</p>
+          <h2 className="mt-2 text-center text-sm text-slate-400 sm:text-base">{subtitle}</h2>
           <div className="mt-8 space-y-6">{children}</div>
         </div>
       </main>

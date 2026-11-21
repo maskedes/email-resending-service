@@ -40,6 +40,8 @@ export default function SelfHostedFeaturePage() {
           sending, storage, and deliverability.
         </p>
 
+        <h2 className="mt-10 text-xl font-semibold text-white">Run E-NVOY on your own infrastructure</h2>
+
         <div className="mt-8 space-y-3">
           {highlights.map((h) => (
             <div key={h} className="flex items-start gap-3 rounded-2xl border border-canvas-border bg-canvas-raised px-5 py-4">

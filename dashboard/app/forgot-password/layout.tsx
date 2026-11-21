@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: 'Forgot Password? Request a Secure Reset Link',
   description:
     'Request a password reset link for your E-NVOY account. Enter your email and we will send a secure reset link.',
-  robots: { index: false, follow: true },
+  alternates: { canonical: '/forgot-password' },
 };
 
 export default function ForgotPasswordLayout({ children }: { children: React.ReactNode }) {

@@ -50,6 +50,8 @@ export default function SelfHostedPage() {
 
         <pre className="overflow-x-auto rounded-2xl border border-canvas-border bg-canvas-raised p-5 text-sm text-slate-300"><code>{composeExample}</code></pre>
 
+        <h2 className="mt-10 text-xl font-semibold text-white">Four steps to a self-hosted stack</h2>
+
         <div className="mt-8 space-y-3">
           {steps.map((s) => (
             <div key={s.n} className="flex items-start gap-4 rounded-2xl border border-canvas-border bg-canvas-raised px-5 py-4">

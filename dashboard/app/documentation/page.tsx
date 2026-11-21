@@ -77,6 +77,8 @@ export default function DocumentationPage() {
           </div>
         </div>
 
+        <h2 className="mt-10 text-xl font-semibold text-white">Explore the E-NVOY documentation</h2>
+
         <div className="grid gap-3 sm:grid-cols-2">
           {sections.map((s) => (
             <Link

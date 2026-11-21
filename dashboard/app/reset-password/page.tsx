@@ -1,14 +1,13 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import AuthShell from '@/components/auth/AuthShell';
 import { updatePassword } from '@/lib/auth';
 
 function ResetPasswordForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [message, setMessage] = useState('');
@@ -17,8 +16,10 @@ function ResetPasswordForm() {
   const [ready, setReady] = useState(false);
 
   // Exchange the recovery code for a session so updateUser() works.
+  // Read `code` from the URL client-side (not useSearchParams) so the page
+  // can be statically prerendered with full HTML for crawlers.
   useEffect(() => {
-    const code = searchParams.get('code');
+    const code = new URLSearchParams(window.location.search).get('code');
     if (!code) {
       setError('Missing recovery code. Please use the link from your email.');
       return;
@@ -33,7 +34,7 @@ function ResetPasswordForm() {
           setReady(true);
         }
       });
-  }, [searchParams]);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -114,9 +115,5 @@ function ResetPasswordForm() {
 }
 
 export default function ResetPasswordPage() {
-  return (
-    <Suspense>
-      <ResetPasswordForm />
-    </Suspense>
-  );
+  return <ResetPasswordForm />;
 }

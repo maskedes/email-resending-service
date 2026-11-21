@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AuthShell from '@/components/auth/AuthShell';
 import OAuthButtons, { hasEnabledOAuthProviders } from '@/components/auth/OAuthButtons';
@@ -9,8 +9,6 @@ import { signInWithPassword } from '@/lib/auth';
 
 function LoginForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const next = searchParams.get('next') || '/overview';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,7 +27,10 @@ function LoginForm() {
       return;
     }
     setStatus('success');
-    router.push(next);
+    // Read `next` from the URL at submit time (client-only) so this page can
+    // be statically prerendered with full HTML for crawlers.
+    const params = new URLSearchParams(window.location.search);
+    router.push(params.get('next') || '/overview');
     router.refresh();
   }
 
@@ -175,9 +176,5 @@ function SignupStatusIcon({ status }: { status: SubmitStatus }) {
 }
 
 export default function LoginPage() {
-  return (
-    <Suspense>
-      <LoginForm />
-    </Suspense>
-  );
+  return <LoginForm />;
 }

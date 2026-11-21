@@ -47,6 +47,8 @@ export default function RestApiPage() {
 
         <pre className="mt-6 overflow-x-auto rounded-2xl border border-canvas-border bg-canvas-raised p-5 text-sm text-slate-300"><code>{example}</code></pre>
 
+        <h2 className="mt-10 text-xl font-semibold text-white">Send email with a single POST request</h2>
+
         <div className="mt-8 space-y-3">
           {highlights.map((h) => (
             <div key={h} className="flex items-start gap-3 rounded-2xl border border-canvas-border bg-canvas-raised px-5 py-4">

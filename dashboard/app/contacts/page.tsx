@@ -61,6 +61,8 @@ export default function ContactsPage() {
           </div>
         </div>
 
+        <h2 className="mt-10 text-xl font-semibold text-white">Ways to reach us</h2>
+
         <div className="space-y-3">
           {channels.map((c) =>
             c.href.startsWith('/') ? (

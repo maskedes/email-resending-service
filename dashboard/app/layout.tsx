@@ -145,7 +145,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Script>
         <noscript>
           <div>
-            <img src="https://mc.yandex.ru/watch/111997333" style={{ position: 'absolute', left: '-9999px' }} alt="" width={1} height={1} />
+            <img src="https://mc.yandex.ru/watch/111997333" style={{ position: 'absolute', left: '-9999px' }} alt="Yandex Metrica" width={1} height={1} />
           </div>
         </noscript>
         {/* Apply cached theme before paint to avoid a flash of the wrong theme. */}

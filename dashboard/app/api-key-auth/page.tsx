@@ -40,6 +40,8 @@ export default function ApiKeyAuthPage() {
           HMAC-signed and support full CRUD so you can roll them over safely.
         </p>
 
+        <h2 className="mt-10 text-xl font-semibold text-white">HMAC API keys with scopes and rate limits</h2>
+
         <div className="mt-8 space-y-3">
           {highlights.map((h) => (
             <div key={h} className="flex items-start gap-3 rounded-2xl border border-canvas-border bg-canvas-raised px-5 py-4">

@@ -40,6 +40,8 @@ export default function SmtpRelayPage() {
           changes required. Generate credentials in the dashboard and start sending.
         </p>
 
+        <h2 className="mt-10 text-xl font-semibold text-white">Drop-in SMTP relay for any application</h2>
+
         <div className="mt-8 space-y-3">
           {highlights.map((h) => (
             <div key={h} className="flex items-start gap-3 rounded-2xl border border-canvas-border bg-canvas-raised px-5 py-4">

@@ -633,7 +633,7 @@ export default function HeroLanguageTabs() {
       {/* Install hint */}
       <p className="mt-4 text-center text-xs text-slate-600">
         Set your <code className="rounded bg-canvas-border/50 px-1.5 py-0.5 text-slate-400">ENVOY_API_KEY</code> environment variable to your API key from the{' '}
-        <a href="/overview/api-keys" className="text-brand hover:underline">dashboard</a>
+        <a href="/login" className="text-brand hover:underline">dashboard</a>
       </p>
     </div>
   );

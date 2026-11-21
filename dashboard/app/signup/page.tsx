@@ -130,7 +130,7 @@ function SignupForm() {
           Acceptable Use
         </Link>
         , and{' '}
-        <Link href="#" className="text-slate-400 underline transition hover:text-white">
+        <Link href="/privacy" className="text-slate-400 underline transition hover:text-white">
           Privacy Policy
         </Link>
         .
